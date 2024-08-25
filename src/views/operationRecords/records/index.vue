@@ -590,15 +590,18 @@
         <el-button type="warning" plain icon="Download" @click="handleExport"
           v-hasPermi="['operationRecords:records:export']">导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="info" plain icon="Edit" @click="openSelectColumn">选择显示列</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
     <template>
       <div>
-        <el-form :inline="true" :model="filterForm" class="demo-form-inline">
+        <!-- <el-form :inline="true" :model="filterForm" class="demo-form-inline">
           <el-form-item v-for="column in columns" :key="column.prop">
             <el-checkbox v-model="visibleColumns" :label="column.prop">{{ column.label }}</el-checkbox>
           </el-form-item>
-        </el-form>
+        </el-form> -->
 
         <el-table v-loading="loading" :data="recordsList" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55" align="center" />
@@ -614,20 +617,52 @@
       </div>
     </template>
     <el-table :data="recordsList" border max-height="600"> style="width: 100%">
-    <el-table-column
-      v-for="col of columns"
-      :key="col.prop"
-      :prop="col.prop"
-      :label="col.label"
-      align="center"
-      header-align="center"
-      :min-width="col.minWidth || 'auto'"
-      :max-width="col.maxWidth || 'auto'"
-      :width="col.width || 'auto'"
-      :flex="col.flex || 'auto'" 
-    >
-    </el-table-column>
-      <el-table-column label="自增id" align="center" prop="id" v-if="showIdColumn" />
+      <!-- <el-table-column
+        v-for="col of columns"
+        :key="col.prop"
+        :prop="col.prop"
+        :label="col.label"
+        align="center"
+        header-align="center"
+        :min-width="col.minWidth || 'auto'"
+        :max-width="col.maxWidth || 'auto'"
+        :width="col.width || 'auto'"
+        :flex="col.flex || 'auto'" 
+      > -->
+      <!-- </el-table-column> -->
+      <template v-for="col in columns" :key="col.prop">
+        <el-table-column
+          v-if="col.visible"
+          :prop="col.prop"
+          :label="col.label"
+          :sortable="col.sortable"
+          :align="col.align"
+          :width="col.width"
+          :fixed="col.fixed"
+        >
+          <template #default="{ row }">
+            <el-input
+              v-if="row._editing"
+              v-model="row[col.prop]"
+              size="small"
+            ></el-input>
+            <span v-else>
+              <!-- Custom rendering logic based on column properties -->
+              <template v-if="col.custom">
+                <span v-if="col.prop === 'procurementOrderDate'">
+                  {{ parseTime(row[col.prop], '{y}-{m}-{d}') }}
+                </span>
+                <!-- Add more custom rendering cases here if needed -->
+              </template>
+              <template v-else>
+                {{ row[col.prop] }}
+              </template>
+            </span>
+          </template>
+        </el-table-column>
+      </template>
+      
+              <!-- <el-table-column label="自增id" align="center" prop="id" v-if="showIdColumn" />
       <el-table-column label="店铺名称" fixed sortable align="center" prop="storeName" min-width="150"/>
       <el-table-column label="MSKU" sortable align="center" prop="msku" />
       <el-table-column label="商品一级目录" sortable align="center" prop="categoryLevel1" />
@@ -724,12 +759,16 @@
           <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="记录当天有没有新增过记录" align="center" prop="version" v-if="showIdColumn" />
+      <el-table-column label="记录当天有没有新增过记录" align="center" prop="version" v-if="showIdColumn" /> -->
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right" min-width="150">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-            v-hasPermi="['operationRecords:records:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+        <template #default="{row}">
+          <el-button v-if="!row._editing" type="primary" icon="Edit" link  @click="editRow(row)" size="small"
+            >编辑</el-button
+          >
+          <el-button v-else  type="warning" icon="Edit" link @click="saveRow(row)" size="small">保存</el-button>
+          <!-- <el-button link type="primary" icon="Edit" @click="handleUpdate(row)"
+            v-hasPermi="['operationRecords:records:edit']">修改</el-button> -->
+          <el-button link type="primary" icon="Delete" @click="handleDelete(row)"
             v-hasPermi="['operationRecords:records:remove']">删除</el-button>
         </template>
       </el-table-column>
@@ -1099,10 +1138,32 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog v-model="columnDialogVisible" title="选择可见列">
+      <div class="dialog-content">
+        <el-checkbox-group
+          v-model="visibleColumns"
+          @change="handleVisibleColumnsChange"
+        >
+          <el-checkbox
+            v-for="column in columns"
+            :label="column.prop"
+            :key="column.prop"
+          >
+            {{ column.label }}
+          </el-checkbox>
+        </el-checkbox-group>
+        <div class="dialog-buttons">
+          <el-button @click="selectAllColumns">全部可见</el-button>
+          <el-button @click="selectNoColumns">全部隐藏</el-button>
+          <el-button @click="closeDialog">关闭</el-button>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Records">
+  import {ref} from 'vue'
 import { listRecords, getRecords, delRecords, addRecords, updateRecords } from "@/api/operationRecords/records";
 
 const { proxy } = getCurrentInstance();
@@ -1119,6 +1180,138 @@ const title = ref("");
 
 const showIdColumn = ref(false); // 控制列是否显示
 
+const columnDialogVisible = ref(false)
+const visibleColumns = ref([])
+
+// 定义所有列
+const columns = ref([
+  { prop: 'storeName', label: '店铺名称', sortable: true, align: 'center', fixed: 'left', minWidth: 150, fixed: 'left', visible: true },
+  { prop: 'msku', label: 'MSKU', sortable: true, align: 'center',  visible: true },
+  { prop: 'categoryLevel1', label: '商品一级目录', sortable: true, align: 'center', visible: true },
+  { prop: 'categoryLevel2', label: '商品二级目录', sortable: true, align: 'center', visible: true },
+  { prop: 'fnsku', label: 'FNSKU', sortable: true, align: 'center', visible: true },
+  { prop: 'localSku', label: '本地SKU', sortable: true, align: 'center', visible: true },
+  { prop: 'mainSku', label: '主SKU', sortable: true, align: 'center', visible: true },
+  { prop: 'productName', label: '产品名称', sortable: true, align: 'center', width: 200, showOverflowTooltip: true, visible: true },
+  { prop: 'asin', label: 'ASIN', sortable: true, align: 'center', visible: true },
+  { prop: 'stockStatus', label: '库存状态', sortable: true, align: 'center', visible: true },
+  { prop: 'sales7Days', label: '7天销量', sortable: true, align: 'center', visible: true },
+  { prop: 'sales14Days', label: '14天销量', sortable: true, align: 'center', visible: true },
+  { prop: 'sales30Days', label: '30天销量', sortable: true, align: 'center', visible: true },
+  { prop: 'sales90Days', label: '90天销量', sortable: true, align: 'center', visible: true },
+  { prop: 'avgDailySales', label: '日均销量', sortable: true, align: 'center', visible: true },
+  { prop: 'procurementInTransit', label: '采购在途', sortable: true, align: 'center', visible: true },
+  { prop: 'localInventory', label: '本地库存', sortable: true, align: 'center', visible: true },
+  { prop: 'available', label: '可售', sortable: true, align: 'center', visible: true },
+  { prop: 'awaitingStock', label: '待入库', sortable: true, align: 'center', visible: true },
+  { prop: 'inTransit', label: '在途', sortable: true, align: 'center', visible: true },
+  { prop: 'availableDays', label: '可售天数', sortable: true, align: 'center', visible: true },
+  { prop: 'procurementDays', label: '采购天数', sortable: true, align: 'center', visible: true },
+  { prop: 'remarks', label: '备注', sortable: true, align: 'center', visible: true },
+  { prop: 'reserved', label: '预留', sortable: true, align: 'center', visible: true },
+  { prop: 'plannedStockIn', label: '计划入库', sortable: true, align: 'center', visible: true },
+  { prop: 'salesPerson', label: '销售员', sortable: true, align: 'center', visible: true },
+  { prop: 'stockWarningDays', label: '库存警戒天数', sortable: true, align: 'center', visible: true },
+  { prop: 'supplier', label: '供应商', sortable: true, align: 'center', visible: true },
+  { prop: 'cost', label: '成本', sortable: true, align: 'center', visible: true },
+  { prop: 'lifecycleStatus', label: '生命周期状态', sortable: true, align: 'center', visible: true },
+  { prop: 'minPurchaseQuantity', label: '最小采购量', sortable: true, align: 'center', visible: true },
+  { prop: 'seasonalProductOffseason', label: 'AM-季节性产品-淡季【扩展属性】', sortable: true, align: 'center', minWidth: 100, showOverflowTooltip: true, visible: true },
+  { prop: 'seasonalProductOffseasonDecline', label: 'AM-季节性产品-淡季下滑比例【扩展属性】', sortable: true, align: 'center', visible: true },
+  { prop: 'seasonalProductPeak', label: 'AM-季节性产品-旺季【扩展属性】', sortable: true, align: 'center', visible: true },
+  { prop: 'seasonalProductPeakIncrease', label: 'AM-季节性产品-旺季上升比例【扩展属性】', sortable: true, align: 'center', visible: true },
+  { prop: 'competitorSales', label: 'AM-竞对销量【扩展属性】', sortable: true, align: 'center', visible: true },
+  { prop: 'marketCapacity', label: 'AM-市场容量【扩展属性】', sortable: true, align: 'center', visible: true },
+  { prop: 'shelfTime', label: '上架时间', sortable: true, align: 'center', visible: true },
+  { prop: 'reshaper', label: '重塑人', sortable: true, align: 'center', visible: true },
+  { prop: 'reshaping', label: '重塑', sortable: true, align: 'center', visible: true },
+  { prop: 'categoryRankLarge', label: '大类目Rank', sortable: true, align: 'center', visible: true },
+  { prop: 'categoryRankSmall', label: '小类目Rank', sortable: true, align: 'center', visible: true },
+  { prop: 'pageViewsPercentage', label: '页面浏览次数百分比-合计', sortable: true, align: 'center', visible: true },
+  { prop: 'pageViewsTotal', label: '页面浏览次数-合计', sortable: true, align: 'center', visible: true },
+  { prop: 'conversionRate', label: '转化率', sortable: true, align: 'center', visible: true },
+  { prop: 'acos', label: '广告投入产出比', sortable: true, align: 'center', visible: true },
+  { prop: 'salesLast30Days', label: '近30天销售额', sortable: true, align: 'center', visible: true },
+  { prop: 'profitMarginLast30Days', label: '近30天利润率', sortable: true, align: 'center', visible: true },
+  { prop: 'refundRateLast30Days', label: '近30天退款率', sortable: true, align: 'center', visible: true },
+  { prop: 'forecastAvailableDays', label: '马帮预测可售天数', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaAvailableDays', label: '', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaStockStatus', label: 'FBA库存状态', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaLocalAvailableDays', label: 'FBA+本地--可售天数', sortable: true, align: 'center', visible: true },
+  { prop: 'procurementPlanNeeded', label: '是否需要给采购计划', sortable: true, align: 'center', visible: true },
+  { prop: 'minPurchaseQuantityComparison', label: '对比供应商最低采购个数/淡旺季加权', sortable: true, align: 'center', visible: true },
+  { prop: 'preliminaryPurchaseQuantity', label: '初步预计采购个数', sortable: true, align: 'center', visible: true },
+  { prop: 'minPurchaseQuantityComparisonTwo', label: '对比供应商最低采购个数/淡旺季加权.1', sortable: true, align: 'center', visible: true },
+  { prop: 'adjustedPurchaseQuantity', label: '修正计划采购个数', sortable: true, align: 'center', visible: true },
+  { prop: 'procurementOrderDate', label: '计划下采购单日期', sortable: true, align: 'center', width: 180, custom: true, visible: true },
+  { prop: 'estimatedLocalWarehouseArrival', label: '预估货到本地仓时间', sortable: true, custom: true, align: 'center', visible: true },
+  { prop: 'estimatedFbaShipment', label: '预计FBA货发出时间', sortable: true, custom: true, align: 'center', visible: true },
+  { prop: 'estimatedFbaWarehouse', label: '预计FBA入仓时间', sortable: true, custom: true, align: 'center', visible: true },
+  { prop: 'estimatedFbaShelving', label: '预计FBA上架时间', sortable: true, custom: true, align: 'center', visible: true },
+  { prop: 'preShelvingAvailableDays', label: '上架前可售天数', sortable: true, align: 'center', visible: true },
+  { prop: 'postShelvingAvailableDays', label: '上架后可售天数', sortable: true, align: 'center', visible: true },
+  { prop: 'businessSuggestedPurchaseQuantity', label: '业务建议采购个数【0或者个数】', sortable: true, align: 'center', visible: true },
+  { prop: 'businessSuggestedPaymentDate', label: '业务建议采购付款日期', sortable: true, align: 'center', width: 180, custom: true, visible: true },
+  { prop: 'postShelvingAvailableDaysTwo', label: '上架后可售天数.1', sortable: true, align: 'center', visible: true },
+  { prop: 'procurementAmount', label: '采购金额', sortable: true, align: 'center', visible: true },
+  { prop: 'suggestedAttributionType', label: '建议归因类型【利润率，退款率，评价，清仓，停售，销量，新品】', sortable: true, align: 'center', visible: true },
+  { prop: 'attributionDescription', label: '归因说明和长期打算', sortable: true, align: 'center', visible: true },
+  { prop: 'operationsDate', label: '运管操作日期', sortable: true, align: 'center', width: 180, custom: true, visible: true },
+  { prop: 'operationsRecord', label: '运管操作记录', sortable: true, align: 'center', visible: true },
+  { prop: 'localInventoryTwo', label: '本地库存', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaInventory', label: 'FBA库存', sortable: true, align: 'center', visible: true },
+  { prop: 'localInventoryValue', label: '本地库存金额', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaInventoryValue', label: 'FBA库存金额', sortable: true, align: 'center', visible: true },
+  { prop: 'totalInventoryValue', label: '总库存金额', sortable: true, align: 'center', visible: true },
+  { prop: 'isDelete', label: '是否删除', sortable: true, align: 'center', visible: true },
+  { prop: 'createdAt', label: '创建时间', sortable: true, align: 'center', width: 180, custom: true, visible: true },
+  { prop: 'version', label: '记录当天有没有新增过记录', sortable: true, align: 'center', visible: true }
+]);
+
+
+// 改成编辑状态
+const editRow = (row) => {
+  row._editing = true
+}
+
+// 保存行数据
+const saveRow = (row) => {
+  row._editing = false
+}
+
+const openSelectColumn = () => {
+      
+      visibleColumns.value = columns.value
+      .filter((column) => column.visible)
+      .map((column) => column.prop)
+
+    columnDialogVisible.value = true
+
+
+    
+  }
+
+  const handleVisibleColumnsChange = (val) => {
+    columns.value.forEach((column) => {
+      column.visible = val.includes(column.prop)
+    })
+  }
+// 选择全部可见列
+const selectAllColumns = () => {
+  visibleColumns.value = columns.value.map(col => col.prop);
+  handleVisibleColumnsChange(visibleColumns.value);
+};
+
+// 选择全部隐藏列
+const selectNoColumns = () => {
+  visibleColumns.value = [];
+  handleVisibleColumnsChange(visibleColumns.value);
+};
+
+// 关闭对话框
+const closeDialog = () => {
+  columnDialogVisible.value = false;
+};
 
 const data = reactive({
   form: {},
@@ -1220,6 +1413,9 @@ const { queryParams, form, rules } = toRefs(data);
 function getList() {
   loading.value = true;
   listRecords(queryParams.value).then(response => {
+    response.rows.forEach(item => {
+      item._editing = false;
+    })
     recordsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
