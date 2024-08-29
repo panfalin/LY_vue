@@ -1035,7 +1035,7 @@
         <el-form-item label="马帮预测可售天数" prop="forecastAvailableDays">
           <el-input v-model="form.forecastAvailableDays" placeholder="请输入马帮预测可售天数" />
         </el-form-item>
-        <el-form-item label="" prop="fbaAvailableDays">
+        <el-form-item label="(可售FBA+FBA待入库+预留+FBA在途)/日均" prop="fbaAvailableDays">
           <el-input v-model="form.fbaAvailableDays" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="FBA+本地--可售天数" prop="fbaLocalAvailableDays">
@@ -1235,7 +1235,7 @@ const columns = ref([
   { prop: 'profitMarginLast30Days', label: '近30天利润率', sortable: true, align: 'center', visible: true },
   { prop: 'refundRateLast30Days', label: '近30天退款率', sortable: true, align: 'center', visible: true },
   { prop: 'forecastAvailableDays', label: '马帮预测可售天数', sortable: true, align: 'center', visible: true },
-  { prop: 'fbaAvailableDays', label: '', sortable: true, align: 'center', visible: true },
+  { prop: 'fbaAvailableDays', label: '本地库存金额', sortable: true, align: 'center', visible: true },
   { prop: 'fbaStockStatus', label: 'FBA库存状态', sortable: true, align: 'center', visible: true },
   { prop: 'fbaLocalAvailableDays', label: 'FBA+本地--可售天数', sortable: true, align: 'center', visible: true },
   { prop: 'procurementPlanNeeded', label: '是否需要给采购计划', sortable: true, align: 'center', visible: true },
@@ -1263,9 +1263,7 @@ const columns = ref([
   { prop: 'localInventoryValue', label: '本地库存金额', sortable: true, align: 'center', visible: true },
   { prop: 'fbaInventoryValue', label: 'FBA库存金额', sortable: true, align: 'center', visible: true },
   { prop: 'totalInventoryValue', label: '总库存金额', sortable: true, align: 'center', visible: true },
-  { prop: 'isDelete', label: '是否删除', sortable: true, align: 'center', visible: true },
-  { prop: 'createdAt', label: '创建时间', sortable: true, align: 'center', width: 180, custom: true, visible: true },
-  { prop: 'version', label: '记录当天有没有新增过记录', sortable: true, align: 'center', visible: true }
+
 ]);
 
 
