@@ -125,8 +125,16 @@
       <el-table-column label="状态" align="center" prop="mabang_info.状态"/>
       <el-table-column label="目标" align="center" prop="mabang_info.target" min-width="200">
         <template #default="scope">
-          <div style="white-space: normal; word-break: break-word;">
-            {{ scope.row.mabang_info.target }}
+          <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
+            <span v-if="!scope.row._editing">{{ scope.row.mabang_info.target || '' }}</span>
+            <el-input
+                v-else
+                type="textarea"
+                v-model="scope.row.mabang_info.target"
+                placeholder="请输入目标"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                style="width: 100%;"
+            />
           </div>
         </template>
       </el-table-column>
@@ -212,10 +220,12 @@
 
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
                        :min-width="120">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-                     v-hasPermi="['products:products:edit']">修改目标
-          </el-button>
+        <template #default="{row}">
+          <el-button v-if="!row._editing" type="primary" icon="Edit" link @click="editRow(row)" size="small"
+          >编辑
+          </el-button
+          >
+          <el-button v-else type="warning" icon="Edit" link @click="saveRow(row)" size="small">保存</el-button>
           <!--<el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['products:products:remove']">删除</el-button>-->
         </template>
       </el-table-column>
@@ -298,6 +308,18 @@ function getList() {
   });
 }
 
+/** 将目标改成编辑状态 */
+const editRow = (row) => {
+  row._editing = true
+}
+
+const saveRow = (row) => {
+  row._editing = false; // 退出编辑模式
+  row.target = row.mabang_info.target || "";
+  submitForm(row); // 直接提交
+}
+
+
 // 取消按钮
 function cancel() {
   open.value = false;
@@ -362,25 +384,20 @@ function getTableRowClass({row}) {
   return 'success-row';
 }
 
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["productsRef"].validate(valid => {
-    if (valid) {
-      if (form.value.id != null) {
-        updateProducts(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        addProducts(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
-    }
-  });
+/** 单元格修改值的提交按钮 */
+function submitForm(row) {
+  const _id = row.id || ids.value; // 获取行的 ID
+  if (_id) {
+    updateProducts(row).then(response => {
+      proxy.$modal.msgSuccess("修改成功");
+      getList(); // 更新列表
+    });
+  } else {
+    addProducts(row).then(response => {
+      proxy.$modal.msgSuccess("新增成功");
+      getList(); // 更新列表
+    });
+  }
 }
 
 /** 删除按钮操作 */
