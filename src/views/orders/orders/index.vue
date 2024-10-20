@@ -1,19 +1,31 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="付款时间" prop="paymentTime">
+      <el-form-item label="付款时间" style="width: 308px">
         <el-date-picker
-            clearable
-            v-model="queryParams.paymentTimeRange"
-            type="daterange"
+            v-model="dateRange"
             value-format="YYYY-MM-DD"
+            type="daterange"
+            range-separator="-"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
             @change="handleQuery"
             @clear="reset"
-            placeholder="请选择付款时间">
-        </el-date-picker>
+        ></el-date-picker>
       </el-form-item>
+<!--      <el-form-item label="付款时间" prop="paymentTime">-->
+<!--        <el-date-picker-->
+<!--            clearable-->
+<!--            v-model="queryParams.paymentTimeRange"-->
+<!--            type="daterange"-->
+<!--            value-format="YYYY-MM-DD"-->
+<!--            start-placeholder="开始日期"-->
+<!--            end-placeholder="结束日期"-->
+<!--            @change="handleQuery"-->
+<!--            @clear="reset"-->
+<!--            placeholder="请选择付款时间">-->
+<!--        </el-date-picker>-->
+<!--      </el-form-item>-->
       <el-form-item label="店铺名" prop="storeName">
         <el-autocomplete
             v-model="queryParams.storeName"
@@ -315,6 +327,8 @@ const total = ref(0);
 const title = ref("");
 const stores = ref([])
 const countries = ref([]);
+const dateRange = ref([]);
+
 const data = reactive({
   form: {},
   queryParams: {
@@ -344,7 +358,7 @@ const {queryParams, form, rules} = toRefs(data);
 /** 查询订单数据列表 */
 function getList() {
   loading.value = true;
-  listOrders(queryParams.value).then(response => {
+  listOrders(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     ordersList.value = response.rows;
     total.value = response.total;
     loading.value = false;
