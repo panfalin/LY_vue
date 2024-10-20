@@ -155,17 +155,65 @@
       <el-table-column label="上架店铺数" align="center" prop="mabang_info.上架店铺数"/>
       <el-table-column label="总刊登数" align="center" prop="mabang_info.总刊登数"/>
       <!-- 动态展示在线刊登数据 -->
+      <!--      <el-table-column label="刊登数据" align="left" :min-width="250">
+              <template #default="scope">
+                <div style="line-height: 1.5;">
+                  <div v-for="(data, index) in scope.row.online_data" :key="index"
+                       :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
+                       style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
+                    <div>店铺: {{ data.店铺 }}</div>
+                    <div>刊登数: {{ data.刊登数 }}</div>
+                    <div>刊登ID:
+                      <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
+                            style="display: block;">{{ listingId.trim() }}</span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>-->
       <el-table-column label="刊登数据" align="left" :min-width="250">
         <template #default="scope">
           <div style="line-height: 1.5;">
-            <div v-for="(data, index) in scope.row.online_data" :key="index"
-                 :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
-                 style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
-              <div>店铺: {{ data.店铺 }}</div>
-              <div>刊登数: {{ data.刊登数 }}</div>
-              <div>刊登ID:
-                <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
-                      style="display: block;">{{ listingId.trim() }}</span>
+            <!-- 展开/收起按钮 -->
+            <el-button
+                @click="scope.row._expanded = !scope.row._expanded"
+                type="text"
+                style="padding: 0; font-weight: bold; color: #409EFF;">
+              {{ scope.row._expanded ? '收起刊登数据' : '展开刊登数据' }}
+            </el-button>
+
+            <div v-if="scope.row._expanded" style="margin-top: 10px;">
+              <div
+                  v-for="(data, index) in scope.row.online_data"
+                  :key="index"
+                  :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
+                  style="margin-bottom: 10px; padding: 12px; border-radius: 4px; border: 1px solid #e4e4e4; transition: background-color 0.3s;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: bold;">{{ data.店铺 }}</span>
+                  <el-button
+                      @click="data._expanded = !data._expanded"
+                      type="text"
+                      style="padding: 0; margin-left: 10px; color: #409EFF;">
+                    {{ data._expanded ? '收起' : '展开' }}
+                  </el-button>
+                </div>
+
+                <div v-if="data._expanded" style="margin-top: 10px;">
+                  <div>刊登数: <strong>{{ data.刊登数 }}</strong></div>
+                  <div>
+                    <div style="font-weight: bold;">刊登ID:</div>
+                      <div>
+                        <span
+                            v-for="(listingId, idx) in data.刊登ID.split(',')"
+                            :key="idx"
+                            style="display: block; margin-left: 10px;">
+                          {{listingId.trim()}}
+                        </span>
+                      </div>
+                  </div>
+
+                </div>
               </div>
             </div>
           </div>
