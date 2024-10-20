@@ -1,0 +1,444 @@
+<template>
+  <div class="app-container" style="overflow-x: auto;">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="SKU" prop="productCode">
+        <el-input
+            v-model="queryParams.productCode"
+            placeholder="请输入SKU"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="商品名称" prop="productName">
+        <el-input
+            v-model="queryParams.productName"
+            placeholder="请输入商品名称"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-input
+            v-model="queryParams.status"
+            placeholder="请输入状态"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <!--      <el-form-item label="可用库存" prop="totalInventory">
+              <el-input
+                v-model="queryParams.totalInventory"
+                placeholder="请输入可用库存"
+                clearable
+                @keyup.enter="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="最新采购价" prop="latestPurchasePrice">
+              <el-input
+                v-model="queryParams.latestPurchasePrice"
+                placeholder="请输入最新采购价"
+                clearable
+                @keyup.enter="handleQuery"
+              />
+            </el-form-item>
+            <el-form-item label="图片" prop="imageUrl">
+              <el-input
+                v-model="queryParams.imageUrl"
+                placeholder="请输入图片"
+                clearable
+                @keyup.enter="handleQuery"
+              />
+            </el-form-item>-->
+      <el-form-item>
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <!--<el-col :span="1.5">-->
+      <!--  <el-button-->
+      <!--      type="primary"-->
+      <!--      plain-->
+      <!--      icon="Plus"-->
+      <!--      @click="handleAdd"-->
+      <!--      v-hasPermi="['products:products:add']"-->
+      <!--  >新增-->
+      <!--  </el-button>-->
+      <!--</el-col>-->
+      <el-col :span="1.5">
+        <el-button
+            type="success"
+            plain
+            icon="Edit"
+            :disabled="single"
+            @click="handleUpdate"
+            v-hasPermi="['products:products:edit']"
+        >修改
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+            type="danger"
+            plain
+            icon="Delete"
+            :disabled="multiple"
+            @click="handleDelete"
+            v-hasPermi="['products:products:remove']"
+        >删除
+        </el-button>
+      </el-col>
+      <!--<el-col :span="1.5">-->
+      <!--  <el-button-->
+      <!--      type="warning"-->
+      <!--      plain-->
+      <!--      icon="Download"-->
+      <!--      @click="handleExport"-->
+      <!--      v-hasPermi="['products:products:export']"-->
+      <!--  >导出-->
+      <!--  </el-button>-->
+      <!--</el-col>-->
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+    </el-row>
+
+    <!-- 表格部分 -->
+    <el-table
+        v-loading="loading"
+        :data="productsList"
+        height="600"
+        style="min-width: 1500px;"
+        :estimated-row-height="40"
+        highlight-current-row
+        border
+        @selection-change="handleSelectionChange"
+        :row-class-name="getTableRowClass"
+    >
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column fixed label="SKU" align="center" prop="productCode" :min-width="200"/>
+      <el-table-column label="商品名称" align="center" prop="mabang_info.商品名称" min-width="300">
+        <template #default="scope">
+          <div style="white-space: normal; word-break: break-word;">
+            {{ scope.row.mabang_info.商品名称 }}
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" prop="mabang_info.状态"/>
+      <el-table-column label="目标" align="center" prop="mabang_info.target" min-width="200">
+        <template #default="scope">
+          <div style="white-space: normal; word-break: break-word;">
+            {{ scope.row.mabang_info.target }}
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="可用库存" align="center" prop="mabang_info.可用库存总量"/>
+      <el-table-column label="最新采购价" align="center" prop="mabang_info.最新采购价">
+        <template #default="scope">
+          <div>¥{{ scope.row.mabang_info.最新采购价 }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column label="7天销量" align="center" prop="mabang_info.7天销量"/>
+      <el-table-column label="28天销量" align="center" prop="mabang_info.28天销量"/>
+      <el-table-column label="42天销量" align="center" prop="mabang_info.42天销量"/>
+      <el-table-column label="图片" align="center" width="120">
+        <template #default="scope">
+          <img :src="scope.row.mabang_info?.库存图片链接 || ''" alt="库存图片" width="100"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="上架店铺数" align="center" prop="mabang_info.上架店铺数"/>
+      <el-table-column label="总刊登数" align="center" prop="mabang_info.总刊登数"/>
+      <!-- 动态展示在线刊登数据 -->
+      <el-table-column label="刊登数据" align="left" :min-width="250">
+        <template #default="scope">
+          <div style="line-height: 1.5;">
+            <div v-for="(data, index) in scope.row.online_data" :key="index"
+                 :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
+                 style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
+              <div>店铺: {{ data.店铺 }}</div>
+              <div>刊登数: {{ data.刊登数 }}</div>
+              <div>刊登ID:
+                <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
+                      style="display: block;">{{ listingId.trim() }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <!-- 竞品一 -->
+      <el-table-column label="竞品一" align="left" :min-width="200">
+        <template #default="scope">
+          <div v-if="scope.row.mabang_info['竞品一']" style="white-space: nowrap;">
+            <div>竞品ID: {{ scope.row.mabang_info['竞品一'].competitorId }}</div>
+            <div>180天销量: {{ scope.row.mabang_info['竞品一'].sales180Days }}</div>
+            <div>7天销量: {{ scope.row.mabang_info['竞品一'].sales7Days }}</div>
+            <div>评论数: {{ scope.row.mabang_info['竞品一'].reviewsCount }}</div>
+            <div>收藏数: {{ scope.row.mabang_info['竞品一'].favoritesCount }}</div>
+            <div>最低价: {{ scope.row.mabang_info['竞品一'].minPrice }}$</div>
+            <div>最高价: {{ scope.row.mabang_info['竞品一'].maxPrice }}$</div>
+          </div>
+        </template>
+      </el-table-column>
+
+
+      <!-- 竞品二 -->
+      <el-table-column label="竞品二" align="left" :min-width="200">
+        <template #default="scope">
+          <div v-if="scope.row.mabang_info['竞品二']" style="white-space: nowrap;">
+            <div>竞品ID: {{ scope.row.mabang_info['竞品二'].competitorId }}</div>
+            <div>180天销量: {{ scope.row.mabang_info['竞品二'].sales180Days }}</div>
+            <div>7天销量: {{ scope.row.mabang_info['竞品二'].sales7Days }}</div>
+            <div>评论数: {{ scope.row.mabang_info['竞品二'].reviewsCount }}</div>
+            <div>收藏数: {{ scope.row.mabang_info['竞品二'].favoritesCount }}</div>
+            <div>最低价: {{ scope.row.mabang_info['竞品二'].minPrice }}$</div>
+            <div>最高价: {{ scope.row.mabang_info['竞品二'].maxPrice }}$</div>
+          </div>
+        </template>
+      </el-table-column>
+
+      <!-- 竞品三 -->
+      <el-table-column label="竞品三" align="left" :min-width="200">
+        <template #default="scope">
+          <div v-if="scope.row.mabang_info['竞品三']" style="white-space: nowrap;">
+            <div>竞品ID: {{ scope.row.mabang_info['竞品三'].competitorId }}</div>
+            <div>180天销量: {{ scope.row.mabang_info['竞品三'].sales180Days }}</div>
+            <div>7天销量: {{ scope.row.mabang_info['竞品三'].sales7Days }}</div>
+            <div>评论数: {{ scope.row.mabang_info['竞品三'].reviewsCount }}</div>
+            <div>收藏数: {{ scope.row.mabang_info['竞品三'].favoritesCount }}</div>
+            <div>最低价: {{ scope.row.mabang_info['竞品三'].minPrice }}$</div>
+            <div>最高价: {{ scope.row.mabang_info['竞品三'].maxPrice }}$</div>
+          </div>
+        </template>
+      </el-table-column>
+
+
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
+                       :min-width="120">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                     v-hasPermi="['products:products:edit']">修改目标
+          </el-button>
+          <!--<el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['products:products:remove']">删除</el-button>-->
+        </template>
+      </el-table-column>
+    </el-table>
+
+
+    <pagination
+        v-show="total>0"
+        :total="total"
+        :page-sizes="[10, 20, 50, 100]"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        @pagination="getList"
+    />
+
+    <!-- 添加或修改products对话框 -->
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+      <el-form ref="productsRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="SKU" prop="productCode">
+          <el-input v-model="form.productCode" placeholder="请输入SKU" disabled/>
+        </el-form-item>
+        <el-form-item label="目标" prop="target">
+          <el-input v-model="form.target" type="textarea" placeholder="请输入目标"
+                    :autosize="{minRows: 4, maxRows: 4}" :style="{width: '100%'}"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup name="Products">
+import {listProducts, getProducts, delProducts, addProducts, updateProducts} from "@/api/products/products";
+
+const {proxy} = getCurrentInstance();
+
+const productsList = ref([]);
+const open = ref(false);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const title = ref("");
+
+const data = reactive({
+  form: {},
+  queryParams: {
+    pageNum: 1,
+    pageSize: 10,
+    productCode: null,
+    productName: null,
+    target: null,
+    status: null,
+    totalInventory: null,
+    latestPurchasePrice: null,
+    imageUrl: null
+  },
+  rules: {
+    productCode: [
+      {required: true, message: "SKU不能为空", trigger: "blur"}
+    ],
+  }
+});
+const {queryParams, form, rules} = toRefs(data);
+
+/** 查询products列表 */
+function getList() {
+  loading.value = true;
+  listProducts(queryParams.value).then(response => {
+    productsList.value = response.rows;
+    total.value = response.total;
+    loading.value = false;
+  });
+}
+
+// 取消按钮
+function cancel() {
+  open.value = false;
+  reset();
+}
+
+// 表单重置
+function reset() {
+  form.value = {
+    id: null,
+    productCode: null,
+    status: null,
+    totalInventory: null,
+    latestPurchasePrice: null,
+    imageUrl: null
+  };
+  proxy.resetForm("productsRef");
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+  queryParams.value.pageNum = 1;
+  getList();
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+  proxy.resetForm("queryRef");
+  handleQuery();
+}
+
+// 多选框选中数据
+function handleSelectionChange(selection) {
+  ids.value = selection.map(item => item.id);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
+}
+
+/** 新增按钮操作 */
+function handleAdd() {
+  reset();
+  open.value = true;
+  title.value = "添加products";
+}
+
+/** 修改按钮操作 */
+function handleUpdate(row) {
+  reset();
+  const _id = row.id || ids.value
+  getProducts(_id).then(response => {
+    form.value = response.data;
+    open.value = true;
+    title.value = "修改products";
+  });
+}
+
+/** 新增当上架店铺数小于5时 高亮显示 */
+function getTableRowClass({row}) {
+  if (row.mabang_info && row.mabang_info.上架店铺数 < 5) {
+    return 'highlight-row';
+  }
+  return 'success-row';
+}
+
+/** 提交按钮 */
+function submitForm() {
+  proxy.$refs["productsRef"].validate(valid => {
+    if (valid) {
+      if (form.value.id != null) {
+        updateProducts(form.value).then(response => {
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
+      } else {
+        addProducts(form.value).then(response => {
+          proxy.$modal.msgSuccess("新增成功");
+          open.value = false;
+          getList();
+        });
+      }
+    }
+  });
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+  const _ids = row.id ? [row.id] : ids.value; // 确保 _ids 是一个数组
+  let productCodes = []; // 使用数组存储多个 SKU
+
+  // 将 _ids 转换为数字数组
+  const numericIds = _ids.map(id => Number(id));
+
+  // 使用 Promise.all 处理多个 getProducts 请求
+  Promise.all(numericIds.map(id => getProducts(id))).then(responses => {
+    responses.forEach(response => {
+      const product = response.data;
+      const productCode = product.productCode;
+      productCodes.push(productCode);
+    });
+
+    // 确保在获取到所有 productCodes 后再显示确认对话框
+    const maxDisplayCount = 5; // 设置最多显示的 SKU 数量
+    const additionalCount = productCodes.length - maxDisplayCount; // 计算额外的 SKU 数量
+
+    // 构建确认对话框的消息
+    let confirmMessage = `是否确认删除以下 SKU ：\n`;
+    confirmMessage += productCodes.slice(0, maxDisplayCount).map(code => `${code}`).join('\n'); // 显示前 N 个 SKU
+
+    if (additionalCount > 0) {
+      confirmMessage += `\n还有 ${additionalCount} 个 SKU 被删除。`; // 显示额外的数量
+    }
+
+    return proxy.$modal.confirm(confirmMessage);
+  }).then(() => {
+    // 用户确认删除
+    return delProducts(numericIds);
+  }).then(() => {
+    // 删除成功
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
+  }).catch(error => {
+    console.error('删除失败', error);
+  });
+}
+
+
+/** 导出按钮操作 */
+function handleExport() {
+  proxy.download('products/products/export', {
+    ...queryParams.value
+  }, `products_${new Date().getTime()}.xlsx`)
+}
+
+getList();
+</script>
+
+<style scoped>
+/* 添加样式 */
+.highlight-row {
+  background-color: red !important;
+  color: white !important;
+}
+</style>
