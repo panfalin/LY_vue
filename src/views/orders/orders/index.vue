@@ -173,33 +173,35 @@
         highlight-current-row
         border
         @selection-change="handleSelectionChange"
+        :default-sort="defaultSort"
+        @sort-change="handleSortChange"
     >
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="订单编号" fixed align="center" prop="orderId" width="120"/>
-      <el-table-column label="付款时间" align="center" prop="paymentTime" width="180">
+      <el-table-column label="订单编号" fixed align="center" prop="orderId" width="120" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="付款时间" align="center" prop="paymentTime" width="180" sortable="custom" :sort-orders="['descending', 'ascending']" >
         <template #default="scope">
           <span>{{ parseTime(scope.row.paymentTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="店铺名" align="center" prop="storeName" min-width="150"/>
-      <el-table-column label="国家" align="center" prop="country" min-width="100"/>
-      <el-table-column label="重量" align="center" prop="weight" min-width="100"/>
-      <el-table-column label="SKU明细" align="center" prop="skuDetails" min-width="200" show-overflow-tooltip/>
-      <el-table-column label="SKU总数量" align="center" prop="skuQuantity" min-width="100"/>
-      <el-table-column label="商品总重量" align="center" prop="totalProductWeight" min-width="120"/>
-      <el-table-column label="订单总金额" align="center" prop="totalOrderAmount" min-width="120"/>
-      <el-table-column label="实际运费" align="center" prop="actualShipping" min-width="120"/>
-      <el-table-column label="广告费(人民币)" align="center" prop="adCostRmb" min-width="150"/>
-      <el-table-column label="平台交易费(人民币)" align="center" prop="platformFeeRmb" min-width="150"/>
-      <el-table-column label="VAT税费" align="center" prop="vatFeeRmb" min-width="100"/>
-      <el-table-column label="订单利润" align="center" prop="orderProfit" min-width="100" fixed="right">
+      <el-table-column label="店铺名" align="center" prop="storeName" min-width="150" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="国家" align="center" prop="country" min-width="100" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="重量" align="center" prop="weight" min-width="100" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="SKU明细" align="center" prop="skuDetails" min-width="200" show-overflow-tooltip sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="SKU总数量" align="center" prop="skuQuantity" min-width="100" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="商品总重量" align="center" prop="totalProductWeight" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="订单总金额" align="center" prop="totalOrderAmount" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="实际运费" align="center" prop="actualShipping" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="广告费(人民币)" align="center" prop="adCostRmb" min-width="150" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="平台交易费(人民币)" align="center" prop="platformFeeRmb" min-width="150" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="VAT税费" align="center" prop="vatFeeRmb" min-width="100" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="订单利润" align="center" prop="orderProfit" min-width="100" fixed="right" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
           <span :style="{ color: scope.row.orderProfit < 0 ? 'red' : 'black' }">
             {{ scope.row.orderProfit }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="订单利润率" align="center" prop="orderProfitRate" min-width="100" fixed="right">
+      <el-table-column label="订单利润率" align="center" prop="orderProfitRate" min-width="100" fixed="right" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
           <span :style="{ color: parseFloat(scope.row.orderProfitRate) < 0 ? 'red' : 'black' }">
             {{ scope.row.orderProfitRate }}
@@ -466,7 +468,12 @@ function resetQuery() {
   handleQuery()
   getList();
 }
-
+/** 排序触发事件 */
+function handleSortChange(column, prop, order) {
+  queryParams.value.orderByColumn = column.prop;
+  queryParams.value.isAsc = column.order;
+  getList();
+}
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.orderId);

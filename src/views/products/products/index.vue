@@ -112,17 +112,19 @@
         border
         @selection-change="handleSelectionChange"
         :row-class-name="getTableRowClass"
+        :default-sort="defaultSort"
+        @sort-change="handleSortChange"
     >
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column fixed label="SKU" align="center" prop="productCode" :min-width="200"/>
-      <el-table-column label="商品名称" align="center" prop="mabang_info.商品名称" min-width="300">
+      <el-table-column fixed label="SKU" align="center" prop="productCode" :min-width="200" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="商品名称" align="center" prop="mabang_info.productName" min-width="300" sortable="custom" :sort-orders="['descending', 'ascending']" >
         <template #default="scope">
           <div style="white-space: normal; word-break: break-word;">
-            {{ scope.row.mabang_info.商品名称 }}
+            {{ scope.row.mabang_info.productName }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="mabang_info.状态"/>
+      <el-table-column label="状态" align="center" prop="mabang_info.status"/>
       <el-table-column label="目标" align="center" prop="mabang_info.target" min-width="200">
         <template #default="scope">
           <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
@@ -138,22 +140,22 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="可用库存" align="center" prop="mabang_info.可用库存总量"/>
-      <el-table-column label="最新采购价" align="center" prop="mabang_info.最新采购价">
+      <el-table-column label="可用库存" align="center" prop="mabang_info.totalInventory" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="最新采购价" align="center" prop="mabang_info.latestPurchasePrice" sortable="custom" :sort-orders="['descending', 'ascending']" >
         <template #default="scope">
-          <div>¥{{ scope.row.mabang_info.最新采购价 }}</div>
+          <div>¥{{ scope.row.mabang_info.latestPurchasePrice }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="7天销量" align="center" prop="mabang_info.7天销量"/>
-      <el-table-column label="28天销量" align="center" prop="mabang_info.28天销量"/>
-      <el-table-column label="42天销量" align="center" prop="mabang_info.42天销量"/>
+      <el-table-column label="7天销量" align="center" prop="mabang_info.salesDays7" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="28天销量" align="center" prop="mabang_info.salesDays28" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="42天销量" align="center" prop="mabang_info.salesDays42" sortable="custom" :sort-orders="['descending', 'ascending']" />
       <el-table-column label="图片" align="center" width="120">
         <template #default="scope">
-          <img :src="scope.row.mabang_info?.库存图片链接 || ''" alt="库存图片" width="100"/>
+          <img :src="scope.row.mabang_info?.imageUrl || ''" alt="库存图片" width="100"/>
         </template>
       </el-table-column>
-      <el-table-column label="上架店铺数" align="center" prop="mabang_info.上架店铺数"/>
-      <el-table-column label="总刊登数" align="center" prop="mabang_info.总刊登数"/>
+      <el-table-column label="上架店铺数" align="center" prop="mabang_info.store_count" sortable="custom" :sort-orders="['descending', 'ascending']" />
+      <el-table-column label="总刊登数" align="center" prop="mabang_info.totalListingCount" sortable="custom" :sort-orders="['descending', 'ascending']" />
       <!-- 动态展示在线刊登数据 -->
       <!--      <el-table-column label="刊登数据" align="left" :min-width="250">
               <template #default="scope">
@@ -366,7 +368,15 @@ const saveRow = (row) => {
   row.target = row.mabang_info.target || "";
   submitForm(row); // 直接提交
 }
-
+/** 排序触发事件 */
+function handleSortChange(column, prop, order) {
+  if (column.prop.startsWith('mabang_info.')) {
+    column.prop = column.prop.replace("mabang_info.", "");
+  }
+  queryParams.value.orderByColumn = column.prop;
+  queryParams.value.isAsc = column.order;
+  getList();
+}
 
 // 取消按钮
 function cancel() {
