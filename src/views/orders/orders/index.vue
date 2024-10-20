@@ -56,14 +56,14 @@
           clearable
         />
       </el-form-item>
-      <!--<el-form-item label="SKU总数量" prop="skuQuantity">-->
-      <!--  <el-input-->
-      <!--    v-model="queryParams.skuQuantity"-->
-      <!--    placeholder="请输入SKU总数量"-->
-      <!--    clearable-->
-      <!--    @keyup.enter="handleQuery"-->
-      <!--  />-->
-      <!--</el-form-item>-->
+      <el-form-item label="订单编号" prop="orderId">
+        <el-input
+          v-model="queryParams.orderId"
+          placeholder="请输入订单编号"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <!--<el-form-item label="商品总重量" prop="totalProductWeight">-->
       <!--  <el-input-->
       <!--    v-model="queryParams.totalProductWeight"-->
@@ -334,6 +334,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 50,
+    orderId: null,
     paymentTime: null,
     storeName: null,
     country: null,
@@ -430,6 +431,7 @@ function reset() {
     orderProfitRate: null,
     paymentTimeRange: null,
   };
+  queryParams.value.orderId = null;
   queryParams.value.storeName = null;
   queryParams.value.country = null;
   queryParams.value.paymentTimeRange = null;
