@@ -216,7 +216,7 @@
       <el-table-column label="订单利润率" align="center" prop="orderProfitRate" min-width="100" fixed="right" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
           <span :style="{ color: parseFloat(scope.row.orderProfitRate) < 0 ? 'red' : 'black' }">
-            {{ scope.row.orderProfitRate }}
+            {{ scope.row.orderProfitRate }}<span>%</span>
           </span>
         </template>
       </el-table-column>
@@ -361,6 +361,7 @@ function getList() {
   loading.value = true;
   listOrders(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     ordersList.value = response.rows;
+    ordersList.value.some(item => { item.orderProfitRate = item.orderProfitRate * 100 })
     total.value = response.total;
     loading.value = false;
   });

@@ -25,6 +25,30 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="7天销量" prop="salesDays7">
+        <el-input
+            v-model="queryParams.salesDays7"
+            placeholder="请输入数量"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="28天销量" prop="salesDays28">
+        <el-input
+            v-model="queryParams.salesDays28"
+            placeholder="请输入数量"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="42天销量" prop="salesDays42">
+        <el-input
+            v-model="queryParams.salesDays42"
+            placeholder="请输入数量"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <!--      <el-form-item label="可用库存" prop="totalInventory">
               <el-input
                 v-model="queryParams.totalInventory"
@@ -136,7 +160,7 @@
                 type="textarea"
                 v-model="scope.row.mabang_info.target"
                 placeholder="请输入目标"
-                :autosize="{ minRows: 2, maxRows: 4 }"
+                :autosize="{ minRows: 4, maxRows: 6 }"
                 style="width: 100%;"
             />
           </div>
@@ -150,6 +174,7 @@
           <div>¥{{ scope.row.mabang_info.latestPurchasePrice }}</div>
         </template>
       </el-table-column>
+      <el-table-column label="市场容量" align="center" prop="mabang_info.marketCapacity" />
       <el-table-column label="7天销量" align="center" prop="mabang_info.salesDays7" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="28天销量" align="center" prop="mabang_info.salesDays28" sortable="custom"
@@ -187,71 +212,71 @@
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="总刊登数" align="center" prop="mabang_info.totalListingCount" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
-      <!-- 动态展示在线刊登数据 -->
-      <!--      <el-table-column label="刊登数据" align="left" :min-width="250">
-              <template #default="scope">
-                <div style="line-height: 1.5;">
-                  <div v-for="(data, index) in scope.row.online_data" :key="index"
-                       :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
-                       style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
-                    <div>店铺: {{ data.店铺 }}</div>
-                    <div>刊登数: {{ data.刊登数 }}</div>
-                    <div>刊登ID:
-                      <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
-                            style="display: block;">{{ listingId.trim() }}</span>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </el-table-column>-->
+       <!--动态展示在线刊登数据 -->
       <el-table-column label="刊登数据" align="left" :min-width="250">
         <template #default="scope">
           <div style="line-height: 1.5;">
-            <!-- 展开/收起按钮 -->
-            <el-button
-                @click="scope.row._expanded = !scope.row._expanded"
-                type="text"
-                style="padding: 0; font-weight: bold; color: #409EFF;">
-              {{ scope.row._expanded ? '收起刊登数据' : '展开刊登数据' }}
-            </el-button>
-
-            <div v-if="scope.row._expanded" style="margin-top: 10px;">
-              <div
-                  v-for="(data, index) in scope.row.online_data"
-                  :key="index"
-                  :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"
-                  style="margin-bottom: 10px; padding: 12px; border-radius: 4px; border: 1px solid #e4e4e4; transition: background-color 0.3s;">
-
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-weight: bold;">{{ data.店铺 }}</span>
-                  <el-button
-                      @click="data._expanded = !data._expanded"
-                      type="text"
-                      style="padding: 0; margin-left: 10px; color: #409EFF;">
-                    {{ data._expanded ? '收起' : '展开' }}
-                  </el-button>
-                </div>
-
-                <div v-if="data._expanded" style="margin-top: 10px;">
-                  <div>刊登数: <strong>{{ data.刊登数 }}</strong></div>
-                  <div>
-                    <div style="font-weight: bold;">刊登ID:</div>
-                    <div>
-                        <span
-                            v-for="(listingId, idx) in data.刊登ID.split(',')"
-                            :key="idx"
-                            style="display: block; margin-left: 10px;">
-                          {{ listingId.trim() }}
-                        </span>
-                    </div>
-                  </div>
-
-                </div>
+            <div v-for="(data, index) in scope.row.online_data" :key="index"
+                 :style="{ backgroundColor:  '#f9f9f9', color: 'black' }"
+                 style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
+              <div>店铺: {{ data.店铺 }}</div>
+              <div>刊登数: {{ data.刊登数 }}</div>
+              <div>刊登ID:
+                <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
+                      style="display: block;">{{ listingId.trim() }}</span>
               </div>
             </div>
           </div>
         </template>
       </el-table-column>
+      <!--<el-table-column label="刊登数据" align="left" :min-width="250">-->
+      <!--  <template #default="scope">-->
+      <!--    <div style="line-height: 1.5;">-->
+      <!--      &lt;!&ndash; 展开/收起按钮 &ndash;&gt;-->
+      <!--      <el-button-->
+      <!--          @click="scope.row._expanded = !scope.row._expanded"-->
+      <!--          type="text"-->
+      <!--          style="padding: 0; font-weight: bold; color: #409EFF;">-->
+      <!--        {{ scope.row._expanded ? '收起刊登数据' : '展开刊登数据' }}-->
+      <!--      </el-button>-->
+
+      <!--      <div v-if="scope.row._expanded" style="margin-top: 10px;">-->
+      <!--        <div-->
+      <!--            v-for="(data, index) in scope.row.online_data"-->
+      <!--            :key="index"-->
+      <!--            :style="{ backgroundColor: data.刊登数 < 5 ? '#d37a7a' : '#f9f9f9', color: data.刊登数 < 5 ? 'white' : 'black' }"-->
+      <!--            style="margin-bottom: 10px; padding: 12px; border-radius: 4px; border: 1px solid #e4e4e4; transition: background-color 0.3s;">-->
+
+      <!--          <div style="display: flex; justify-content: space-between; align-items: center;">-->
+      <!--            <span style="font-weight: bold;">{{ data.店铺 }}</span>-->
+      <!--            <el-button-->
+      <!--                @click="data._expanded = !data._expanded"-->
+      <!--                type="text"-->
+      <!--                style="padding: 0; margin-left: 10px; color: #409EFF;">-->
+      <!--              {{ data._expanded ? '收起' : '展开' }}-->
+      <!--            </el-button>-->
+      <!--          </div>-->
+
+      <!--          <div v-if="data._expanded" style="margin-top: 10px;">-->
+      <!--            <div>刊登数: <strong>{{ data.刊登数 }}</strong></div>-->
+      <!--            <div>-->
+      <!--              <div style="font-weight: bold;">刊登ID:</div>-->
+      <!--              <div>-->
+      <!--                  <span-->
+      <!--                      v-for="(listingId, idx) in data.刊登ID.split(',')"-->
+      <!--                      :key="idx"-->
+      <!--                      style="display: block; margin-left: 10px;">-->
+      <!--                    {{ listingId.trim() }}-->
+      <!--                  </span>-->
+      <!--              </div>-->
+      <!--            </div>-->
+
+      <!--          </div>-->
+      <!--        </div>-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
       <!-- 竞品一 -->
       <el-table-column label="竞品一" align="left" :min-width="200">
         <template #default="scope">
@@ -369,7 +394,10 @@ const data = reactive({
     status: null,
     totalInventory: null,
     latestPurchasePrice: null,
-    imageUrl: null
+    imageUrl: null,
+    salesDays7: null,
+    salesDays28: null,
+    salesDays42: null,
   },
   rules: {
     productCode: [

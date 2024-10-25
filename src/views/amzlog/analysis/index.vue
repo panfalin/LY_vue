@@ -1247,7 +1247,7 @@
     <el-table v-loading="loading" :data="analysisList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="自增id" align="center" prop="id" />
-      <el-table-column label="亚马逊标准识别号" align="center" prop="ASIN" />
+      <el-table-column label="亚马逊标准识别号" align="center" prop="asin" />
       <el-table-column label="马帮SKU" align="center" prop="MSKU" />
       <el-table-column label="销售部门" align="center" prop="Sales" />
       <el-table-column label="开发部门" align="center" prop="Development" />
