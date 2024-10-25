@@ -73,6 +73,17 @@
                 @keyup.enter="handleQuery"
               />
             </el-form-item>-->
+      <!-- 级联选择器 -->
+      <el-form-item label="选择分类" prop="selectedOptions">
+        <el-cascader
+            v-model="selectedCategory"
+            :options="cascaderOptions"
+            placeholder="请选择"
+            clearable
+            @change="handleCategoryChange"
+        />
+      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -142,6 +153,8 @@
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column fixed label="SKU" align="center" prop="productCode" :min-width="200" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="分类" align="center" prop="mabang_info.category" sortable="custom"
+                       :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="商品名称" align="center" prop="mabang_info.productName" min-width="300" sortable="custom"
                        :sort-orders="['descending', 'ascending']">
         <template #default="scope">
@@ -174,7 +187,7 @@
           <div>¥{{ scope.row.mabang_info.latestPurchasePrice }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="市场容量" align="center" prop="mabang_info.marketCapacity" />
+      <el-table-column label="市场容量" align="center" prop="mabang_info.marketCapacity"/>
       <el-table-column label="7天销量" align="center" prop="mabang_info.salesDays7" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="28天销量" align="center" prop="mabang_info.salesDays28" sortable="custom"
@@ -212,7 +225,7 @@
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="总刊登数" align="center" prop="mabang_info.totalListingCount" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
-       <!--动态展示在线刊登数据 -->
+      <!--动态展示在线刊登数据 -->
       <el-table-column label="刊登数据" align="left" :min-width="250">
         <template #default="scope">
           <div style="line-height: 1.5;">
@@ -369,11 +382,19 @@
 </template>
 
 <script setup name="Products">
-import {listProducts, getProducts, delProducts, addProducts, updateProducts} from "@/api/products/products";
+import {
+  listProducts,
+  getProducts,
+  delProducts,
+  addProducts,
+  updateProducts,
+  listCategories
+} from "@/api/products/products";
 
 const {proxy} = getCurrentInstance();
 
 const productsList = ref([]);
+const categories = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -382,6 +403,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const cascaderOptions = ref([]);
 
 const data = reactive({
   form: {},
@@ -389,6 +411,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     productCode: null,
+    category: null,
     productName: null,
     target: null,
     status: null,
@@ -416,6 +439,102 @@ function getList() {
     loading.value = false;
   });
 }
+
+function getCategoryList() {
+  loading.value = true;
+  listCategories() // 假设这个方法返回完整的类别数据
+      .then(response => {
+        categories.value = response.rows; // response.rows 应该包含完整数据
+        cascaderOptions.value = formatCategories(categories.value); // 格式化为 cascader 需要的格式
+        loading.value = false;
+      })
+      .catch(error => {
+        loading.value = false; // 在出现错误时也要停止加载状态
+        console.error('获取类别列表失败:', error); // 记录错误
+        // 可以显示错误消息给用户
+        alert('加载类别列表时出错，请稍后重试。');
+      });
+}
+
+
+// 转换函数
+function formatCategories(categories) {
+  const categoryMap = {};
+
+  // 创建一个类别映射，以便快速查找
+  categories.forEach(category => {
+    categoryMap[category.categoryId] = {
+      value: category.categoryId,
+      label: category.categoryNameCn, // 显示中文名称
+      name: category.categoryNameCn, // 新增字段存储中文名称
+      children: []
+    };
+  });
+
+  const cascaderOptions = [];
+
+  // 组装树形结构
+  categories.forEach(category => {
+    if (category.parentId === null) {
+      // 顶级类别
+      cascaderOptions.push(categoryMap[category.categoryId]);
+    } else {
+      // 子类别
+      if (categoryMap[category.parentId]) {
+        categoryMap[category.parentId].children.push(categoryMap[category.categoryId]);
+      }
+    }
+  });
+
+  return cascaderOptions;
+}
+
+// 处理类别变化
+function handleCategoryChange(value) {
+  // 获取最后一个选中的类别
+  const lastSelectedOption = cascaderOptions.value.reduce((acc, option) => {
+    const findOption = (children, val) => {
+      for (const child of children) {
+        if (child.value === val) return child;
+        if (child.children.length) {
+          const found = findOption(child.children, val);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    const found = findOption(option.children, value[value.length - 1]);
+    return found ? found : acc;
+  }, null);
+
+  // 将最后一个选中的类别名称赋给 queryParams.category
+  if (lastSelectedOption) {
+    queryParams.value.category = lastSelectedOption.name; // 取中文名称
+  }
+}
+
+
+// 在组件挂载时加载类别列表
+onMounted(() => {
+  getCategoryList();
+});
+// 你可以在这里添加其他的 onMounted 钩子，例如获取店铺和国家
+onMounted(async () => {
+  try {
+    const [storesResponse, countriesResponse] = await Promise.all([
+      getAllStores(),
+      getAllCountry()
+    ]);
+    stores.value = storesResponse.data;
+    console.log('获取的店铺:', stores.value); // 添加调试信息
+    countries.value = countriesResponse.data;
+    getList(); // 初始化加载订单列表
+  } catch (error) {
+    console.error('获取数据失败', error);
+  }
+});
+
+
 
 /** 将目标改成编辑状态 */
 const editRow = (row) => {

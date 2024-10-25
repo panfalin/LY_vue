@@ -42,3 +42,12 @@ export function delProducts(id) {
     method: 'delete'
   })
 }
+
+  // 查询速卖通分析-分类列表
+  export function listCategories(query) {
+    return request({
+      url: '/categories/categories/list',
+      method: 'get',
+      params: query
+    })
+  }
