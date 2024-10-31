@@ -25,30 +25,30 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="7天销量" prop="salesDays7">
-        <el-input
-            v-model="queryParams.salesDays7"
-            placeholder="请输入数量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="28天销量" prop="salesDays28">
-        <el-input
-            v-model="queryParams.salesDays28"
-            placeholder="请输入数量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="42天销量" prop="salesDays42">
-        <el-input
-            v-model="queryParams.salesDays42"
-            placeholder="请输入数量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+      <!--<el-form-item label="7天销量" prop="salesDays7">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.salesDays7"-->
+      <!--      placeholder="请输入数量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="28天销量" prop="salesDays28">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.salesDays28"-->
+      <!--      placeholder="请输入数量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="42天销量" prop="salesDays42">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.salesDays42"-->
+      <!--      placeholder="请输入数量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
       <!--      <el-form-item label="可用库存" prop="totalInventory">
               <el-input
                 v-model="queryParams.totalInventory"
@@ -179,6 +179,20 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column label="建议" align="center" prop="mabang_info.toDoList"  min-width="250">
+        <template #default="scope">
+          <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
+            {{ scope.row.mabang_info.toDoList }}
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="热销国家" prop="mabang_info.bestSellingCountries" align="center"   min-width="150">
+        <template #default="scope">
+          <div v-for="(count, country) in parseBestSellingCountries(scope.row.mabang_info.bestSellingCountries)" :key="country">
+            {{ `${country}: ${count}` }}
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="可用库存" align="center" prop="mabang_info.totalInventory" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="最新采购价" align="center" prop="mabang_info.latestPurchasePrice" sortable="custom"
@@ -194,6 +208,7 @@
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="42天销量" align="center" prop="mabang_info.salesDays42" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
+
       <el-table-column label="图片" align="center" width="120">
         <template #default="scope">
           <el-popover
@@ -226,18 +241,24 @@
       <el-table-column label="总刊登数" align="center" prop="mabang_info.totalListingCount" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
       <!--动态展示在线刊登数据 -->
-      <el-table-column label="刊登数据" align="left" :min-width="250">
+      <el-table-column label="刊登数据" align="left" :min-width="350">
         <template #default="scope">
           <div style="line-height: 1.5;">
             <div v-for="(data, index) in scope.row.online_data" :key="index"
                  :style="{ backgroundColor:  '#f9f9f9', color: 'black' }"
                  style="margin-bottom: 10px; padding: 10px; border-radius: 4px;">
-              <div>店铺: {{ data.店铺 }}</div>
-              <div>刊登数: {{ data.刊登数 }}</div>
-              <div>刊登ID:
-                <span v-for="(listingId, idx) in data.刊登ID.split(',')" :key="idx"
-                      style="display: block;">{{ listingId.trim() }}</span>
+              <div>店铺: {{ data.store }}</div>
+              <div>刊登数: {{ data.online_count }}</div>
+              <div v-for="(info, index) in data.online_detail" :key="index"
+                   style="margin-top: 5px;">
+                <div>刊登ID: {{ info.online_id }}</div>
+                <div>价格: {{ info.price }} 评分: {{ info.rating }} 销量: {{ info.sales }} 评价数：{{ info.feedbacks }}</div>
               </div>
+              <!--<div>刊登ID:-->
+              <!--  <span v-for="(listingId, idx) in data.online_id.split(',')" :key="idx"-->
+              <!--        style="display: block;">{{ listingId.trim() }}</span>-->
+              <!--</div>-->
+              <div>店铺总销量：{{ data.sales }}</div>
             </div>
           </div>
         </template>
@@ -337,17 +358,18 @@
       </el-table-column>
 
 
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
-                       :min-width="120">
-        <template #default="{row}">
-          <el-button v-if="!row._editing" type="primary" icon="Edit" link @click="editRow(row)" size="small"
-          >编辑
-          </el-button
-          >
-          <el-button v-else type="warning" icon="Edit" link @click="saveRow(row)" size="small">保存</el-button>
-          <!--<el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['products:products:remove']">删除</el-button>-->
-        </template>
-      </el-table-column>
+      <!--<el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"-->
+      <!--                 :min-width="120">-->
+      <!--                 :min-width="120">-->
+      <!--  <template #default="{row}">-->
+      <!--    <el-button v-if="!row._editing" type="primary" icon="Edit" link @click="editRow(row)" size="small"-->
+      <!--    >编辑-->
+      <!--    </el-button-->
+      <!--    >-->
+      <!--    <el-button v-else type="warning" icon="Edit" link @click="saveRow(row)" size="small">保存</el-button>-->
+      <!--    &lt;!&ndash;<el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['products:products:remove']">删除</el-button>&ndash;&gt;-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
     </el-table>
 
 
@@ -414,6 +436,7 @@ const data = reactive({
     category: null,
     productName: null,
     target: null,
+    toDoList: null,
     status: null,
     totalInventory: null,
     latestPurchasePrice: null,
@@ -430,11 +453,29 @@ const data = reactive({
 });
 const {queryParams, form, rules} = toRefs(data);
 
+function parseBestSellingCountries(countries) {
+  if (typeof countries === 'string') {
+    try {
+      // 尝试将字符串解析为对象
+      const parsed = JSON.parse(countries);
+      return parsed;
+    } catch (e) {
+      console.error('Failed to parse best selling countries:', e);
+      return {};
+    }
+  }
+  return countries || {};
+}
+
 /** 查询products列表 */
 function getList() {
   loading.value = true;
   listProducts(queryParams.value).then(response => {
-    productsList.value = response.rows;
+    const sortedData = response.rows.map(product => ({
+      ...product,
+      online_data: product.online_data.sort((a, b) => b.sales - a.sales)
+    }));
+    productsList.value = sortedData;
     total.value = response.total;
     loading.value = false;
   });
@@ -584,6 +625,7 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
+  queryParams.value.category = null;
   proxy.resetForm("queryRef");
   handleQuery();
 }

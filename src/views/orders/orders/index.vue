@@ -203,6 +203,7 @@
       <el-table-column label="商品总重量" align="center" prop="totalProductWeight" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="订单总金额" align="center" prop="totalOrderAmount" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="实际运费" align="center" prop="actualShipping" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
+      <el-table-column label="运费收入" align="center" prop="shippingRevenue" min-width="120" sortable="custom" :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="广告费(人民币)" align="center" prop="adCostRmb" min-width="150" sortable="custom" :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="平台交易费(人民币)" align="center" prop="platformFeeRmb" min-width="150" sortable="custom" :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="VAT税费" align="center" prop="vatFeeRmb" min-width="100" sortable="custom" :sort-orders="['descending', 'ascending']"/>
