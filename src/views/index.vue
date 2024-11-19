@@ -54,6 +54,28 @@
               @keyup.enter="handleQuery"
           />
         </el-form-item>
+        <!-- 新增的筛选建议事项下拉框 -->
+        <el-form-item label="建议事项" prop="suggestions">
+          <el-select
+              v-model="queryParams.suggestions"
+              placeholder="请选择建议事项"
+              clearable
+              style="width: 200px"
+          >
+            <el-option
+                label="上架"
+                value="上架"
+            />
+            <el-option
+                label="下架"
+                value="下架"
+            />
+            <el-option
+                label="优化"
+                value="优化"
+            />
+          </el-select>
+        </el-form-item>
 
 
 
@@ -381,6 +403,7 @@ const data = reactive({
     logs: null,
     responsiblePerson: null,
     id:null,
+    suggestions:null,
   },
   rules: {
     sku: [
