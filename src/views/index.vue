@@ -139,14 +139,11 @@
         >
           <template #default="scope">
             <div class="image-wrapper">
-              <a :href="scope.row.largeImg || scope.row.imageUrl" target="_blank">
-                <img 
-                  :src="scope.row.largeImg || scope.row.imageUrl" 
-                  class="product-image"
-                  @error="handleImageError"
-                  alt="商品图片"
-                />
-              </a>
+              <img 
+                :src="getProxiedImageUrl(scope.row.largeImg || scope.row.imageUrl)"
+                class="product-image"
+                @error="(e) => handleImageError(e, scope.row)"
+              >
             </div>
           </template>
         </el-table-column>
@@ -344,6 +341,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Document, Picture, Download, Refresh, Loading } from '@element-plus/icons-vue'
 import { listTODO, listStores, listTask, updateTask } from "@/api/products/products"
+import axios from 'axios';
 
 const {proxy} = getCurrentInstance();
 
@@ -414,7 +412,7 @@ function formatStores(stores) {
   return Array.from(storeMap.values());
 }
 
-// 获取店铺经理列表
+// 获取店铺经理表
 function getStoreManagerList() {
   loading.value = true;
   listStores()
@@ -493,7 +491,7 @@ function handleUpdate(row) {
   getList(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改products";
+    title.value = "修products";
   });
 }
 
@@ -591,7 +589,7 @@ const objectSpanMethod = ({ rowIndex, columnIndex }) => {
   return { rowspan: 1, colspan: 1 };
 };
 
-// 检查是否是同一��
+// 检查是否是同一
 const isSameDay = (date1, date2) => {
   const d1 = new Date(date1)
   const d2 = new Date(date2)
@@ -671,22 +669,60 @@ const handleRowClick = (row) => {
 // 复制SKU
 const copySKU = async (sku) => {
   try {
-    await navigator.clipboard.writeText(sku)
-    ElMessage.success('SKU已复制到剪贴板')
+    await navigator.clipboard.writeText(sku);
+    ElMessage({
+      message: 'SKU已复制到剪贴板',
+      type: 'success',
+      duration: 1500
+    });
   } catch (err) {
-    ElMessage.error('复制失败')
+    // 降级处理方案
+    const textarea = document.createElement('textarea');
+    textarea.value = sku;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      ElMessage({
+        message: 'SKU已复制到剪贴板',
+        type: 'success',
+        duration: 1500
+      });
+    } catch (err) {
+      ElMessage.error('复制失败，请手动复制');
+    }
+    document.body.removeChild(textarea);
   }
-}
+};
 
 // 复制ID
 const copyID = async (id) => {
   try {
-    await navigator.clipboard.writeText(id.toString())
-    ElMessage.success('ID已复制到剪贴板')
+    await navigator.clipboard.writeText(id.toString());
+    ElMessage({
+      message: 'ID已复制到剪贴板',
+      type: 'success',
+      duration: 1500
+    });
   } catch (err) {
-    ElMessage.error('复制失败')
+    // 降级处理方案
+    const textarea = document.createElement('textarea');
+    textarea.value = id.toString();
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      ElMessage({
+        message: 'ID已复制到剪贴板',
+        type: 'success',
+        duration: 1500
+      });
+    } catch (err) {
+      ElMessage.error('复制失败，请手动复制');
+    }
+    document.body.removeChild(textarea);
   }
-}
+};
 
 // 刷新列表
 const refreshList = () => {
@@ -721,14 +757,72 @@ const filterByStatus = (value, row) => {
 };
 
 // 处理图片加载错误
-const handleImageError = (e) => {
-  e.target.outerHTML = `
-    <div class="image-error">
-      <el-icon><Picture /></el-icon>
-      <span>暂无图片</span>
-    </div>
-  `
-}
+const handleImageError = (e, row) => {
+  console.error('图片加载失败:', row.largeImg || row.imageUrl);
+  // 可以尝试使用备用图片URL
+  if (row.largeImg && e.target.src === row.largeImg) {
+    console.log('尝试加载备用图片:', row.imageUrl);
+    e.target.src = row.imageUrl;
+  } else {
+    e.target.closest('.image-wrapper').innerHTML = `
+      <div class="image-error">
+        <el-icon><Picture /></el-icon>
+        <span>暂无图片</span>
+      </div>
+    `;
+  }
+};
+
+// 修改图片加载函数
+const loadImage = async (url) => {
+  if (!url) return '';
+  try {
+    console.log('开始加载图片:', url); // 调试日志
+    const response = await axios.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Referer': 'https://www.alibaba.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    console.log('图片响应:', response); // 调试日志
+    
+    // 检查响应类型
+    if (!response.headers['content-type'].startsWith('image/')) {
+      console.error('响应不是图片类型:', response.headers['content-type']);
+      return '';
+    }
+    
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    const objectUrl = URL.createObjectURL(blob);
+    console.log('创建的 Blob URL:', objectUrl); // 调试日志
+    return objectUrl;
+  } catch (error) {
+    console.error('图片加载详细错误:', error);
+    return '';
+  }
+};
+
+// 需要在组件卸载时清理 blob URL
+onUnmounted(() => {
+  // 清理所有创建的 blob URLs
+  dailyTaskList.value.forEach(item => {
+    if (item.imageUrl && item.imageUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(item.imageUrl);
+    }
+    if (item.largeImg && item.largeImg.startsWith('blob:')) {
+      URL.revokeObjectURL(item.largeImg);
+    }
+  });
+});
+
+// 使用图片代理服务
+const getProxiedImageUrl = (url) => {
+  if (!url) return '';
+  // 使用 images.weserv.nl 代理服务
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
+};
 
 getList();
 </script>
@@ -948,7 +1042,7 @@ getList();
 }
 
 :deep(.el-image-viewer__wrapper) {
-  z-index: 2100; /* 确保图片预览在最上层 */
+  z-index: 2100; /* 确保片预览在最上层 */
 }
 
 /* 添加筛选相关样式 */
