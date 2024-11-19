@@ -117,19 +117,6 @@
       >
         <!-- 合并的列 -->
         <el-table-column 
-          label="店铺" 
-          align="center" 
-          prop="store" 
-          min-width="120" 
-          fixed="left"
-          show-overflow-tooltip="false"
-        >
-          <template #default="{ row }">
-            <div class="cell-content">{{ row.store }}</div>
-          </template>
-        </el-table-column>
-
-        <el-table-column 
           label="SKU" 
           align="center" 
           prop="sku" 
@@ -226,6 +213,20 @@
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.visitorCount }}</div>
+          </template>
+        </el-table-column>
+
+        <el-table-column 
+          label="店铺" 
+          align="center" 
+          prop="store" 
+          min-width="120" 
+          show-overflow-tooltip="false"
+        >
+          <template #default="{ row }">
+            <el-button link type="primary" @click.stop="copyStore(row.store)">
+              <div class="cell-content">{{ row.store }}</div>
+            </el-button>
           </template>
         </el-table-column>
 
@@ -391,13 +392,27 @@ const {queryParams, form, rules} = toRefs(data);
 
 // 对数据进行排序的函数
 const sortData = (data) => {
+  if (!Array.isArray(data)) return [];
+  
   return [...data].sort((a, b) => {
+    // 处理对象为空的情况
+    if (!a || !b) return 0;
+    
+    // 处理 store 为空的情况
+    const storeA = a.store || '未分配';  // 使用"未分配"作为默认值
+    const storeB = b.store || '未分配';
+    
     // 先按店铺排序
-    if (a.store !== b.store) {
-      return a.store.localeCompare(b.store);
+    if (storeA !== storeB) {
+      return storeA.localeCompare(storeB);
     }
+    
+    // 处理 sku 为空的情况
+    const skuA = a.sku || '';
+    const skuB = b.sku || '';
+    
     // 再按SKU排序
-    return a.sku.localeCompare(b.sku);
+    return skuA.localeCompare(skuB);
   });
 };
 
@@ -591,12 +606,8 @@ const skuSpanInfo = computed(() => {
 
 // 合并方法
 const objectSpanMethod = ({ rowIndex, columnIndex }) => {
-  // 只处理前四列的合并
-  if (columnIndex === 0) {
-    // 店铺列
-    return storeSpanInfo.value[rowIndex] || { rowspan: 1, colspan: 1 };
-  }
-  else if (columnIndex >= 1 && columnIndex <= 3) {
+  // 只处理前三列的合并（SKU、图片和商品名称列）
+  if (columnIndex >= 0 && columnIndex <= 2) {
     // SKU、图片和商品名称列
     return skuSpanInfo.value[rowIndex] || { rowspan: 1, colspan: 1 };
   }
@@ -803,7 +814,7 @@ const loadImage = async (url) => {
     
     console.log('图片响应:', response); // 调试日志
     
-    // 检查响应类型
+    // 查响应类型
     if (!response.headers['content-type'].startsWith('image/')) {
       console.error('响应不是图片类型:', response.headers['content-type']);
       return '';
@@ -837,6 +848,35 @@ const getProxiedImageUrl = (url) => {
   if (!url) return '';
   // 使用 images.weserv.nl 代理服务
   return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
+};
+
+// 添加 copyStore 函数
+const copyStore = async (store) => {
+  try {
+    await navigator.clipboard.writeText(store);
+    ElMessage({
+      message: '店铺名已复制到剪贴板',
+      type: 'success',
+      duration: 1500
+    });
+  } catch (err) {
+    // 降级处理方案
+    const textarea = document.createElement('textarea');
+    textarea.value = store;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      ElMessage({
+        message: '店铺名已复制到剪贴板',
+        type: 'success',
+        duration: 1500
+      });
+    } catch (err) {
+      ElMessage.error('复制失败，请手动复制');
+    }
+    document.body.removeChild(textarea);
+  }
 };
 
 getList();
