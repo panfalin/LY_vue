@@ -139,20 +139,14 @@
         >
           <template #default="scope">
             <div class="image-wrapper">
-              <el-image 
-                :src="scope.row.largeImg || scope.row.imageUrl" 
-                :preview-src-list="[scope.row.largeImg || scope.row.imageUrl]"
-                fit="contain"
-                class="product-image"
-                :preview-teleported="true"
-              >
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                    <span>暂无图片</span>
-                  </div>
-                </template>
-              </el-image>
+              <a :href="scope.row.largeImg || scope.row.imageUrl" target="_blank">
+                <img 
+                  :src="scope.row.largeImg || scope.row.imageUrl" 
+                  class="product-image"
+                  @error="handleImageError"
+                  alt="商品图片"
+                />
+              </a>
             </div>
           </template>
         </el-table-column>
@@ -175,6 +169,9 @@
           prop="id" 
           min-width="120"
           show-overflow-tooltip="false"
+          :filters="getUniqueIds(dailyTaskList)"
+          :filter-method="filterById"
+          filter-placement="bottom"
         >
           <template #default="{ row }">
             <div class="cell-content">
@@ -288,6 +285,12 @@
           align="center" 
           fixed="right" 
           min-width="100"
+          :filters="[
+            { text: '已完成', value: true },
+            { text: '未完成', value: false }
+          ]"
+          :filter-method="filterByStatus"
+          filter-placement="bottom-end"
         >
           <template #default="scope">
             <el-button
@@ -403,7 +406,7 @@ function formatStores(stores) {
     if (!storeMap.has(store.storeManager)) {
       storeMap.set(store.storeManager, {
         value: store.storeManager,
-        label: store.storeManager, // 假设 label 和 value 都是 storeManager
+        label: store.storeManager, // 设 label 和 value 都 storeManager
       });
     }
   });
@@ -588,7 +591,7 @@ const objectSpanMethod = ({ rowIndex, columnIndex }) => {
   return { rowspan: 1, colspan: 1 };
 };
 
-// 检查是否是同一天
+// 检查是否是同一��
 const isSameDay = (date1, date2) => {
   const d1 = new Date(date1)
   const d2 = new Date(date2)
@@ -695,6 +698,36 @@ const getResponsiblePersonType = (person) => {
   const types = ['', 'success', 'warning', 'danger', 'info']
   const hash = person.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return types[hash % types.length]
+}
+
+// 获取唯一的刊登ID列表
+const getUniqueIds = (list) => {
+  if (!list) return [];
+  const ids = new Set(list.map(item => item.id));
+  return Array.from(ids).map(id => ({
+    text: id.toString(),
+    value: id
+  }));
+};
+
+// 刊登ID的筛选方法
+const filterById = (value, row) => {
+  return row.id === value;
+};
+
+// 操作状态的筛选方法
+const filterByStatus = (value, row) => {
+  return value ? !!row.logs : !row.logs;
+};
+
+// 处理图片加载错误
+const handleImageError = (e) => {
+  e.target.outerHTML = `
+    <div class="image-error">
+      <el-icon><Picture /></el-icon>
+      <span>暂无图片</span>
+    </div>
+  `
 }
 
 getList();
@@ -916,5 +949,18 @@ getList();
 
 :deep(.el-image-viewer__wrapper) {
   z-index: 2100; /* 确保图片预览在最上层 */
+}
+
+/* 添加筛选相关样式 */
+:deep(.el-table-filter) {
+  max-height: 300px;
+}
+
+:deep(.el-table-filter__list) {
+  min-width: 150px;
+}
+
+:deep(.el-table-filter__bottom) {
+  border-top: 1px solid #EBEEF5;
 }
 </style>
