@@ -43,6 +43,20 @@
             />
           </el-select>
         </el-form-item>
+
+        <el-form-item label="刊登 ID" prop="id">
+          <el-input
+              v-model="queryParams.id"
+              placeholder="请输入刊登 ID"
+              clearable
+              :prefix-icon="Search"
+              style="width: 200px"
+              @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+
+
+
         <el-form-item>
           <el-button-group>
             <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
@@ -365,6 +379,7 @@ const data = reactive({
     pageSize: 20,
     logs: null,
     responsiblePerson: null,
+    id:null,
   },
   rules: {
     sku: [
