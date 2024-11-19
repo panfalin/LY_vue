@@ -765,11 +765,20 @@ const getResponsiblePersonType = (person) => {
 // 获取唯一的刊登ID列表
 const getUniqueIds = (list) => {
   if (!list) return [];
-  const ids = new Set(list.map(item => item.id));
-  return Array.from(ids).map(id => ({
-    text: id.toString(),
-    value: id
-  }));
+  
+  // 过滤掉无效的ID，并确保ID存在
+  const validIds = list
+    .filter(item => item && item.id != null)  // 过滤掉null和undefined的id
+    .map(item => item.id);
+    
+  // 使用Set去重
+  const uniqueIds = Array.from(new Set(validIds))
+    .map(id => ({
+      text: String(id),  // 使用String()替代toString()，更安全
+      value: id
+    }));
+  
+  return uniqueIds;
 };
 
 // 刊登ID的筛选方法
