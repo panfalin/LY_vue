@@ -25,13 +25,13 @@ export default defineConfig(({ mode, command }) => {
     },
     // vite 相关配置
     server: {
-      port: 80,
+      port: 82,
       host: true,
       open: true,
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
-          target: 'http://localhost:8080',
+          target: 'http://192.168.1.252:8090',
           // target: 'https://api.wzs.pub/mock/13',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')

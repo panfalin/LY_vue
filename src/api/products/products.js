@@ -51,3 +51,73 @@ export function delProducts(id) {
       params: query
     })
   }
+
+// 查询速卖通分析-店铺信息列表
+export function listStores(query) {
+  return request({
+    url: '/stores/stores/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询速卖通分析-商品维度，今天要做的事情
+export function listTODO(query) {
+  return request({
+    url: '/products/products/toDoList',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询所有分配责任人
+export function listResponsible(query) {
+  return request({
+    url: '/products/products/responsible',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询速卖通分析-任务清单列表
+export function listTask(query) {
+  return request({
+    url: '/task/task/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询速卖通分析-任务清单详细
+export function getTask(id) {
+  return request({
+    url: '/task/task/' + id,
+    method: 'get'
+  })
+}
+
+// 新增速卖通分析-任务清单
+export function addTask(data) {
+  return request({
+    url: '/task/task',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改速卖通分析-任务清单
+export function updateTask(data) {
+  return request({
+    url: '/task/task',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除速卖通分析-任务清单
+export function delTask(id) {
+  return request({
+    url: '/task/task/' + id,
+    method: 'delete'
+  })
+}

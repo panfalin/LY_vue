@@ -74,6 +74,16 @@
               />
             </el-form-item>-->
       <!-- 级联选择器 -->
+      <el-form-item label="负责人" prop="selectedResponsiblePerson">
+        <el-select v-model="form.selectedResponsiblePerson" placeholder="请选择负责人" clearable>
+          <el-option
+              v-for="person in storeOptions"
+              :key="person.value"
+              :label="person.label"
+              :value="person.value"
+          ></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="选择分类" prop="selectedOptions">
         <el-cascader
             v-model="selectedCategory"
@@ -164,6 +174,13 @@
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="mabang_info.status"/>
+      <el-table-column label="其他平台数据参考" align="center" prop="mabang_info"  min-width="250">
+        <!--<template #default="scope">-->
+        <!--  <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">-->
+        <!--    {{ scope.row.mabang_info.toDoList }}-->
+        <!--  </div>-->
+        <!--</template>-->
+      </el-table-column>
       <el-table-column label="目标" align="center" prop="mabang_info.target" min-width="200">
         <template #default="scope">
           <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
@@ -179,10 +196,17 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="建议" align="center" prop="mabang_info.toDoList"  min-width="250">
+      <el-table-column label="建议" align="center" prop="mabang_info.toDoList"  min-width="300">
         <template #default="scope">
           <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
             {{ scope.row.mabang_info.toDoList }}
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="分配负责人" align="center" prop="mabang_info.store_manager"  min-width="250">
+        <template #default="scope">
+          <div style="white-space: pre-wrap; word-break: break-word; text-align: left;">
+            {{ scope.row.mabang_info.store_manager }}
           </div>
         </template>
       </el-table-column>
@@ -201,7 +225,11 @@
           <div>¥{{ scope.row.mabang_info.latestPurchasePrice }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="市场容量" align="center" prop="mabang_info.marketCapacity"/>
+      <el-table-column label="市场容量（30天）" align="center" prop="mabang_info.marketCapacity">
+        <template #default="scope">
+          <div>{{ parseFloat(scope.row.mabang_info.marketCapacity).toFixed(2) }}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="7天销量" align="center" prop="mabang_info.salesDays7" sortable="custom"
                        :sort-orders="['descending', 'ascending']"/>
       <el-table-column label="28天销量" align="center" prop="mabang_info.salesDays28" sortable="custom"
@@ -410,13 +438,15 @@ import {
   delProducts,
   addProducts,
   updateProducts,
-  listCategories
+  listCategories,
+  listStores
 } from "@/api/products/products";
 
 const {proxy} = getCurrentInstance();
 
 const productsList = ref([]);
 const categories = ref([]);
+const stores = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -426,9 +456,13 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const cascaderOptions = ref([]);
+const storeOptions = ref([]);
+const Options = ref([]);
 
 const data = reactive({
-  form: {},
+  form: {
+    selectedResponsiblePerson: null,
+  },
   queryParams: {
     pageNum: 1,
     pageSize: 10,
@@ -444,6 +478,7 @@ const data = reactive({
     salesDays7: null,
     salesDays28: null,
     salesDays42: null,
+    responsible: null,
   },
   rules: {
     productCode: [
@@ -496,6 +531,39 @@ function getCategoryList() {
         alert('加载类别列表时出错，请稍后重试。');
       });
 }
+
+// 格式化店铺数据
+function formatStores(stores) {
+  const storeMap = new Map();
+  stores.forEach(store => {
+    if (!storeMap.has(store.storeManager)) {
+      storeMap.set(store.storeManager, {
+        value: store.storeManager,
+        label: store.storeManager, // 假设 label 和 value 都是 storeManager
+      });
+    }
+  });
+
+  return Array.from(storeMap.values());
+}
+
+// 获取店铺经理列表
+function getStoreManagerList() {
+  loading.value = true;
+  listStores()
+      .then(response => {
+        const stores = response.rows; // response.rows 应该包含完整数据
+        storeOptions.value = formatStores(stores);
+        loading.value = false;
+      })
+      .catch(error => {
+        loading.value = false; // 在出现错误时也要停止加载状态
+        console.error('获取店铺列表失败:', error); // 记录错误
+        // 可以显示错误消息给用户
+        ElMessage.error('加载店铺列表时出错，请稍后重试。');
+      });
+}
+
 
 
 // 转换函数
@@ -558,6 +626,8 @@ function handleCategoryChange(value) {
 // 在组件挂载时加载类别列表
 onMounted(() => {
   getCategoryList();
+  getStoreManagerList();
+  getList();
 });
 // 你可以在这里添加其他的 onMounted 钩子，例如获取店铺和国家
 onMounted(async () => {
@@ -620,6 +690,7 @@ function reset() {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
+  queryParams.value.responsible = form.value.selectedResponsiblePerson;
   getList();
 }
 
