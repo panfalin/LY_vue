@@ -77,16 +77,26 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="店铺" prop="store">
-          <el-input
-              v-model="queryParams.store"
-              placeholder="请输入店铺"
+
+        <el-form-item label="查询店铺" prop="store">
+          <el-select
+              v-model="form.store"
+              placeholder="请选择店铺"
               clearable
-              :prefix-icon="Search"
               style="width: 200px"
-              @keyup.enter="handleQuery"
-          />
+              filterable
+          >
+            <el-option
+                v-for="storeName in storeOptionNames"
+                :key="storeName.value"
+                :label="storeName.label"
+                :value="storeName.value"
+            />
+          </el-select>
         </el-form-item>
+
+
+
 
         <el-form-item>
           <el-button-group>
@@ -404,11 +414,17 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const storeOptions = ref([]);
+// 店铺列表数据
+const storeOptionNames = ref([]);
 
 const data = reactive({
   form: {
     selectedResponsiblePerson: null,
+    store:null,
   },
+
+
+
   queryParams: {
     pageNum: 1,
     pageSize: 20,
@@ -463,7 +479,7 @@ function getList() {
   });
 }
 
-// 格式化店铺数据
+// 格式化店铺经理数据
 function formatStores(stores) {
   const storeMap = new Map();
   stores.forEach(store => {
@@ -477,6 +493,25 @@ function formatStores(stores) {
 
   return Array.from(storeMap.values());
 }
+
+// 格式化店铺数据
+function formatStoresname(stores) {
+
+  const storeMap = new Map();
+  stores.forEach(store => {
+    if (!storeMap.has(store.storeName)) {
+      storeMap.set(store.storeName, {
+        value: store.storeName,
+        label: store.storeName, // 设 label 和 value 都 store_name
+      });
+    }
+  });
+
+  return Array.from(storeMap.values());
+}
+
+
+
 
 // 获取店铺经理表
 function getStoreManagerList() {
@@ -495,9 +530,28 @@ function getStoreManagerList() {
       });
 }
 
+// 获取店铺表
+function getStoreList() {
+  loading.value = true;
+  listStores()
+      .then(response => {
+        const stores = response.rows; // response.rows 应该包含完整数据
+        storeOptionNames.value = formatStoresname(stores);
+        console.log("storeOptionNames.value====>",storeOptionNames.value)
+        loading.value = false;
+      })
+      .catch(error => {
+        loading.value = false; // 在出现错误时也要停止加载状态
+        console.error('获取店铺列表失败:', error); // 记录错误
+        // 可以显示错误消息给用户
+        ElMessage.error('加载店铺列表时出错，请稍后重试');
+      });
+}
+
 // 组件挂载时加载类别列表
 onMounted(() => {
   getStoreManagerList();
+  getStoreList();
 });
 
 /** 排序触发事件 */
@@ -533,12 +587,15 @@ function reset() {
 function handleQuery() {
   queryParams.value.pageNum = 1;
   queryParams.value.responsiblePerson = form.value.selectedResponsiblePerson;
+  queryParams.value.store = form.value.store;
   getList();
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
   queryParams.value.category = null;
+  form.value.selectedResponsiblePerson = null;
+  form.value.store = null;
   proxy.resetForm("queryRef");
   handleQuery();
 }
