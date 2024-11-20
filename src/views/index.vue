@@ -541,6 +541,7 @@ function resetQuery() {
   queryParams.value.category = null;
   proxy.resetForm("queryRef");
   handleQuery();
+
 }
 
 // 多选框选中数据
