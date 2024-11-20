@@ -5,12 +5,12 @@
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="80px">
         <el-form-item label="SKU" prop="sku">
           <el-input
-            v-model="queryParams.sku"
-            placeholder="请输入SKU"
-            clearable
-            :prefix-icon="Search"
-            style="width: 200px"
-            @keyup.enter="handleQuery"
+              v-model="queryParams.sku"
+              placeholder="请输入SKU"
+              clearable
+              :prefix-icon="Search"
+              style="width: 200px"
+              @keyup.enter="handleQuery"
           >
             <template #append>
               <el-button :icon="Search" @click="handleQuery" />
@@ -19,27 +19,27 @@
         </el-form-item>
         <el-form-item label="商品名称" prop="productName">
           <el-input
-            v-model="queryParams.productName"
-            placeholder="请输入商品名称"
-            clearable
-            :prefix-icon="Document"
-            style="width: 200px"
-            @keyup.enter="handleQuery"
+              v-model="queryParams.productName"
+              placeholder="请输入商品名称"
+              clearable
+              :prefix-icon="Document"
+              style="width: 200px"
+              @keyup.enter="handleQuery"
           />
         </el-form-item>
         <el-form-item label="负责人" prop="selectedResponsiblePerson">
-          <el-select 
-            v-model="form.selectedResponsiblePerson" 
-            placeholder="请选择负责人" 
-            clearable
-            style="width: 200px"
-            filterable
+          <el-select
+              v-model="form.selectedResponsiblePerson"
+              placeholder="请选择负责人"
+              clearable
+              style="width: 200px"
+              filterable
           >
             <el-option
-              v-for="person in storeOptions"
-              :key="person.value"
-              :label="person.label"
-              :value="person.value"
+                v-for="person in storeOptions"
+                :key="person.value"
+                :label="person.label"
+                :value="person.value"
             />
           </el-select>
         </el-form-item>
@@ -77,16 +77,26 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="店铺" prop="store">
-          <el-input
-              v-model="queryParams.store"
-              placeholder="请输入店铺"
+
+        <el-form-item label="查询店铺" prop="store">
+          <el-select
+              v-model="form.store"
+              placeholder="请选择店铺"
               clearable
-              :prefix-icon="Search"
               style="width: 200px"
-              @keyup.enter="handleQuery"
-          />
+              filterable
+          >
+            <el-option
+                v-for="storeName in storeOptionNames"
+                :key="storeName.value"
+                :label="storeName.label"
+                :value="storeName.value"
+            />
+          </el-select>
         </el-form-item>
+
+
+
 
         <el-form-item>
           <el-button-group>
@@ -108,26 +118,26 @@
           <div class="right-btns">
             <el-tooltip content="刷新数据" placement="top">
               <el-button
-                :icon="Refresh"
-                circle
-                @click="refreshList"
-                :loading="loading"
+                  :icon="Refresh"
+                  circle
+                  @click="refreshList"
+                  :loading="loading"
               />
             </el-tooltip>
             <el-tooltip content="导出数据" placement="top">
               <el-button
-                type="warning"
-                :icon="Download"
-                circle
-                @click="handleExport"
-                v-hasPermi="['products:products:export']"
+                  type="warning"
+                  :icon="Download"
+                  circle
+                  @click="handleExport"
+                  v-hasPermi="['products:products:export']"
               />
             </el-tooltip>
             <el-tooltip :content="showSearch ? '隐藏搜索' : '显示搜索'" placement="top">
               <el-button
-                :icon="showSearch ? 'Hide' : 'Search'"
-                circle
-                @click="showSearch = !showSearch"
+                  :icon="showSearch ? 'Hide' : 'Search'"
+                  circle
+                  @click="showSearch = !showSearch"
               />
             </el-tooltip>
           </div>
@@ -136,24 +146,24 @@
 
       <!-- 表格 -->
       <el-table
-        v-loading="loading"
-        :data="dailyTaskList"
-        :span-method="objectSpanMethod"
-        style="width: 100%"
-        :height="tableHeight"
-        highlight-current-row
-        border
-        stripe
-        @row-click="handleRowClick"
+          v-loading="loading"
+          :data="dailyTaskList"
+          :span-method="objectSpanMethod"
+          style="width: 100%"
+          :height="tableHeight"
+          highlight-current-row
+          border
+          stripe
+          @row-click="handleRowClick"
       >
         <!-- 合并的列 -->
-        <el-table-column 
-          label="SKU" 
-          align="center" 
-          prop="sku" 
-          min-width="120" 
-          fixed="left"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="SKU"
+            align="center"
+            prop="sku"
+            min-width="120"
+            fixed="left"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <el-button link type="primary" @click.stop="copySKU(row.sku)">
@@ -162,45 +172,45 @@
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="刊登图片" 
-          align="center" 
-          width="120" 
-          fixed="left"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="刊登图片"
+            align="center"
+            width="120"
+            fixed="left"
+            show-overflow-tooltip="false"
         >
           <template #default="scope">
             <div class="image-wrapper">
-              <img 
-                :src="getProxiedImageUrl(scope.row.largeImg || scope.row.imageUrl)"
-                class="product-image"
-                @error="(e) => handleImageError(e, scope.row)"
+              <img
+                  :src="getProxiedImageUrl(scope.row.largeImg || scope.row.imageUrl)"
+                  class="product-image"
+                  @error="(e) => handleImageError(e, scope.row)"
               >
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="商品名称" 
-          align="center" 
-          min-width="300" 
-          prop="productName"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="商品名称"
+            align="center"
+            min-width="300"
+            prop="productName"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.productName }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="刊登ID" 
-          align="center" 
-          prop="id" 
-          min-width="120"
-          show-overflow-tooltip="false"
-          :filters="getUniqueIds(dailyTaskList)"
-          :filter-method="filterById"
-          filter-placement="bottom"
+        <el-table-column
+            label="刊登ID"
+            align="center"
+            prop="id"
+            min-width="120"
+            show-overflow-tooltip="false"
+            :filters="getUniqueIds(dailyTaskList)"
+            :filter-method="filterById"
+            filter-placement="bottom"
         >
           <template #default="{ row }">
             <div class="cell-content">
@@ -211,48 +221,48 @@
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="任务" 
-          align="center" 
-          prop="tasks" 
-          min-width="150"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="任务"
+            align="center"
+            prop="tasks"
+            min-width="150"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.tasks }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="历史销量" 
-          align="center" 
-          prop="sales" 
-          min-width="100"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="历史销量"
+            align="center"
+            prop="sales"
+            min-width="100"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.sales }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="近30天访客" 
-          align="center" 
-          prop="visitorCount" 
-          min-width="120"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="近30天访客"
+            align="center"
+            prop="visitorCount"
+            min-width="120"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.visitorCount }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="店铺" 
-          align="center" 
-          prop="store" 
-          min-width="120" 
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="店铺"
+            align="center"
+            prop="store"
+            min-width="120"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <el-button link type="primary" @click.stop="copyStore(row.store)">
@@ -261,24 +271,24 @@
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="责任人" 
-          align="center" 
-          prop="responsiblePerson" 
-          min-width="100"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="责任人"
+            align="center"
+            prop="responsiblePerson"
+            min-width="100"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.responsiblePerson }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="建议事项" 
-          align="center" 
-          prop="suggestions" 
-          min-width="200"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="建议事项"
+            align="center"
+            prop="suggestions"
+            min-width="200"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">
@@ -288,24 +298,24 @@
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="目标" 
-          align="center" 
-          prop="goals" 
-          min-width="150"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="目标"
+            align="center"
+            prop="goals"
+            min-width="150"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.goals }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="日志记录" 
-          align="center" 
-          prop="logs" 
-          min-width="150"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="日志记录"
+            align="center"
+            prop="logs"
+            min-width="150"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content" :class="{ 'has-logs': row.logs }">
@@ -314,36 +324,36 @@
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="修改时间" 
-          align="center" 
-          prop="updateTime" 
-          min-width="160"
-          show-overflow-tooltip="false"
+        <el-table-column
+            label="修改时间"
+            align="center"
+            prop="updateTime"
+            min-width="160"
+            show-overflow-tooltip="false"
         >
           <template #default="{ row }">
             <div class="cell-content">{{ row.updateTime }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column 
-          label="操作" 
-          align="center" 
-          fixed="right" 
-          min-width="100"
-          :filters="[
+        <el-table-column
+            label="操作"
+            align="center"
+            fixed="right"
+            min-width="100"
+            :filters="[
             { text: '已完成', value: true },
             { text: '未完成', value: false }
           ]"
-          :filter-method="filterByStatus"
-          filter-placement="bottom-end"
+            :filter-method="filterByStatus"
+            filter-placement="bottom-end"
         >
           <template #default="scope">
             <el-button
-              :type="scope.row.logs ? 'success' : 'primary'"
-              :disabled="scope.row.logs"
-              @click.stop="handleComplete(scope.row)"
-              v-hasPermi="['task:task:edit']"
+                :type="scope.row.logs ? 'success' : 'primary'"
+                :disabled="scope.row.logs"
+                @click.stop="handleComplete(scope.row)"
+                v-hasPermi="['task:task:edit']"
             >
               {{ scope.row.logs ? '已完成' : '未完成' }}
             </el-button>
@@ -353,21 +363,21 @@
 
       <!-- 分页 -->
       <pagination
-        v-show="total > 0"
-        :total="total"
-        :page-sizes="[20, 50, 100]"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        @pagination="getList"
+          v-show="total > 0"
+          :total="total"
+          :page-sizes="[20, 50, 100]"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          @pagination="getList"
       />
     </el-card>
 
     <!-- 详情抽屉 -->
     <el-drawer
-      v-model="drawerVisible"
-      title="详细信息"
-      size="50%"
-      :destroy-on-close="true"
+        v-model="drawerVisible"
+        title="详细信息"
+        size="50%"
+        :destroy-on-close="true"
     >
       <template #header>
         <h4>{{ selectedRow?.productName || '详细信息' }}</h4>
@@ -404,11 +414,17 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const storeOptions = ref([]);
+// 店铺列表数据
+const storeOptionNames = ref([]);
 
 const data = reactive({
   form: {
     selectedResponsiblePerson: null,
+    store:null,
   },
+
+
+
   queryParams: {
     pageNum: 1,
     pageSize: 20,
@@ -429,24 +445,24 @@ const {queryParams, form, rules} = toRefs(data);
 // 对数据进行排序的函数
 const sortData = (data) => {
   if (!Array.isArray(data)) return [];
-  
+
   return [...data].sort((a, b) => {
     // 处理对象为空的情况
     if (!a || !b) return 0;
-    
+
     // 处理 store 为空的情况
     const storeA = a.store || '未分配';  // 使用"未分配"作为默认值
     const storeB = b.store || '未分配';
-    
+
     // 先按店铺排序
     if (storeA !== storeB) {
       return storeA.localeCompare(storeB);
     }
-    
+
     // 处理 sku 为空的情况
     const skuA = a.sku || '';
     const skuB = b.sku || '';
-    
+
     // 再按SKU排序
     return skuA.localeCompare(skuB);
   });
@@ -463,7 +479,7 @@ function getList() {
   });
 }
 
-// 格式化店铺数据
+// 格式化店铺经理数据
 function formatStores(stores) {
   const storeMap = new Map();
   stores.forEach(store => {
@@ -477,6 +493,25 @@ function formatStores(stores) {
 
   return Array.from(storeMap.values());
 }
+
+// 格式化店铺数据
+function formatStoresname(stores) {
+
+  const storeMap = new Map();
+  stores.forEach(store => {
+    if (!storeMap.has(store.storeName)) {
+      storeMap.set(store.storeName, {
+        value: store.storeName,
+        label: store.storeName, // 设 label 和 value 都 store_name
+      });
+    }
+  });
+
+  return Array.from(storeMap.values());
+}
+
+
+
 
 // 获取店铺经理表
 function getStoreManagerList() {
@@ -495,9 +530,28 @@ function getStoreManagerList() {
       });
 }
 
+// 获取店铺表
+function getStoreList() {
+  loading.value = true;
+  listStores()
+      .then(response => {
+        const stores = response.rows; // response.rows 应该包含完整数据
+        storeOptionNames.value = formatStoresname(stores);
+        console.log("storeOptionNames.value====>",storeOptionNames.value)
+        loading.value = false;
+      })
+      .catch(error => {
+        loading.value = false; // 在出现错误时也要停止加载状态
+        console.error('获取店铺列表失败:', error); // 记录错误
+        // 可以显示错误消息给用户
+        ElMessage.error('加载店铺列表时出错，请稍后重试');
+      });
+}
+
 // 组件挂载时加载类别列表
 onMounted(() => {
   getStoreManagerList();
+  getStoreList();
 });
 
 /** 排序触发事件 */
@@ -533,15 +587,17 @@ function reset() {
 function handleQuery() {
   queryParams.value.pageNum = 1;
   queryParams.value.responsiblePerson = form.value.selectedResponsiblePerson;
+  queryParams.value.store = form.value.store;
   getList();
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
   queryParams.value.category = null;
+  form.value.selectedResponsiblePerson = null;
+  form.value.store = null;
   proxy.resetForm("queryRef");
   handleQuery();
-
 }
 
 // 多选框选中数据
@@ -610,7 +666,7 @@ const getSpanInfo = (data, key) => {
       count = 1;
     }
   }
-  
+
   // 处理最后一组数据
   if (count > 0) {
     spanInfo.push({
@@ -621,10 +677,10 @@ const getSpanInfo = (data, key) => {
 
   // 生成最终的合并信息数组
   const result = new Array(data.length).fill(null);
-  spanInfo.forEach(({ pos, count }) => {
-    result[pos] = { rowspan: count, colspan: 1 };
+  spanInfo.forEach(({pos, count}) => {
+    result[pos] = {rowspan: count, colspan: 1};
     for (let i = pos + 1; i < pos + count; i++) {
-      result[i] = { rowspan: 0, colspan: 0 };
+      result[i] = {rowspan: 0, colspan: 0};
     }
   });
 
@@ -642,14 +698,14 @@ const skuSpanInfo = computed(() => {
 });
 
 // 合并方法
-const objectSpanMethod = ({ rowIndex, columnIndex }) => {
+const objectSpanMethod = ({rowIndex, columnIndex}) => {
   // 只处理前三列的合并（SKU、图片和商品名称列）
   if (columnIndex >= 0 && columnIndex <= 2) {
     // SKU、图片和商品名称列
-    return skuSpanInfo.value[rowIndex] || { rowspan: 1, colspan: 1 };
+    return skuSpanInfo.value[rowIndex] || {rowspan: 1, colspan: 1};
   }
   // 其他列不合并
-  return { rowspan: 1, colspan: 1 };
+  return {rowspan: 1, colspan: 1};
 };
 
 // 检查是否是同一
@@ -657,8 +713,8 @@ const isSameDay = (date1, date2) => {
   const d1 = new Date(date1)
   const d2 = new Date(date2)
   return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getDate() === d2.getDate()
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
 }
 
 // 处理完成操作
@@ -675,19 +731,19 @@ const handleComplete = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
+
     // 准备更新数据
     const taskData = {
       id: row.id,
       logs: new Date().toLocaleString()
     }
-    
+
     console.log('准备发送的数据：', taskData) // 调试日志
-    
+
     // 调用更新API
     const res = await updateTask(taskData)
     console.log('API响应：', res) // 调试日志
-    
+
     if (res.code === 200) {
       // 更新本地状态
       row.logs = taskData.logs
@@ -802,19 +858,19 @@ const getResponsiblePersonType = (person) => {
 // 获取唯一的刊登ID列表
 const getUniqueIds = (list) => {
   if (!list) return [];
-  
+
   // 过滤掉无效的ID，并确保ID存在
   const validIds = list
-    .filter(item => item && item.id != null)  // 过滤掉null和undefined的id
-    .map(item => item.id);
-    
+      .filter(item => item && item.id != null)  // 过滤掉null和undefined的id
+      .map(item => item.id);
+
   // 使用Set去重
   const uniqueIds = Array.from(new Set(validIds))
-    .map(id => ({
-      text: String(id),  // 使用String()替代toString()，更安全
-      value: id
-    }));
-  
+      .map(id => ({
+        text: String(id),  // 使用String()替代toString()，更安全
+        value: id
+      }));
+
   return uniqueIds;
 };
 
@@ -857,16 +913,16 @@ const loadImage = async (url) => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
-    
+
     console.log('图片响应:', response); // 调试日志
-    
+
     // 查响应类型
     if (!response.headers['content-type'].startsWith('image/')) {
       console.error('响应不是图片类型:', response.headers['content-type']);
       return '';
     }
-    
-    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+    const blob = new Blob([response.data], {type: response.headers['content-type']});
     const objectUrl = URL.createObjectURL(blob);
     console.log('创建的 Blob URL:', objectUrl); // 调试日志
     return objectUrl;
