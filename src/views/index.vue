@@ -534,7 +534,6 @@ function handleQuery() {
   queryParams.value.pageNum = 1;
   queryParams.value.responsiblePerson = form.value.selectedResponsiblePerson;
   getList();
-
 }
 
 /** 重置按钮操作 */
