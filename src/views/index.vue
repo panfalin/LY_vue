@@ -77,7 +77,16 @@
           </el-select>
         </el-form-item>
 
-
+        <el-form-item label="店铺" prop="store">
+          <el-input
+              v-model="queryParams.store"
+              placeholder="请输入店铺"
+              clearable
+              :prefix-icon="Search"
+              style="width: 200px"
+              @keyup.enter="handleQuery"
+          />
+        </el-form-item>
 
         <el-form-item>
           <el-button-group>
@@ -272,7 +281,10 @@
           show-overflow-tooltip="false"
         >
           <template #default="{ row }">
-            <div class="cell-content">{{ row.suggestions }}</div>
+            <div class="cell-content">
+              <el-button type="text" @click="handleButtonClick(row)">{{ row.suggestions }}</el-button>
+            </div>
+
           </template>
         </el-table-column>
 
@@ -404,6 +416,7 @@ const data = reactive({
     responsiblePerson: null,
     id:null,
     suggestions:null,
+    store:null,
   },
   rules: {
     sku: [
@@ -881,6 +894,12 @@ const getProxiedImageUrl = (url) => {
   // 使用 images.weserv.nl 代理服务
   return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
 };
+
+const handleButtonClick = async (row) => {
+  alert(`建议详情：${row.suggestions}`);
+
+}
+
 
 // 添加 copyStore 函数
 const copyStore = async (store) => {
