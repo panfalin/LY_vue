@@ -953,7 +953,22 @@ const getProxiedImageUrl = (url) => {
 };
 
 const handleButtonClick = async (row) => {
-  alert(`建议详情：${row.suggestions}`);
+
+  const apiUrl = 'https://example.com/api/someEndpoint';
+  try {
+    // 使用fetch发送POST请求（可根据接口实际要求更改请求方法）
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ productId: row.id,source:3,operate:"offline"})
+    });
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error('调用接口出错：', error);
+  }
 
 }
 
