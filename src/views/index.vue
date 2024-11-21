@@ -292,7 +292,7 @@
         >
           <template #default="{ row }">
             <div class="cell-content">
-              <el-button type="text" @click="handleButtonClick(row)">{{ row.suggestions }}</el-button>
+              <el-button type="text" @click.stop="handleButtonClick(row)">{{ row.suggestions }}</el-button>
             </div>
 
           </template>
@@ -953,8 +953,8 @@ const getProxiedImageUrl = (url) => {
 };
 
 const handleButtonClick = async (row) => {
-
-  const apiUrl = 'https://example.com/api/someEndpoint';
+  console.log("row===?>",row)
+  const apiUrl = 'http://192.168.1.122:5000/index/offshelves';
   try {
     // 使用fetch发送POST请求（可根据接口实际要求更改请求方法）
     const response = await fetch(apiUrl, {
@@ -962,10 +962,16 @@ const handleButtonClick = async (row) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ productId: row.id,source:3,operate:"offline"})
+      body: JSON.stringify({
+        //productId: row.id,
+        productId: 1005007329148314,
+        source:3,
+        operate:"offline",
+        suggestion:row.suggestions
+      })
     });
     const data = await response.json();
-    console.log(data);
+    alert(data.result)
   } catch (error) {
     console.error('调用接口出错：', error);
   }
