@@ -716,7 +716,58 @@ const isSameDay = (date1, date2) => {
       d1.getMonth() === d2.getMonth() &&
       d1.getDate() === d2.getDate()
 }
+//处理上架下架逻辑
+const handleButtonClick = async (row) => {
+  await ElMessageBox.confirm('确认要完成此操作吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+  const apiUrl = 'http://192.168.1.122:5000/index/offshelves';
+  try {
+    // 使用fetch发送POST请求（可根据接口实际要求更改请求方法）
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        productId: row.id,
+        //productId: 1005007329148314,
+        source:3,
+        operate:"offline",
+        suggestion:row.suggestions
+      })
+    });
+    const data = await response.json();
+    // 准备更新数据
+    const taskData = {
+      id: row.id,
+      logs: new Date().toLocaleString()
+    }
 
+    console.log('准备发送的数据：', taskData) // 调试日志
+
+    // 调用更新API
+    const res = await updateTask(taskData)
+    console.log('API响应：', res) // 调试日志
+
+    if (res.code === 200) {
+      // 更新本地状态
+      row.logs = taskData.logs
+      ElMessage.success('操作已完成')
+      // 刷新列表
+      getList()
+    } else {
+      ElMessage.error(res.msg || '操作失败')
+    }
+    alert(data.result)
+
+  } catch (error) {
+    console.error('调用接口出错：', error);
+  }
+
+}
 // 处理完成操作
 const handleComplete = async (row) => {
   console.log('开始处理完成操作', row) // 调试日志
@@ -726,7 +777,7 @@ const handleComplete = async (row) => {
   }
 
   try {
-    await ElMessageBox.confirm('确认要完成此操作吗？', '提示', {
+      await ElMessageBox.confirm('确认要执行此操作吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -952,31 +1003,6 @@ const getProxiedImageUrl = (url) => {
   return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
 };
 
-const handleButtonClick = async (row) => {
-  console.log("row===?>",row)
-  const apiUrl = 'http://192.168.1.122:5000/index/offshelves';
-  try {
-    // 使用fetch发送POST请求（可根据接口实际要求更改请求方法）
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        //productId: row.id,
-        productId: 1005007329148314,
-        source:3,
-        operate:"offline",
-        suggestion:row.suggestions
-      })
-    });
-    const data = await response.json();
-    alert(data.result)
-  } catch (error) {
-    console.error('调用接口出错：', error);
-  }
-
-}
 
 
 // 添加 copyStore 函数
