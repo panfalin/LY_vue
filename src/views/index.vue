@@ -740,6 +740,7 @@ const handleButtonClick = async (row) => {
       })
     });
     const data = await response.json();
+    ElMessage.success(data.result)
     // 准备更新数据
     const taskData = {
       id: row.id,
@@ -761,7 +762,6 @@ const handleButtonClick = async (row) => {
     } else {
       ElMessage.error(res.msg || '操作失败')
     }
-    alert(data.result)
 
   } catch (error) {
     console.error('调用接口出错：', error);
