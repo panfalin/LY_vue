@@ -55,14 +55,11 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['template:template:add']"
-        >新增</el-button>
+        <el-button   type="primary"
+                     plain
+                     icon="el-icon-plus"
+                     size="mini" @click="visible = true">新增</el-button>
+
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -103,22 +100,22 @@
       <el-table-column label="备注2" align="center" prop="remark2" />
       <el-table-column label="标准回复" align="center" prop="standardResponses" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['template:template:edit']"
-          >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['template:template:remove']"
-          >删除</el-button>
-        </template>
+<!--        <template slot-scope="scope">-->
+<!--          <el-button-->
+<!--            size="mini"-->
+<!--            type="text"-->
+<!--            icon="el-icon-edit"-->
+<!--            @click="handleUpdate(scope.row)"-->
+<!--            v-hasPermi="['template:template:edit']"-->
+<!--          >修改</el-button>-->
+<!--          <el-button-->
+<!--            size="mini"-->
+<!--            type="text"-->
+<!--            icon="el-icon-delete"-->
+<!--            @click="handleDelete(scope.row)"-->
+<!--            v-hasPermi="['template:template:remove']"-->
+<!--          >删除</el-button>-->
+<!--        </template>-->
       </el-table-column>
     </el-table>
     
@@ -131,8 +128,16 @@
     />
 
     <!-- 添加或修改客服问答SKU收集模板对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+<!--    <el-dialog :title="title" :visible.sync="showDialog" width="500px" append-to-body>-->
+
+
+    <el-popover
+        ref="popover"
+        trigger="manual"
+        :visible.sync="visible"
+        width="1000px"
+    >
+      <el-form ref="form" :model="form" :rules="rules" label-width="500px">
         <el-form-item label="商品sku" prop="sku">
           <el-input v-model="form.sku" placeholder="请输入商品sku" />
         </el-form-item>
@@ -198,21 +203,29 @@
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
-    </el-dialog>
-  </div>
+      </el-popover>
+    </div>
+<!--    </el-dialog>-->
+
+
 </template>
 
 <script>
 import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate } from "@/api/template/template.js";
 
+
+
+
 export default {
   name: "Template",
   data() {
     return {
+      showFormContainer: false,
       // 遮罩层
       loading: true,
       // 选中数组
       ids: [],
+      visible: false,
       // 非单个禁用
       single: true,
       // 非多个禁用
@@ -226,7 +239,7 @@ export default {
       // 弹出层标题
       title: "",
       // 是否显示弹出层
-      open: false,
+      showDialog: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -275,7 +288,8 @@ export default {
     },
     // 取消按钮
     cancel() {
-      this.open = false;
+      this.showDialog = false;
+      this.visible=false;
       this.reset();
     },
     // 表单重置
@@ -324,8 +338,10 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
-      this.open = true;
+      this.showFormContainer=true
+      this.showDialog = true;
       this.title = "添加客服问答SKU收集模板";
+
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -333,7 +349,7 @@ export default {
       const sku = row.sku || this.ids
       getTemplate(sku).then(response => {
         this.form = response.data;
-        this.open = true;
+        this.showDialog  = true;
         this.title = "修改客服问答SKU收集模板";
       });
     },
@@ -341,19 +357,21 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.sku != null) {
-            updateTemplate(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
+          // if (this.form.sku != null) {
+          //   updateTemplate(this.form).then(response => {
+          //     this.$modal.msgSuccess("修改成功");
+          //     this.showDialog=false;
+          //     this.visible=false;
+          //     this.getList();
+          //   });
+          // } else {
             addTemplate(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
-              this.open = false;
+              this.showDialog=false;
+              this.visible=false;
               this.getList();
             });
-          }
+          //}
         }
       });
     },
