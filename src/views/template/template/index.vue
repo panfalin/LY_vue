@@ -64,14 +64,14 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table
-        v-loading="loading"
-        :data="templateList"
-        @selection-change="handleSelectionChange"
-        @row-click="handleRowClick"
-        border
-        fit
-        :header-cell-style="{background:'#F5F7FA'}"
+    <el-table 
+      v-loading="loading" 
+      :data="templateList" 
+      @selection-change="handleSelectionChange" 
+      @row-click="handleRowClick"
+      border
+      fit
+      :header-cell-style="{background:'#F5F7FA'}"
     >
       <el-table-column type="selection" width="55" align="center" fixed/>
       <el-table-column label="商品sku" align="center" prop="sku" min-width="120" show-overflow-tooltip/>
@@ -138,11 +138,11 @@
       <el-table-column label="操作" align="center" width="150" fixed="right">
         <template #default="scope">
           <el-button
-              size="mini"
-              type="text"
-              icon="el-icon-edit"
-              @click.stop="handleUpdate(scope.row)"
-              v-hasPermi="['template:template:edit']"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click.stop="handleUpdate(scope.row)"
+            v-hasPermi="['template:template:edit']"
           >修改</el-button>
         </template>
       </el-table-column>
@@ -154,6 +154,7 @@
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
         @pagination="getList"
+        style="float: inherit; margin-right: 53%;"
     />
 
     <!-- 添加或修改客服问答SKU收集模板对话框 -->
@@ -276,6 +277,13 @@
       </div>
     </el-popover>
 
+    <!-- 添加一个遮罩层 -->
+    <div 
+      v-if="visible" 
+      class="popover-overlay"
+      @click="handleClose"
+    ></div>
+
     <!-- 图片预览组件 -->
     <div v-if="showPreview" class="image-preview-container" @click="closePreview">
       <img :src="previewUrl" class="preview-image" @click.stop />
@@ -293,11 +301,11 @@
         <div class="preview-content">
           <div class="preview-item" v-for="(value, key) in previewItems" :key="key">
             <div class="preview-label">{{ value.label }}：</div>
-            <div
-                :class="['preview-value', {'rich-text-content': value.isRichText}]"
-                v-html="previewData[key]"
-                v-if="previewData[key]"
-                @click="value.isRichText && handleImageClick"
+            <div 
+              :class="['preview-value', {'rich-text-content': value.isRichText}]" 
+              v-html="previewData[key]"
+              v-if="previewData[key]"
+              @click="value.isRichText && handleImageClick"
             ></div>
           </div>
         </div>
@@ -492,7 +500,7 @@ export default {
       this.clearEditors();
       // 更新编辑器key，强制重新渲染
       this.editorKey += 1;
-
+      
       // 延迟一下再获取数据，确保编辑器已经重置
       setTimeout(() => {
         const sId = row.sId;
@@ -500,7 +508,7 @@ export default {
           // 显示弹窗
           this.visible = true;
           this.title = "修改客服问答SKU收集模板";
-
+          
           // 使用 nextTick 确保 DOM 更新后再设置数据
           this.$nextTick(() => {
             this.form = response.data;
@@ -536,12 +544,14 @@ export default {
     },
     handleClose() {
       this.visible = false;
+      this.reset();
+      this.clearEditors();
     },
     // 新增方法：清空所有富文本编辑器内容
     clearEditors() {
       // 更新编辑器 key
       this.editorKey += 1;
-
+      
       // 清空所有富文本字段
       const richTextFields = [
         'preQuestions',
@@ -555,7 +565,7 @@ export default {
         'remark2',
         'standardResponses'
       ];
-
+      
       // 创建新的空表单对象
       const emptyForm = {
         sku: '',
@@ -570,15 +580,15 @@ export default {
         afterAskTime: null,
         expectTime: null
       };
-
+      
       // 添加空的富文本字段
       richTextFields.forEach(field => {
         emptyForm[field] = '';
       });
-
+      
       // 更新表单数据
       this.form = emptyForm;
-
+      
       // 重置表单验证
       this.$nextTick(() => {
         if (this.$refs.form) {
@@ -646,8 +656,10 @@ export default {
 }
 
 .popover-content {
-  padding: 20px;
+  position: relative;
+  z-index: 2012;
   background-color: #fff;
+  padding: 20px;
   height: 100%;
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
 }
@@ -1196,5 +1208,26 @@ export default {
     padding-left: 5px;
     padding-right: 5px;
   }
+}
+
+/* 添加遮罩层样式 */
+.popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 2011; /* 确保在弹窗之下 */
+}
+
+/* 修改弹窗内容样式 */
+.popover-content {
+  position: relative;
+  z-index: 2012;
+  background-color: #fff;
+  padding: 20px;
+  height: 100%;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
 }
 </style>
