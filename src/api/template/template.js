@@ -10,9 +10,9 @@ export function listTemplate(query) {
 }
 
 // 查询客服问答SKU收集模板详细
-export function getTemplate(sku) {
+export function getTemplate(sId) {
   return request({
-    url: '/template/template/' + sku,
+    url: '/template/template/' + sId,
     method: 'get'
   })
 }
