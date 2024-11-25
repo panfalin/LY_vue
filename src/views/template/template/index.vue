@@ -1238,4 +1238,5 @@ const handleSave = async () => {
   align-items: center;
   gap: 12px;
 }
+
 </style>
