@@ -184,6 +184,9 @@
           </div>
         </div>
         <div class="header-actions">
+          <el-button type="success" @click="handleComplete" style="margin-right: 12px">
+            <el-icon><Check /></el-icon>完成工单
+          </el-button>
           <el-button type="primary" @click="handleSave">保存工单</el-button>
         </div>
       </div>
@@ -249,6 +252,28 @@
                         <el-icon><Link /></el-icon>
                       </template>
                     </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              
+              <!-- 新增问题类型行 -->
+              <el-row :gutter="20">
+                <el-col :span="8">
+                  <el-form-item
+                      label="问题类型"
+                      required
+                      :rules="[{ required: true, message: '请选择问题类型' }]"
+                  >
+                    <el-select
+                        v-model="currentItem.typeQuestion"
+                        placeholder="请选择问题类型"
+                        style="width: 100%"
+                    >
+                      <el-option label="售前" value="售前" />
+                      <el-option label="售后" value="售后" />
+                      <el-option label="订单" value="订单" />
+                      <el-option label="物流" value="物流" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -363,6 +388,22 @@
             <div class="card-title">处理信息</div>
             <div class="card-content">
               <el-form :model="currentItem" label-width="100px">
+                <el-form-item label="处理人">
+                  <el-select 
+                    v-model="currentItem.processors" 
+                    style="width: 100%"
+                    placeholder="请选择处理人"
+                    clearable
+                  >
+                    <el-option
+                      v-for="user in userOptions"
+                      :key="user.value"
+                      :label="user.label"
+                      :value="user.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
                 <el-form-item label="期望处理时间">
                   <el-date-picker
                       v-model="currentItem.expectTime"
@@ -443,9 +484,10 @@ import {
   Link,
   QuestionFilled,
   InfoFilled,
-  Tickets
+  Tickets,
+  Check
 } from '@element-plus/icons-vue'
-import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, exportTemplate } from "@/api/template/template.js"
+import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, exportTemplate, getPeopleList } from "@/api/template/template.js"
 import Editor from "@/components/Editor"
 
 export default {
@@ -462,7 +504,8 @@ export default {
     QuestionFilled,
     InfoFilled,
     Tickets,
-    Editor
+    Editor,
+    Check
   },
   setup() {
     const loading = ref(false)
@@ -483,12 +526,28 @@ export default {
       proceStatus: ''
     })
 
-    // 模拟用户数据
-    const userOptions = [
-      { label: '张三', value: '张三' },
-      { label: '李四', value: '李四' },
-      { label: '王五', value: '王五' }
-    ]
+    // 将userOptions改为ref，以便动态更新
+    const userOptions = ref([])
+    
+    // 添加获取用户列表的方法
+    const peopleList = async () => {
+      try {
+        const res = await getPeopleList(queryParams.value)
+        console.log('获取处理人列表响应:', res)
+     
+          // 根据返回的数据结构重新映射
+          userOptions.value = res.map(item => ({
+            label: item.nickName,  // 使用 nickName 作为显示标签
+            value: item.nickName   // 使用 nickName 作为值
+          }))
+        
+          console.log('处理后的用户选项:', userOptions.value[0])
+       
+      } catch (error) {
+        console.error('获取处理人列表失败:', error)
+        ElMessage.error(error.message || '获取处理人列表失败')
+      }
+    }
 
     // 获取头像URL（如果没有实际的头像服务，返回空字符串）
     const getAvatarUrl = (name) => {
@@ -570,53 +629,54 @@ export default {
     }
 
 // 修改 handleSave 方法
-    const handleSave = async () => {
-      try {
-        // 构建完整的提交数据
-        const submitData = {
-          s_id: currentItem.value.sId,
-          sku: currentItem.value.sku,
-          pre_questions: currentItem.value.preQuestions,
-          pre_response: currentItem.value.preResponse,
-          pre_askTime: currentItem.value.preAskTime,
-          after_questions: currentItem.value.afterQuestions,
-          after_response: currentItem.value.afterResponse,
-          after_askTime: currentItem.value.afterAskTime,
-          supplier_response: currentItem.value.supplierResponse,
-          order_no: currentItem.value.orderNo,
-          listing_id: currentItem.value.listingId,
-          store_id: currentItem.value.storeId,
-          type_question: currentItem.value.typeQuestion,
-          recorders: currentItem.value.recorders,
-          expect_results: currentItem.value.expectResults,
-          expect_time: currentItem.value.expectTime,
-          processors: currentItem.value.processors,
-          proce_status: currentItem.value.proceStatus,
-          finals_treatment: currentItem.value.finalTreatment,
-          remark1: currentItem.value.remark1,
-          remark2: currentItem.value.remark2,
-          standard_responses: currentItem.value.standardResponses
-        }
-
-        // 判断是新增还是修改
-        const api = submitData.s_id ? updateTemplate : addTemplate
-        console.log("api:", submitData.s_id)
-        console.log("提交的数据:", submitData) // 添加日志
-
-        const res = await api(submitData)
-
-        if (res.code === 200) {
-          ElMessage.success('保存成功')
-          showDetail.value = false
-          getList()
-        } else {
-          throw new Error(res.msg || '保存失败')
-        }
-      } catch (error) {
-        console.error('保存失败:', error)
-        ElMessage.error(error.message || '保存失败')
-      }
+const handleSave = async () => {
+  try {
+    // 构建完整的提交数据
+    const submitData = {
+      s_id: currentItem.value.sId,
+      sku: currentItem.value.sku,
+      pre_questions: currentItem.value.preQuestions,
+      pre_response: currentItem.value.preResponse,
+      pre_ask_time: currentItem.value.preAskTime,
+      after_questions: currentItem.value.afterQuestions,
+      after_response: currentItem.value.afterResponse,
+      after_ask_time: currentItem.value.afterAskTime,
+      supplier_response: currentItem.value.supplierResponse,
+      order_no: currentItem.value.orderNo,
+      listing_id: currentItem.value.listingId,
+      store_id: currentItem.value.storeId,
+      type_question: currentItem.value.typeQuestion,
+      recorders: currentItem.value.recorders,
+      expect_results: currentItem.value.expectResults,
+      expect_time: currentItem.value.expectTime,
+      processors: currentItem.value.processors,
+      proce_status: currentItem.value.proceStatus,
+      finals_treatment: currentItem.value.finalTreatment,
+      remark1: currentItem.value.remark1,
+      remark2: currentItem.value.remark2,
+      standard_responses: currentItem.value.standardResponses,
+      final_treatment:currentItem.value.finalTreatment
     }
+
+    // 判断是新增还是修改
+    const api = submitData.s_id ? updateTemplate : addTemplate
+    console.log("api:", submitData.s_id)
+    console.log("提交的数据:", submitData) // 添加日志
+
+    const res = await api(submitData)
+    
+    if (res.code === 200) {
+      ElMessage.success('保存成功')
+      showDetail.value = false
+      getList()
+    } else {
+      throw new Error(res.msg || '保存失败')
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+    ElMessage.error(error.message || '保存失败')
+  }
+}
 
     // 处理分页
     const handleSizeChange = (val) => {
@@ -689,8 +749,25 @@ export default {
       }
     }
 
+    // 添加完成工单方法
+    const handleComplete = async () => {
+      try {
+        // 更新处理状态为已完成
+        currentItem.value.proceStatus = '已完成'
+        
+        // 调用保存方法
+        await handleSave()
+        
+        ElMessage.success('工单已完成')
+      } catch (error) {
+        console.error('完成工单失败:', error)
+        ElMessage.error(error.message || '完成工单失败')
+      }
+    }
+
     onMounted(() => {
-      getList()
+      peopleList()  // 先获取处理人列表
+      getList()     // 再获取主列表数据
     })
 
     return {
@@ -716,7 +793,9 @@ export default {
       handleExport,
       resetQuery,
       getPreviewText,
-      getStatusClass
+      getStatusClass,
+      handleComplete,
+      peopleList
     }
   }
 }
@@ -1152,5 +1231,11 @@ export default {
   color: #6b7280;
   font-size: 12px;
   margin-left: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 </style>

@@ -20,6 +20,16 @@ export function listTemplate(query) {
   })
 }
 
+
+export function getPeopleList(query) {
+  return request({
+    url: '/template/template/list/peopleList',
+    method: 'get',
+    params: query
+  })
+}
+
+
 // 查询详细
 export function getTemplate(sId) {
   return request({
