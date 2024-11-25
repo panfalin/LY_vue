@@ -5,11 +5,11 @@
       <!-- 搜索区域简化 -->
       <div class="filter-container">
         <el-input
-          v-model="queryParams.sku"
-          placeholder="输入SKU搜索..."
-          class="search-input"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.sku"
+            placeholder="输入SKU搜索..."
+            class="search-input"
+            clearable
+            @keyup.enter="handleQuery"
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
@@ -17,23 +17,23 @@
         </el-input>
 
         <el-input
-          v-model="queryParams.orderNo"
-          placeholder="输入订单号搜索..."
-          class="search-input"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.orderNo"
+            placeholder="输入订单号搜索..."
+            class="search-input"
+            clearable
+            @keyup.enter="handleQuery"
         >
           <template #prefix>
             <el-icon><Document /></el-icon>
           </template>
         </el-input>
-        
+
         <el-input
-          v-model="queryParams.listingId"
-          placeholder="输入刊登ID搜索..."
-          class="search-input"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.listingId"
+            placeholder="输入刊登ID搜索..."
+            class="search-input"
+            clearable
+            @keyup.enter="handleQuery"
         >
           <template #prefix>
             <el-icon><Document /></el-icon>
@@ -41,9 +41,9 @@
         </el-input>
 
         <el-select
-          v-model="queryParams.typeQuestion"
-          placeholder="问题类型"
-          clearable
+            v-model="queryParams.typeQuestion"
+            placeholder="问题类型"
+            clearable
         >
           <el-option label="售前" value="售前" />
           <el-option label="买错" value="买错" />
@@ -54,9 +54,9 @@
         </el-select>
 
         <el-select
-          v-model="queryParams.proceStatus"
-          placeholder="处理状态"
-          clearable
+            v-model="queryParams.proceStatus"
+            placeholder="处理状态"
+            clearable
         >
           <el-option label="待处理" value="待处理" />
           <el-option label="处理中" value="处理中" />
@@ -64,15 +64,15 @@
         </el-select>
 
         <el-select
-          v-model="queryParams.processors"
-          placeholder="处理人"
-          clearable
+            v-model="queryParams.processors"
+            placeholder="处理人"
+            clearable
         >
           <el-option
-            v-for="user in userOptions"
-            :key="user.value"
-            :label="user.label"
-            :value="user.value"
+              v-for="user in userOptions"
+              :key="user.value"
+              :label="user.label"
+              :value="user.value"
           />
         </el-select>
 
@@ -92,17 +92,17 @@
       <!-- 修改列表部分 -->
       <div class="issue-list">
         <div
-          v-for="item in templateList"
-          :key="item.s_id"
-          class="issue-card"
-          @click="handleIssueClick(item)"
+            v-for="item in templateList"
+            :key="item.s_id"
+            class="issue-card"
+            @click="handleIssueClick(item)"
         >
           <!-- 卡片头部 -->
           <div class="card-header">
             <div class="left-info">
-              <el-tag 
-                :class="['status-tag', getStatusClass(item.proceStatus)]" 
-                size="small"
+              <el-tag
+                  :class="['status-tag', getStatusClass(item.proceStatus)]"
+                  size="small"
               >
                 {{ item.proceStatus || '待处理' }}
               </el-tag>
@@ -130,7 +130,7 @@
                 {{ item.storeId }}
               </el-tag>
             </div>
-            
+
             <div class="issue-meta">
               <span class="meta-item">
                 <el-icon><Document /></el-icon>
@@ -157,13 +157,13 @@
       <!-- 分页器简化 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="queryParams.pageNum"
-          v-model:page-size="queryParams.pageSize"
-          :total="total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+            v-model:current-page="queryParams.pageNum"
+            v-model:page-size="queryParams.pageSize"
+            :total="total"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
         />
       </div>
     </div>
@@ -201,14 +201,14 @@
             <el-form :model="currentItem" label-width="100px" class="detail-form">
               <el-row :gutter="20">
                 <el-col :span="8">
-                  <el-form-item 
-                    label="SKU" 
-                    required
-                    :rules="[{ required: true, message: '请输入SKU' }]"
+                  <el-form-item
+                      label="SKU"
+                      required
+                      :rules="[{ required: true, message: '请输入SKU' }]"
                   >
-                    <el-input 
-                      v-model="currentItem.sku" 
-                      placeholder="请输入商品SKU编号"
+                    <el-input
+                        v-model="currentItem.sku"
+                        placeholder="请输入商品SKU编号"
                     >
                       <template #prefix>
                         <el-icon><Document /></el-icon>
@@ -222,13 +222,13 @@
                   </el-form-item>
                 </el-col>
                 <el-col :span="8">
-                  <el-form-item 
-                    label="订单号"
-                    :rules="[{ required: true, message: '请输入订单号' }]"
+                  <el-form-item
+                      label="订单号"
+                      :rules="[{ required: true, message: '请输入订单号' }]"
                   >
-                    <el-input 
-                      v-model="currentItem.orderNo" 
-                      placeholder="请输入订单编号"
+                    <el-input
+                        v-model="currentItem.orderNo"
+                        placeholder="请输入订单编号"
                     >
                       <template #prefix>
                         <el-icon><Tickets /></el-icon>
@@ -237,13 +237,13 @@
                   </el-form-item>
                 </el-col>
                 <el-col :span="8">
-                  <el-form-item 
-                    label="刊登ID"
-                    :rules="[{ required: true, message: '请输入刊登ID' }]"
+                  <el-form-item
+                      label="刊登ID"
+                      :rules="[{ required: true, message: '请输入刊登ID' }]"
                   >
-                    <el-input 
-                      v-model="currentItem.listingId" 
-                      placeholder="请输入商品刊登ID"
+                    <el-input
+                        v-model="currentItem.listingId"
+                        placeholder="请输入商品刊登ID"
                     >
                       <template #prefix>
                         <el-icon><Link /></el-icon>
@@ -267,11 +267,11 @@
               <div class="time-selector">
                 <span class="time-label">询问时间：</span>
                 <el-date-picker
-                  v-model="currentItem.preAskTime"
-                  type="datetime"
-                  placeholder="选择售前询问时间"
-                  format="YYYY-MM-DD HH:mm:ss"
-                  value-format="YYYY-MM-DD HH:mm:ss"
+                    v-model="currentItem.preAskTime"
+                    type="datetime"
+                    placeholder="选择售前询问时间"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    value-format="YYYY-MM-DD HH:mm:ss"
                 />
               </div>
               <div class="editor-section">
@@ -297,12 +297,12 @@
             <div class="card-title">
               <span>售后问题</span>
               <el-date-picker
-                v-model="currentItem.afterAskTime"
-                type="datetime"
-                placeholder="选择售后询问时间"
-                format="YYYY-MM-DD HH:mm:ss"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                class="time-picker"
+                  v-model="currentItem.afterAskTime"
+                  type="datetime"
+                  placeholder="选择售后询问时间"
+                  format="YYYY-MM-DD HH:mm:ss"
+                  value-format="YYYY-MM-DD HH:mm:ss"
+                  class="time-picker"
               />
             </div>
             <div class="editor-container">
@@ -329,25 +329,25 @@
             </div>
             <div class="card-content">
               <el-form :model="currentItem" label-width="100px">
-                <el-form-item 
-                  label="处理状态" 
-                  required
-                  :rules="[{ required: true, message: '请选择处理状态' }]"
+                <el-form-item
+                    label="处理状态"
+                    required
+                    :rules="[{ required: true, message: '请选择处理状态' }]"
                 >
-                  <el-select 
-                    v-model="currentItem.proceStatus" 
-                    style="width: 100%"
-                    placeholder="请选择工单处理状态"
+                  <el-select
+                      v-model="currentItem.proceStatus"
+                      style="width: 100%"
+                      placeholder="请选择工单处理状态"
                   >
-                    <el-option 
-                      v-for="(label, value) in {
+                    <el-option
+                        v-for="(label, value) in {
                         '待处理': '新建工单，等待处理',
                         '处理中': '工单正在处理中',
                         '已完成': '工单处理完成'
                       }"
-                      :key="value"
-                      :label="value"
-                      :value="value"
+                        :key="value"
+                        :label="value"
+                        :value="value"
                     >
                       <span>{{ value }}</span>
                       <span style="color: #999; font-size: 12px; margin-left: 8px">{{ label }}</span>
@@ -365,12 +365,12 @@
               <el-form :model="currentItem" label-width="100px">
                 <el-form-item label="期望处理时间">
                   <el-date-picker
-                    v-model="currentItem.expectTime"
-                    type="datetime"
-                    placeholder="选择期望处理时间"
-                    format="YYYY-MM-DD HH:mm:ss"
-                    value-format="YYYY-MM-DD HH:mm:ss"
-                    style="width: 100%"
+                      v-model="currentItem.expectTime"
+                      type="datetime"
+                      placeholder="选择期望处理时间"
+                      format="YYYY-MM-DD HH:mm:ss"
+                      value-format="YYYY-MM-DD HH:mm:ss"
+                      style="width: 100%"
                   />
                 </el-form-item>
                 <el-form-item label="处理方案">
@@ -381,10 +381,10 @@
                 </el-form-item>
                 <el-form-item label="期望结果">
                   <el-input
-                    v-model="currentItem.expectResults"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请输入期望处理结果"
+                      v-model="currentItem.expectResults"
+                      type="textarea"
+                      rows="3"
+                      placeholder="请输入期望处理结果"
                   />
                 </el-form-item>
               </el-form>
@@ -398,26 +398,26 @@
               <el-form :model="currentItem" label-width="100px">
                 <el-form-item label="供应商回复">
                   <el-input
-                    v-model="currentItem.supplierResponse"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请输入供应商回复"
+                      v-model="currentItem.supplierResponse"
+                      type="textarea"
+                      rows="3"
+                      placeholder="请输入供应商回复"
                   />
                 </el-form-item>
                 <el-form-item label="备注1">
                   <el-input
-                    v-model="currentItem.remark1"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请输入备注1"
+                      v-model="currentItem.remark1"
+                      type="textarea"
+                      rows="3"
+                      placeholder="请输入备注1"
                   />
                 </el-form-item>
                 <el-form-item label="备注2">
                   <el-input
-                    v-model="currentItem.remark2"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请输入备注2"
+                      v-model="currentItem.remark2"
+                      type="textarea"
+                      rows="3"
+                      placeholder="请输入备注2"
                   />
                 </el-form-item>
               </el-form>
@@ -432,18 +432,18 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { 
-  Search, 
-  Plus, 
-  Back, 
-  Clock, 
-  Document, 
-  Refresh, 
-  UserFilled, 
-  Link, 
-  QuestionFilled, 
-  InfoFilled, 
-  Tickets 
+import {
+  Search,
+  Plus,
+  Back,
+  Clock,
+  Document,
+  Refresh,
+  UserFilled,
+  Link,
+  QuestionFilled,
+  InfoFilled,
+  Tickets
 } from '@element-plus/icons-vue'
 import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, exportTemplate } from "@/api/template/template.js"
 import Editor from "@/components/Editor"
@@ -470,7 +470,7 @@ export default {
     const total = ref(0)
     const showDetail = ref(false)  // 添加这个控制详情页显示
     const currentItem = ref({})    // 添加当前选中项
-    
+
     const queryParams = ref({
       pageNum: 1,
       pageSize: 10,
@@ -569,11 +569,42 @@ export default {
       currentItem.value = {}
     }
 
-    // 保存更改
+// 修改 handleSave 方法
     const handleSave = async () => {
       try {
-        const api = currentItem.value.s_id ? updateTemplate : addTemplate
-        const res = await api(currentItem.value)
+        // 构建完整的提交数据
+        const submitData = {
+          s_id: currentItem.value.sId,
+          sku: currentItem.value.sku,
+          pre_questions: currentItem.value.preQuestions,
+          pre_response: currentItem.value.preResponse,
+          pre_askTime: currentItem.value.preAskTime,
+          after_questions: currentItem.value.afterQuestions,
+          after_response: currentItem.value.afterResponse,
+          after_askTime: currentItem.value.afterAskTime,
+          supplier_response: currentItem.value.supplierResponse,
+          order_no: currentItem.value.orderNo,
+          listing_id: currentItem.value.listingId,
+          store_id: currentItem.value.storeId,
+          type_question: currentItem.value.typeQuestion,
+          recorders: currentItem.value.recorders,
+          expect_results: currentItem.value.expectResults,
+          expect_time: currentItem.value.expectTime,
+          processors: currentItem.value.processors,
+          proce_status: currentItem.value.proceStatus,
+          finals_treatment: currentItem.value.finalTreatment,
+          remark1: currentItem.value.remark1,
+          remark2: currentItem.value.remark2,
+          standard_responses: currentItem.value.standardResponses
+        }
+
+        // 判断是新增还是修改
+        const api = submitData.s_id ? updateTemplate : addTemplate
+        console.log("api:", submitData.s_id)
+        console.log("提交的数据:", submitData) // 添加日志
+
+        const res = await api(submitData)
+
         if (res.code === 200) {
           ElMessage.success('保存成功')
           showDetail.value = false

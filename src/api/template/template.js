@@ -6,6 +6,7 @@ export function listTemplate(query) {
     url: '/template/template/list',
     method: 'get',
     params: {
+      sId: query.sId,
       pageNum: query.pageNum,
       pageSize: query.pageSize,
       sku: query.sku,
