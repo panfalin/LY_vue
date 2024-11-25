@@ -2,169 +2,265 @@
   <div class="app-container">
     <!-- 主列表页面 -->
     <div v-show="!showDetail" class="main-container">
-      <!-- 搜索区域简化 -->
-      <div class="filter-container">
-        <el-input
-            v-model="queryParams.sku"
-            placeholder="输入SKU搜索..."
-            class="search-input"
-            clearable
-            @keyup.enter="handleQuery"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
+      <!-- 搜索区域和工具栏使用sticky定位 -->
+      <div class="sticky-header">
+        <!-- 搜索区域 -->
+        <div class="filter-container">
+          <el-input
+              v-model="queryParams.sku"
+              placeholder="输入SKU搜索..."
+              class="search-input"
+              clearable
+              @keyup.enter="handleQuery"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
 
-        <el-input
-            v-model="queryParams.orderNo"
-            placeholder="输入订单号搜索..."
-            class="search-input"
-            clearable
-            @keyup.enter="handleQuery"
-        >
-          <template #prefix>
-            <el-icon><Document /></el-icon>
-          </template>
-        </el-input>
+          <el-input
+              v-model="queryParams.orderNo"
+              placeholder="输入订单号搜索..."
+              class="search-input"
+              clearable
+              @keyup.enter="handleQuery"
+          >
+            <template #prefix>
+              <el-icon><Document /></el-icon>
+            </template>
+          </el-input>
 
-        <el-input
-            v-model="queryParams.listingId"
-            placeholder="输入刊登ID搜索..."
-            class="search-input"
-            clearable
-            @keyup.enter="handleQuery"
-        >
-          <template #prefix>
-            <el-icon><Document /></el-icon>
-          </template>
-        </el-input>
+          <el-input
+              v-model="queryParams.listingId"
+              placeholder="输入刊登ID搜索..."
+              class="search-input"
+              clearable
+              @keyup.enter="handleQuery"
+          >
+            <template #prefix>
+              <el-icon><Document /></el-icon>
+            </template>
+          </el-input>
 
-        <el-select
-            v-model="queryParams.typeQuestion"
-            placeholder="问题类型"
-            clearable
-        >
-          <el-option label="售前" value="售前" />
-          <el-option label="买错" value="买错" />
-          <el-option label="质量问题" value="质量问题" />
-          <el-option label="车型不匹配" value="车型不匹配" />
-          <el-option label="仓库发错" value="仓库发错" />
-          <el-option label="专业问题" value="专业问题" />
-        </el-select>
+          <el-select
+              v-model="queryParams.typeQuestion"
+              placeholder="问题类型"
+              clearable
+          >
+            <el-option label="售前" value="售前" />
+            <el-option label="买错" value="买错" />
+            <el-option label="质量问题" value="质量问题" />
+            <el-option label="车型不匹配" value="车型不匹配" />
+            <el-option label="仓库发错" value="仓库发错" />
+            <el-option label="专业问题" value="专业问题" />
+          </el-select>
 
-        <el-select
-            v-model="queryParams.proceStatus"
-            placeholder="处理状态"
-            clearable
-        >
-          <el-option label="待处理" value="待处理" />
-          <el-option label="处理中" value="处理中" />
-          <el-option label="已完成" value="已完成" />
-        </el-select>
+          <el-select
+              v-model="queryParams.proceStatus"
+              placeholder="处理状态"
+              clearable
+          >
+            <el-option label="待处理" value="待处理" />
+            <el-option label="处理中" value="处理中" />
+            <el-option label="已完成" value="已完成" />
+          </el-select>
 
-        <el-select
-            v-model="queryParams.processors"
-            placeholder="处理人"
-            clearable
-        >
-          <el-option
-              v-for="user in userOptions"
-              :key="user.value"
-              :label="user.label"
-              :value="user.value"
-          />
-        </el-select>
+          <el-select
+              v-model="queryParams.processors"
+              placeholder="处理人"
+              clearable
+          >
+            <el-option
+                v-for="user in userOptions"
+                :key="user.value"
+                :label="user.label"
+                :value="user.value"
+            />
+          </el-select>
 
-        <div class="button-group">
-          <el-button type="primary" @click="handleQuery">
-            <el-icon><Search /></el-icon>搜索
-          </el-button>
-          <el-button @click="resetQuery">
-            <el-icon><Refresh /></el-icon>重置
-          </el-button>
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>新建工单
-          </el-button>
+          <div class="button-group">
+            <el-button type="primary" @click="handleQuery">
+              <el-icon><Search /></el-icon>搜索
+            </el-button>
+            <el-button @click="resetQuery">
+              <el-icon><Refresh /></el-icon>重置
+            </el-button>
+            <el-button type="primary" @click="handleAdd">
+              <el-icon><Plus /></el-icon>新建工单
+            </el-button>
+          </div>
+        </div>
+        
+        <!-- 表格工具栏 -->
+        <div class="table-toolbar">
+          <div class="left-tools">
+            <span class="total-count">共 {{ total }} 条数据</span>
+          </div>
         </div>
       </div>
 
-      <!-- 修改列表部分 -->
-      <div class="issue-list">
-        <div
-            v-for="item in templateList"
-            :key="item.s_id"
-            class="issue-card"
-            @click="handleIssueClick(item)"
+      <!-- 表格内容区域 -->
+      <div class="scrollable-container">
+        <el-table
+          v-loading="loading"
+          :data="templateList"
+          :height="600"
+          style="width: 100%"
         >
-          <!-- 卡片头部 -->
-          <div class="card-header">
-            <div class="left-info">
-              <el-tag
-                  :class="['status-tag', getStatusClass(item.proceStatus)]"
-                  size="small"
+          <el-table-column label="问题类型" align="left" width="120">
+            <template #default="{ row }">
+              <el-select 
+                v-model="row.typeQuestion"
+                size="small"
+                style="width: 90px"
+                @change="handleTypeChange(row)"
               >
-                {{ item.proceStatus || '待处理' }}
+                <el-option label="售前" value="售前" />
+                <el-option label="售后" value="售后" />
+                <el-option label="订单" value="订单" />
+                <el-option label="物流" value="物流" />
+              </el-select>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="产品类型" align="center" width="120">
+            <template #default="{ row }">
+              <el-select 
+                v-model="row.productType"
+                size="small"
+                style="width: 90px"
+                @change="handleProductTypeChange(row)"
+              >
+                <el-option label="灯具" value="灯具" />
+                <el-option label="轮胎" value="轮胎" />
+                <el-option label="配件" value="配件" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="状态" align="center" width="70">
+            <template #default="{ row }">
+              <el-tag
+                :class="['status-tag', getStatusClass(row.proceStatus)]"
+                size="small"
+              >
+                {{ row.proceStatus || '待处理' }}
               </el-tag>
-              <span class="sku-text">#{{ item.s_id }} {{ item.sku }}</span>
-            </div>
-            <div class="right-info">
-              <div class="assignee-info" v-if="item.processors">
-                <el-avatar :size="24" class="assignee-avatar">
-                  {{ getInitials(item.processors) }}
-                </el-avatar>
-                <span class="assignee-name">{{ item.processors }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="SKU" align="center" prop="sku" width="100" />
+          
+          <el-table-column label="订单号" align="center" prop="orderNo" width="120" />
+          
+          <el-table-column label="刊登ID" align="center" prop="listingId" width="120" />
+
+          <el-table-column label="问题内容" align="center" min-width="180">
+            <template #default="{ row }">
+              <div class="question-content">
+                <div v-if="row.preQuestions" class="question-item">
+                  <span class="question-label">售前:</span>
+                  <span class="question-text">{{ stripHtml(row.preQuestions) }}</span>
+                </div>
+                <div v-if="row.afterQuestions" class="question-item">
+                  <span class="question-label">售后:</span>
+                  <span class="question-text">{{ stripHtml(row.afterQuestions) }}</span>
+                </div>
               </div>
-              <div class="assignee-info unassigned" v-else>
-                <el-icon><UserFilled /></el-icon>
-                <span>未指派</span>
-              </div>
-            </div>
-          </div>
+            </template>
+          </el-table-column>
 
-          <!-- 卡片主体 -->
-          <div class="card-body">
-            <div class="issue-title">
-              {{ item.typeQuestion || '未分类' }}
-              <el-tag size="small" type="info" class="store-tag" v-if="item.storeId">
-                {{ item.storeId }}
-              </el-tag>
-            </div>
+          <el-table-column label="询问时间" align="center" width="100">
+            <template #default="{ row }">
+              {{ formatDate(row.preAskTime || row.afterAskTime) }}
+            </template>
+          </el-table-column>
 
-            <div class="issue-meta">
-              <span class="meta-item">
-                <el-icon><Document /></el-icon>
-                订单号: {{ item.orderNo || '-' }}
-              </span>
-              <span class="meta-item">
-                <el-icon><Link /></el-icon>
-                刊登ID: {{ item.listingId || '-' }}
-              </span>
-              <span class="meta-item">
-                <el-icon><Clock /></el-icon>
-                {{ formatDate(item.preAskTime || item.afterAskTime) }}
-              </span>
-            </div>
+          <el-table-column label="处理人" align="center" width="120">
+            <template #default="{ row }">
+              <el-select 
+                v-model="row.processors"
+                size="small"
+                style="width: 100px"
+                @change="handleProcessorChange(row)"
+              >
+                <template #default>
+                  <el-option
+                    v-for="user in userOptions"
+                    :key="user.value"
+                    :label="user.label"
+                    :value="user.value"
+                  />
+                </template>
+                <!-- 自定义显示内容 -->
+                <template #prefix>
+                  <div class="processors-display">
+                    <template v-if="row.processors">
+                      <el-avatar :size="24" class="assignee-avatar">
+                        {{ getInitials(row.processors) }}
+                      </el-avatar>
+                      <span>{{ row.processors }}</span>
+                    </template>
+                    <span v-else class="unassigned">未指派</span>
+                  </div>
+                </template>
+              </el-select>
+            </template>
+          </el-table-column>
 
-            <!-- 问题内容预览 -->
-            <div class="preview-content" v-if="item.preQuestions || item.afterQuestions">
-              <p class="preview-text">{{ getPreviewText(item) }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+          <el-table-column label="解决方案" align="center" width="120">
+            <template #default="{ row }">
+              <el-select 
+                v-model="row.finalTreatment"
+                size="small"
+                style="width: 90px"
+                @change="handleSolutionChange(row)"
+              >
+                <el-option label="重发" value="重发" />
+                <el-option label="退款" value="退款" />
+                <el-option label="补发" value="补发" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </template>
+          </el-table-column>
 
-      <!-- 分页器简化 -->
-      <div class="pagination-container">
-        <el-pagination
+          <el-table-column label="备注一" align="center" min-width="120">
+            <template #default="{ row }">
+              <div class="remark-content">{{ stripHtml(row.remark1) || '-' }}</div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="备注二" align="center" min-width="120">
+            <template #default="{ row }">
+              <div class="remark-content">{{ stripHtml(row.remark2) || '-' }}</div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="操作" align="center" width="60" fixed="right">
+            <template #default="{ row }">
+              <el-button
+                link
+                type="primary"
+                @click.stop="handleUpdate(row)"
+              >
+                编辑
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div class="pagination-wrapper">
+          <el-pagination
             v-model:current-page="queryParams.pageNum"
             v-model:page-size="queryParams.pageSize"
             :total="total"
             :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next"
+            layout="total, sizes, prev, pager, next, jumper"
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
-        />
+          />
+        </div>
       </div>
     </div>
 
@@ -283,8 +379,8 @@
           <!-- 售前问题区域 -->
           <div class="detail-card">
             <div class="card-title">
-              <span>售前问题记录</span>
-              <el-tooltip content="记录客户售前咨询的问题" placement="top">
+              <span>���前问题记录</span>
+              <el-tooltip content="记录客户售前咨询的问" placement="top">
                 <el-icon class="info-icon"><InfoFilled /></el-icon>
               </el-tooltip>
             </div>
@@ -362,7 +458,7 @@
                   <el-select
                       v-model="currentItem.proceStatus"
                       style="width: 100%"
-                      placeholder="请选择工单处理状态"
+                      placeholder="请选择工处理状态"
                   >
                     <el-option
                         v-for="(label, value) in {
@@ -537,19 +633,19 @@ export default {
      
           // 根据返回的数据结构重新映射
           userOptions.value = res.map(item => ({
-            label: item.nickName,  // 使用 nickName 作为显示标签
+            label: item.nickName,  // 使用 nickName 作为显示标
             value: item.nickName   // 使用 nickName 作为值
           }))
         
-          console.log('处理后的用户选项:', userOptions.value[0])
+          console.log('理后的用户选项:', userOptions.value[0])
        
       } catch (error) {
-        console.error('获取处理人列表失败:', error)
-        ElMessage.error(error.message || '获取处理人列表失败')
+        console.error('获取理人列表失败:', error)
+        ElMessage.error(error.message || '获取处理人列表失')
       }
     }
 
-    // 获取头像URL（如果没有实际的头像服务，返回空字符串）
+    // 获取头像URL（如果没有实际的头像服务返回空字符）
     const getAvatarUrl = (name) => {
       return ''  // 这里可以返回实际的头像URL
     }
@@ -572,7 +668,7 @@ export default {
       return new Date(date).toLocaleDateString()
     }
 
-    // 获取头像初始字母
+    // 取头像始字
     const getInitials = (name) => {
       return name ? name.charAt(0).toUpperCase() : '?'
     }
@@ -582,9 +678,12 @@ export default {
       try {
         loading.value = true
         const res = await listTemplate(queryParams.value)
-        console.log('获取到的数据:', res) // 调试日志
         if (res.code === 200) {
-          templateList.value = res.rows || []
+          // 为每行数据添加编辑状态标记
+          templateList.value = (res.rows || []).map(row => ({
+            ...row,
+            isEditingProcessor: false // 添加处理人编辑状态标记
+          }))
           total.value = res.total || 0
         } else {
           throw new Error(res.msg || '获取数据失败')
@@ -606,7 +705,7 @@ export default {
 
     // 处理新增
     const handleAdd = () => {
-      currentItem.value = {}  // 清空当前项
+      currentItem.value = {}  // 清空前项
       showDetail.value = true // 显示详情页
     }
 
@@ -678,7 +777,7 @@ const handleSave = async () => {
   }
 }
 
-    // 处理分页
+    // 处分页
     const handleSizeChange = (val) => {
       queryParams.value.pageSize = val
       getList()
@@ -687,11 +786,6 @@ const handleSave = async () => {
     const handleCurrentChange = (val) => {
       queryParams.value.pageNum = val
       getList()
-    }
-
-    // 点击问题项
-    const handleIssueClick = (item) => {
-      handleUpdate(item)
     }
 
     // 添加导出方法
@@ -705,7 +799,7 @@ const handleSave = async () => {
       }
     }
 
-    // 重置查询
+    // 重置查
     const resetQuery = () => {
       queryParams.value = {
         pageNum: 1,
@@ -765,9 +859,199 @@ const handleSave = async () => {
       }
     }
 
+    // 修改问题类型变更处理方法
+    const handleTypeChange = async (row) => {
+      try {
+        // 构建更新数据,参考编辑时的数据格式
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+        
+        console.log('更新数据:', updateData) // 添加日志查看数据
+
+        // 调用更新接口
+        const res = await updateTemplate(updateData)
+        
+        if (res.code === 200) {
+          ElMessage.success('问题类型更新成功')
+        } else {
+          throw new Error(res.msg || '新失败')
+        }
+      } catch (error) {
+        console.error('更新问题类型失败:', error)
+        ElMessage.error(error.message || '更新问题类型失败')
+        // 更新失败时恢复原值
+        getList()
+      }
+    }
+
+    // 添加产品类型变更处理方法
+    const handleProductTypeChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType, // 新增产品类型字段
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+        
+        const res = await updateTemplate(updateData)
+        
+        if (res.code === 200) {
+          ElMessage.success('产品类型更新成功')
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新产品类型失败:', error)
+        ElMessage.error(error.message || '更新产品类型失败')
+        getList()
+      }
+    }
+
+    // 添加解决方案更处理方法
+    const handleSolutionChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+        
+        const res = await updateTemplate(updateData)
+        
+        if (res.code === 200) {
+          ElMessage.success('解决方案更新成功')
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新解决方案失败:', error)
+        ElMessage.error(error.message || '更新解决方案失败')
+        getList()
+      }
+    }
+
+    // 添加处理人变更处理方法
+    const handleProcessorChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors, // 更新处理人
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+        
+        const res = await updateTemplate(updateData)
+        
+        if (res.code === 200) {
+          ElMessage.success('处理人更新成功')
+          row.isEditingProcessor = false // 更新成功后关闭编辑状态
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新处理人失败:', error)
+        ElMessage.error(error.message || '更新处理人失败')
+        getList()
+      }
+    }
+
+    // 添加去除HTML标签的方法
+    const stripHtml = (html) => {
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, '')  // 移除所有HTML标签
+                .replace(/&nbsp;/g, ' ')    // 替换HTML空格
+                .replace(/\s+/g, ' ')       // 合并多个空格
+                .trim();                    // 去除首尾空格
+    }
+
     onMounted(() => {
-      peopleList()  // 先获取处理人列表
-      getList()     // 再获取主列表数据
+      peopleList()  // 先获取处人列表
+      getList()     // 再获取主列表据
     })
 
     return {
@@ -789,13 +1073,17 @@ const handleSave = async () => {
       backToList,
       handleSizeChange,
       handleCurrentChange,
-      handleIssueClick,
       handleExport,
       resetQuery,
       getPreviewText,
       getStatusClass,
       handleComplete,
-      peopleList
+      peopleList,
+      handleTypeChange,
+      handleProductTypeChange,
+      handleSolutionChange,
+      handleProcessorChange,
+      stripHtml
     }
   }
 }
@@ -803,7 +1091,7 @@ const handleSave = async () => {
 
 <style scoped>
 .app-container {
-  padding: 20px;
+  padding: 16px;
   background-color: #f5f7fa;
 }
 
@@ -816,13 +1104,11 @@ const handleSave = async () => {
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-  max-width: 1200px;
-  margin: 0 auto;
   margin-bottom: 16px;
 }
 
 .search-input {
-  width: 220px;
+  width: 200px;
 }
 
 .button-group {
@@ -839,189 +1125,77 @@ const handleSave = async () => {
   width: 160px;
 }
 
-.issue-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 0;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.issue-card {
+.table-container {
   background: #fff;
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  transition: all 0.2s ease;
-  cursor: pointer;
+  padding: 16px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1600px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.issue-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.card-header {
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.left-info {
+.processors-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0;
+  cursor: pointer; /* 添加指针样式表明可点击 */
 }
 
-.right-info {
-  display: flex;
-  align-items: center;
-}
-
-.assignee-info {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: #f0f9ff;
-  border: 1px solid #e0f2fe;
-  transition: all 0.2s ease;
-}
-
-.assignee-info:hover {
-  background: #e0f2fe;
-  border-color: #bae6fd;
+.processors-cell:hover {
+  background-color: #f3f4f6;
+  border-radius: 4px;
 }
 
 .assignee-avatar {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.assignee-name {
-  color: #0369a1;
-  font-weight: 500;
-  font-size: 13px;
-}
-
-.unassigned {
-  background: #f3f4f6;
-  border-color: #e5e7eb;
-  color: #6b7280;
-  cursor: pointer;
-}
-
-.unassigned:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
-}
-
-.issue-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.store-tag {
-  font-weight: normal;
   font-size: 12px;
 }
 
-.issue-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
+.unassigned {
+  color: #909399;
 }
 
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #6b7280;
-  font-size: 13px;
+.question-content {
+  text-align: left;
+  padding: 4px 8px;
 }
 
-.meta-item .el-icon {
+.question-item {
+  margin-bottom: 4px;
+  line-height: 1.4;
+  font-size: 12px;
+}
+
+.question-text {
+  color: #333;
+}
+
+:deep(.el-table td) {
+  padding: 10px 0;
+}
+
+:deep(.el-table th) {
+  padding: 12px 0;
+  background-color: #f8fafc;
+  color: #374151;
+  font-weight: 600;
   font-size: 14px;
-}
-
-.preview-content {
-  background: #f9fafb;
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 8px;
-}
-
-.preview-text {
-  color: #4b5563;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .status-tag {
-  padding: 6px 12px !important;
-  border-radius: 16px !important;
-  font-weight: 500 !important;
+  padding: 5px 10px !important;
   font-size: 13px !important;
-  border: none !important;
-  min-width: 80px !important;
-  text-align: center !important;
-}
-
-.status-pending {
-  background: #dc2626 !important;  /* 红色背景 */
-  color: white !important;
-}
-
-.status-processing {
-  background: #eab308 !important;  /* 黄色背景 */
-  color: white !important;
-}
-
-.status-completed {
-  background: #16a34a !important;  /* 绿色背景 */
-  color: white !important;
-}
-
-.status-waiting {
-  background: #2563eb !important;  /* 蓝色背景 */
-  color: white !important;
-}
-
-.status-default {
-  background: #6b7280 !important;  /* 灰色背景 */
-  color: white !important;
-}
-
-:deep(.el-tag) {
-  --el-tag-bg-color: transparent !important;
-  --el-tag-border-color: transparent !important;
-  --el-tag-hover-color: transparent !important;
 }
 
 .sku-text {
+  font-size: 14px;
   font-weight: 500;
-  color: #2563eb;
 }
 
 .pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  max-width: 1200px;
-  margin: 20px auto 0;
+  display: none;
 }
 
 :deep(.el-avatar) {
@@ -1226,7 +1400,7 @@ const handleSave = async () => {
   margin-top: 4px;
 }
 
-/* 选项说明文本样式 */
+/* 选项说明文样式 */
 .option-description {
   color: #6b7280;
   font-size: 12px;
@@ -1237,5 +1411,426 @@ const handleSave = async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 添加表格工具栏样式 */
+.table-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.left-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.right-tools {
+  display: none;
+}
+
+.total-count {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 修改搜索区域样式 */
+.filter-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto 16px;
+  padding: 24px;
+  gap: 18px;
+}
+
+/* 移除原有的分页容器样式 */
+.pagination-container {
+  display: none;
+}
+
+/* 调整表格内容区域样式 */
+:deep(.el-table) {
+  width: 100% !important;
+}
+
+:deep(.el-table__body) {
+  width: 100% !important;
+}
+
+:deep(.el-table__header) {
+  width: 100% !important;
+}
+
+/* 修改主容器样式 */
+.main-container {
+  margin-left: 0 !important;
+  height: calc(100vh - 30px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 改用sticky定位替代fixed */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f5f7fa;
+  padding: 20px 20px 0;
+}
+
+/* 表格可滚动容器 */
+.scrollable-container {
+  flex: 1;
+  overflow: auto;
+  padding: 0 16px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 搜索区域样式 */
+.filter-container {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+/* 表格工具栏样式 */
+.table-toolbar {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+/* 表格容器样式 */
+.table-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 添加分页器包装样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  margin-top: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 优化表格内显示 */
+.question-content {
+  text-align: left;
+  padding: 6px 10px;
+}
+
+.question-item {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.question-text {
+  color: #333;
+  margin-left: 4px;
+}
+
+/* 优化处理人单元格样 */
+.processors-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.assignee-avatar {
+  font-size: 13px;
+  background-color: #3b82f6;
+}
+
+.unassigned {
+  color: #909399;
+}
+
+/* 添加表格内下拉框的通用样式 */
+:deep(.table-select) {
+  width: 90px;
+}
+
+:deep(.table-select .el-input__wrapper) {
+  padding: 0 8px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+:deep(.table-select:hover .el-input__wrapper) {
+  border-color: #3b82f6;
+}
+
+:deep(.table-select .el-input__inner) {
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+}
+
+/* 处理人下拉框的特殊样式保持不变 */
+.processors-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+/* 恢复基础下拉框样式 */
+:deep(.el-select .el-input__wrapper) {
+  padding: 0 8px;
+}
+
+:deep(.el-select .el-input__inner) {
+  height: 32px;
+  line-height: 32px;
+}
+
+/* 只为处理人保留特殊样式 */
+.processors-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+/* 处理人头像样式 */
+.assignee-avatar {
+  font-size: 13px;
+  background-color: #3b82f6;
+}
+
+.unassigned {
+  color: #909399;
+}
+
+/* 备注内容样式 */
+.remark-content {
+  text-align: left;
+  padding: 6px 10px;
+  white-space: pre-wrap;     /* 允许换行，替换原来的 nowrap */
+  word-break: break-word;    /* 在单词内换行 */
+  color: #666;
+  font-size: 13px;
+}
+
+.remark-content:hover {
+  white-space: pre-wrap;    /* 保持换行 */
+}
+
+/* 状态样式 */
+.status-pending {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.status-processing {
+  background-color: #fffbeb;
+  color: #d97706;
+  border-color: #fef3c7;
+}
+
+.status-completed {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-color: #dcfce7;
+}
+
+.status-waiting {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+/* 修复处理人下拉框样式 */
+:deep(.el-select .el-input__wrapper) {
+  background: transparent;
+}
+
+:deep(.el-select:hover .el-input__wrapper) {
+  border-color: #3b82f6;
+}
+
+/* 修改表格表头样式 */
+:deep(.el-table th) {
+  background-color: #f0f2f5;    /* 稍深的背景色 */
+  color: #1a1a1a;              /* 更深的文字颜色 */
+  font-weight: 600;            /* 加粗 */
+  font-size: 15px;             /* 增大字体 */
+  padding: 14px 8px;           /* 增加内边距 */
+  border-bottom: 2px solid #e5e7eb;  /* 加粗底部边框 */
+  text-transform: none;        /* 防止文字变形 */
+}
+
+/* 表头文字对齐 */
+:deep(.el-table th > .cell) {
+  padding: 0 8px;
+  line-height: 1.6;           /* 增加行高 */
+  white-space: nowrap;        /* 防止文字换行 */
+  color: #1a1a1a;            /* 确保文字颜色一致 */
+}
+
+/* 表头hover效果 */
+:deep(.el-table th.is-leaf) {
+  border-bottom: 2px solid #e5e7eb;  /* 保持底部边框一致 */
+}
+
+/* 表头分割线 */
+:deep(.el-table__header th.el-table__cell) {
+  border-right: 1px solid #ebeef5;  /* 添加右侧分割线 */
+}
+
+/* 最后一个表头单元格不显示右边框 */
+:deep(.el-table__header th.el-table__cell:last-child) {
+  border-right: none;
+}
+
+/* 表格单元格样式 */
+:deep(.el-table td) {
+  padding: 12px 8px;
+}
+
+/* 表格hover效果 */
+:deep(.el-table tr:hover > td) {
+  background-color: #f9fafb !important;
+}
+
+/* 表格斑马纹样式 */
+:deep(.el-table--striped .el-table__body tr.el-table__row--striped td) {
+  background-color: #fafafa;
+}
+
+/* 表格边框样式 */
+:deep(.el-table) {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* 表格内容对齐方式 */
+:deep(.el-table .cell) {
+  padding: 0 8px;
+  line-height: 1.5;
+}
+
+/* 表头文字对齐 */
+:deep(.el-table th > .cell) {
+  padding: 0 8px;
+  line-height: 1.5;
+}
+
+/* 去除表格外边框 */
+:deep(.el-table--border) {
+  border: none;
+}
+
+/* 优化表格内分割线 */
+:deep(.el-table--border .el-table__inner-wrapper::after),
+:deep(.el-table--border::after) {
+  display: none;
+}
+
+/* 表格行高度 */
+:deep(.el-table__row) {
+  height: auto !important;  /* 自适应高度，而不是固定高度 */
+  min-height: 48px;        /* 设置最小高度 */
+}
+
+/* 调整表格内下拉框样式 */
+:deep(.el-select .el-input__wrapper) {
+  padding: 0 4px;  /* 减小内边距 */
+}
+
+:deep(.el-select .el-input__inner) {
+  font-size: 13px;  /* 调整字体大小 */
+  height: 28px;     /* 调整高度 */
+  line-height: 28px;
+}
+
+/* 调整下拉选项样式 */
+:deep(.el-select-dropdown__item) {
+  padding: 0 8px;  /* 调整选项内边距 */
+  height: 32px;    /* 调整选项高度 */
+  line-height: 32px;
+  font-size: 13px;
+}
+
+/* 优化下拉框显示 */
+:deep(.el-input__suffix) {
+  right: 2px;  /* 调整下拉箭头位置 */
+}
+
+:deep(.el-input__suffix-inner) {
+  font-size: 12px;  /* 调整下拉箭头大小 */
+}
+
+/* 修改表格内容显示样式 */
+:deep(.el-table .cell) {
+  white-space: pre-wrap !important;  /* 允许内容换行 */
+  word-break: break-word;            /* 在单词内换行 */
+  line-height: 1.5;
+  padding: 0 8px;
+}
+
+/* 修改问题内容样式 */
+.question-content {
+  text-align: left;
+  padding: 6px 10px;
+}
+
+.question-item {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  font-size: 13px;
+  white-space: pre-wrap;     /* 允许换行 */
+  word-break: break-word;    /* 在单词内换行 */
+}
+
+.question-text {
+  color: #333;
+  margin-left: 4px;
+}
+
+/* 修改备注内容样式 */
+.remark-content {
+  text-align: left;
+  padding: 6px 10px;
+  white-space: pre-wrap;     /* 允许换行，替换原来的 nowrap */
+  word-break: break-word;    /* 在单词内换行 */
+  color: #666;
+  font-size: 13px;
+}
+
+/* 移除hover时的样式覆盖 */
+.remark-content:hover {
+  white-space: pre-wrap;    /* 保持换行 */
+}
+
+/* 调整表格行高 */
+:deep(.el-table__row) {
+  height: auto !important;  /* 自适应高度，而不是固定高度 */
+  min-height: 48px;        /* 设置最小高度 */
 }
 </style>
