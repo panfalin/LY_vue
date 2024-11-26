@@ -134,7 +134,9 @@
           <el-table-column label="产品类型" align="center" width="180">
             <template #default="{ row }">
               <div class="product-type-container">
+                <!-- 当不处于自定义输入状态时显示下拉框 -->
                 <el-select
+                    v-if="!row.showCustomInput"
                     v-model="row.productType"
                     size="small"
                     style="width: 100px"
@@ -148,23 +150,28 @@
                   />
                 </el-select>
 
+                <!-- 当处于自定义输入状态时显示输入框 -->
+                <el-input
+                    v-else
+                    v-model="row.customProductType"
+                    size="small"
+                    style="width: 100px"
+                    placeholder="自定义类型"
+                    @blur="handleCustomProductType(row)"
+                    @keyup.enter="handleCustomProductType(row)"
+                />
+
+                <!-- 切换按钮 -->
                 <el-button
                     type="primary"
                     link
-                    @click="row.showCustomInput = true"
-                    v-if="!row.showCustomInput"
+                    @click="toggleCustomInput(row)"
                 >
-                  <el-icon><Plus /></el-icon>
+                  <el-icon>
+                    <Plus v-if="!row.showCustomInput"/>
+                    <Check v-else/>
+                  </el-icon>
                 </el-button>
-
-                <el-input
-                    v-if="row.showCustomInput"
-                    v-model="row.customProductType"
-                    size="small"
-                    style="width: 90px"
-                    placeholder="自定义类型"
-                    @blur="handleCustomProductType(row)"
-                />
               </div>
             </template>
           </el-table-column>
@@ -201,7 +208,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="询问时间" align="center" width="100">
+          <el-table-column label="询问时间" align="center" width="110">
             <template #default="{ row }">
               {{ formatDate(row.preAskTime || row.afterAskTime) }}
             </template>
@@ -242,7 +249,9 @@
           <el-table-column label="解决方案" align="center" width="180">
             <template #default="{ row }">
               <div class="product-type-container">
+                <!-- 当不处于自定义输入状态时显示下拉框 -->
                 <el-select
+                    v-if="!row.showCustomSolution"
                     v-model="row.finalTreatment"
                     size="small"
                     style="width: 100px"
@@ -256,23 +265,28 @@
                   />
                 </el-select>
 
+                <!-- 当处于自定义输入状态时显示输入框 -->
+                <el-input
+                    v-else
+                    v-model="row.customSolution"
+                    size="small"
+                    style="width: 100px"
+                    placeholder="自定义方案"
+                    @blur="handleCustomSolution(row)"
+                    @keyup.enter="handleCustomSolution(row)"
+                />
+
+                <!-- 切换按钮 -->
                 <el-button
                     type="primary"
                     link
-                    @click="row.showCustomSolution = true"
-                    v-if="!row.showCustomSolution"
+                    @click="toggleCustomSolution(row)"
                 >
-                  <el-icon><Plus /></el-icon>
+                  <el-icon>
+                    <Plus v-if="!row.showCustomSolution"/>
+                    <Check v-else/>
+                  </el-icon>
                 </el-button>
-
-                <el-input
-                    v-if="row.showCustomSolution"
-                    v-model="row.customSolution"
-                    size="small"
-                    style="width: 90px"
-                    placeholder="自定义方案"
-                    @blur="handleCustomSolution(row)"
-                />
               </div>
             </template>
           </el-table-column>
@@ -404,7 +418,7 @@
                 </el-col>
               </el-row>
 
-              <!-- 新增问题类型行 -->
+              <!-- 新���类型行 -->
               <el-row :gutter="20">
                 <el-col :span="8">
                   <el-form-item
@@ -474,7 +488,7 @@
               <el-date-picker
                   v-model="currentItem.afterAskTime"
                   type="datetime"
-                  placeholder="选择售后询问时间"
+                  placeholder="选售后询问时间"
                   format="YYYY-MM-DD HH:mm:ss"
                   value-format="YYYY-MM-DD HH:mm:ss"
                   class="time-picker"
@@ -601,7 +615,7 @@
                       v-model="currentItem.expectResults"
                       type="textarea"
                       rows="3"
-                      placeholder="请输入期望处理结果"
+                      placeholder="请输入期处理结果"
                   />
                 </el-form-item>
               </el-form>
@@ -714,7 +728,7 @@ export default {
       proceStatus: ''
     })
 
-    // 将userOptions改为ref，以便动态更新
+    // 将userOptions改为ref以便动态更新
     const userOptions = ref([])
 
     // 添加获取用户列表的方法
@@ -775,38 +789,37 @@ export default {
         console.log('获取问题类型列表响应:', res)
 
         if (Array.isArray(res)) {
-          // 确保返回的数据是数组并且每个项都有 typeQuestion 属性
           typeQuestionOptions.value = res
-              .filter(item => item && item.typeQuestion) // 过滤掉空值
-              .map(item => ({
-                label: item.typeQuestion,
-                value: item.typeQuestion
-              }))
+            .filter(item => item && item.typeQuestion)
+            .map(item => ({
+              label: item.typeQuestion,
+              value: item.typeQuestion
+            }))
         } else {
-          // 如果返回的不是数组，设置为空数组
-          typeQuestionOptions.value = []
           console.warn('问题类型列表返回的数据格式不正确:', res)
+          typeQuestionOptions.value = []
         }
-
-        console.log('处理后的问题类型选项:', typeQuestionOptions.value)
       } catch (error) {
         console.error('获取问题类型列表失败:', error)
-        ElMessage.error(error.message || '获取问题类型列表失败')
-        typeQuestionOptions.value = [] // 发生错误时设置为空数组
+        ElMessage.error('获取问题类型列表失败')
+        typeQuestionOptions.value = []
       }
     }
 
-    // 修改获取列表数据的方法
+    // 添加获取列表数据的方法
     const getList = async () => {
       try {
         loading.value = true
         const res = await listTemplate(queryParams.value)
-        console.log('获取到的数据:', res)
+        console.log('获取列表数据响应:', res)
+        
         if (res.code === 200) {
-          // 添加数据验证和清理
           templateList.value = (res.rows || []).map(item => ({
             ...item,
-            // 确保关键字段都有默认值
+            showCustomInput: false,
+            showCustomSolution: false,
+            customProductType: '',
+            customSolution: '',
             typeQuestion: item.typeQuestion || '未分类',
             proceStatus: item.proceStatus || '待处理',
             sku: item.sku || '',
@@ -821,9 +834,9 @@ export default {
           throw new Error(res.msg || '获取数据失败')
         }
       } catch (error) {
-        console.error('获取数据失败:', error)
-        ElMessage.error(error.message || '获取数据失败')
-        templateList.value = [] // 发生错误时设置为空数组
+        console.error('获取列表数据失败:', error)
+        ElMessage.error(error.message || '获取列表数据失败')
+        templateList.value = []
         total.value = 0
       } finally {
         loading.value = false
@@ -861,10 +874,53 @@ export default {
       currentItem.value = {}
     }
 
-// 修改 handleSave 方法
+    // 添加解决方案变更处理方法
+    const handleSolutionChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+
+        const res = await updateTemplate(updateData)
+
+        if (res.code === 200) {
+          ElMessage.success('解决方案更新成功')
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新解决方案失败:', error)
+        ElMessage.error(error.message || '更新解决方案失败')
+        getList()
+      }
+    }
+
+    // 添加保存方法
     const handleSave = async () => {
       try {
-        // 构建完整的提交数据
         const submitData = {
           s_id: currentItem.value.sId,
           sku: currentItem.value.sku,
@@ -879,6 +935,7 @@ export default {
           listing_id: currentItem.value.listingId,
           store_id: currentItem.value.storeId,
           type_question: currentItem.value.typeQuestion,
+          product_type: currentItem.value.productType,
           recorders: currentItem.value.recorders,
           expect_results: currentItem.value.expectResults,
           expect_time: currentItem.value.expectTime,
@@ -888,14 +945,10 @@ export default {
           remark1: currentItem.value.remark1,
           remark2: currentItem.value.remark2,
           standard_responses: currentItem.value.standardResponses,
-          final_treatment:currentItem.value.finalTreatment
+          final_treatment: currentItem.value.finalTreatment
         }
 
-        // 判断是新增还是修改
         const api = submitData.s_id ? updateTemplate : addTemplate
-        console.log("api:", submitData.s_id)
-        console.log("提交的数据:", submitData) // 添加日志
-
         const res = await api(submitData)
 
         if (res.code === 200) {
@@ -985,7 +1038,7 @@ export default {
     // 添加字典选项的 ref
     const processStatusOptions = ref([])
 
-    // 获取字典数据的方法
+    // 获取字典数的方法
     const getDict = async () => {
       try {
         const res = await getDicts("process_status")
@@ -1104,42 +1157,52 @@ export default {
       }
     }
 
-    // 添加解决方案更处理方法
-    const handleSolutionChange = async (row) => {
+    // 修改处理自定义解决方案的方法
+    const handleCustomSolution = async (row) => {
       try {
-        const updateData = {
-          s_id: row.sId,
-          sku: row.sku,
-          pre_questions: row.preQuestions,
-          pre_response: row.preResponse,
-          pre_ask_time: row.preAskTime,
-          after_questions: row.afterQuestions,
-          after_response: row.afterResponse,
-          after_ask_time: row.afterAskTime,
-          supplier_response: row.supplierResponse,
-          order_no: row.orderNo,
-          listing_id: row.listingId,
-          store_id: row.storeId,
-          type_question: row.typeQuestion,
-          product_type: row.productType,
-          recorders: row.recorders,
-          expect_results: row.expectResults,
-          expect_time: row.expectTime,
-          processors: row.processors,
-          proce_status: row.proceStatus,
-          finals_treatment: row.finalTreatment,
-          remark1: row.remark1,
-          remark2: row.remark2,
-          standard_responses: row.standardResponses,
-          final_treatment: row.finalTreatment
-        }
+        if (row.customSolution) {
+          // 更新解决方案为自定义输入的值
+          row.finalTreatment = row.customSolution;
 
-        const res = await updateTemplate(updateData)
+          const updateData = {
+            s_id: row.sId,
+            sku: row.sku,
+            pre_questions: row.preQuestions,
+            pre_response: row.preResponse,
+            pre_ask_time: row.preAskTime,
+            after_questions: row.afterQuestions,
+            after_response: row.afterResponse,
+            after_ask_time: row.afterAskTime,
+            supplier_response: row.supplierResponse,
+            order_no: row.orderNo,
+            listing_id: row.listingId,
+            store_id: row.storeId,
+            type_question: row.typeQuestion,
+            product_type: row.productType,
+            recorders: row.recorders,
+            expect_results: row.expectResults,
+            expect_time: row.expectTime,
+            processors: row.processors,
+            proce_status: row.proceStatus,
+            finals_treatment: row.finalTreatment,
+            remark1: row.remark1,
+            remark2: row.remark2,
+            standard_responses: row.standardResponses,
+            final_treatment: row.finalTreatment
+          }
 
-        if (res.code === 200) {
-          ElMessage.success('解决方案更新成功')
-        } else {
-          throw new Error(res.msg || '更新失败')
+          const res = await updateTemplate(updateData)
+
+          if (res.code === 200) {
+            ElMessage.success('解决方案更新成功')
+            row.customSolution = '' // 清空自定义输入
+            row.showCustomSolution = false // 隐藏输入框
+            
+            // 更新成功后重新获取解决方案列表
+            await getFinalTreatmentList()
+          } else {
+            throw new Error(res.msg || '更新失败')
+          }
         }
       } catch (error) {
         console.error('更新解决方案失败:', error)
@@ -1242,6 +1305,9 @@ export default {
             ElMessage.success('产品类型更新成功')
             row.customProductType = '' // 清空自定义输入
             row.showCustomInput = false // 隐藏输入框
+            
+            // 更新成功后重新获取产品类型列表
+            await getProductTypeList()
           } else {
             throw new Error(res.msg || '更新失败')
           }
@@ -1253,37 +1319,7 @@ export default {
       }
     }
 
-    // 添加处理自定义解决方案的方法
-    const handleCustomSolution = async (row) => {
-      try {
-        if (row.customSolution) {
-          // 更新解决方案为自定义输入的值
-          row.finalTreatment = row.customSolution;
-
-          const updateData = {
-            s_id: row.sId,
-            // ... 其他字段保持不变
-            final_treatment: row.finalTreatment,
-          }
-
-          const res = await updateTemplate(updateData)
-
-          if (res.code === 200) {
-            ElMessage.success('解决方案更新成功')
-            row.customSolution = '' // 清空自定义输入
-            row.showCustomSolution = false // 隐藏输入框
-          } else {
-            throw new Error(res.msg || '更新失败')
-          }
-        }
-      } catch (error) {
-        console.error('更新解决方案失败:', error)
-        ElMessage.error(error.message || '更新解决方案失败')
-        getList()
-      }
-    }
-
-    // 在 setup 中添加新的 ref
+    // 添加产品类型选项的方法
     const productTypeOptions = ref([])
     const finalTreatmentOptions = ref([])
 
@@ -1291,15 +1327,22 @@ export default {
     const getProductTypeList = async () => {
       try {
         const res = await listProductType()
-        console.log("产品类型=====》", res)
-        // 过滤掉空值并映射数据
-        productTypeOptions.value = res
-            .filter(item => item && item.productType && item.productType.trim()) // 过滤掉null、undefined和空字符串
-            .map(item => ({
-              label: item.productType.trim(), // 去除首尾空格
-              value: item.productType.trim()
-            }))
+        console.log("获取产品类型列表响应:", res) // 添加日志查看返回数据
 
+        if (Array.isArray(res)) {
+          // 确保返回的数据是数组并且每个项都有 productType 属性
+          productTypeOptions.value = res
+            .filter(item => item && item.productType) // 过滤掉空值
+            .map(item => ({
+              label: item.productType,
+              value: item.productType
+            }))
+          
+          console.log("处理后的产品类型选项:", productTypeOptions.value) // 添加日志查看处理后的数据
+        } else {
+          console.warn('产品类型列表返回的数据格式不正确:', res)
+          productTypeOptions.value = []
+        }
 
       } catch (error) {
         console.error('获取产品类型列表失败:', error)
@@ -1325,6 +1368,25 @@ export default {
         console.error('获取解决方案列表失败:', error)
         ElMessage.error('获取解决方案列表失败')
         finalTreatmentOptions.value = []
+      }
+    }
+
+    // 在 setup 中添加以下方法
+    const toggleCustomInput = (row) => {
+      row.showCustomInput = !row.showCustomInput
+      if (!row.showCustomInput && row.customProductType) {
+        // 当切换回下拉框时，如果有自定义输入，则更新产品类型
+        row.productType = row.customProductType
+        handleCustomProductType(row)
+      }
+    }
+
+    const toggleCustomSolution = (row) => {
+      row.showCustomSolution = !row.showCustomSolution
+      if (!row.showCustomSolution && row.customSolution) {
+        // 当切换回下拉框时，如果有自定义输入，则更新解决方案
+        row.finalTreatment = row.customSolution
+        handleCustomSolution(row)
       }
     }
 
@@ -1374,6 +1436,8 @@ export default {
       handleCustomSolution,
       productTypeOptions,
       finalTreatmentOptions,
+      toggleCustomInput,
+      toggleCustomSolution,
     }
   }
 }
@@ -1835,6 +1899,8 @@ export default {
   margin-bottom: 6px;
   line-height: 1.5;
   font-size: 13px;
+  white-space: pre-wrap; /* 允许换行 */
+  word-break: break-word; /* 在单词内换行 */
 }
 
 .question-text {
