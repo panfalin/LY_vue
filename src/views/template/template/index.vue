@@ -77,6 +77,10 @@
               v-model="queryParams.processors"
               placeholder="处理人"
               clearable
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              :popper-class="'processors-select'"
           >
             <el-option
                 v-for="user in userOptions"
@@ -637,9 +641,12 @@
                   />
                 </el-form-item>
                 <el-form-item label="备注1">
-                  <div class="editor-container">
-                    <editor v-model="currentItem.remark1" :min-height="150" />
-                  </div>
+                  <el-input
+                      v-model="currentItem.remark1"
+                      type="textarea"
+                      rows="3"
+                      placeholder="请输入备注1"
+                  />
                 </el-form-item>
                 <el-form-item label="备注2">
                   <div class="editor-container">
@@ -792,11 +799,11 @@ export default {
 
         if (Array.isArray(res)) {
           typeQuestionOptions.value = res
-            .filter(item => item && item.typeQuestion)
-            .map(item => ({
-              label: item.typeQuestion,
-              value: item.typeQuestion
-            }))
+              .filter(item => item && item.typeQuestion)
+              .map(item => ({
+                label: item.typeQuestion,
+                value: item.typeQuestion
+              }))
         } else {
           console.warn('问题类型列表返回的数据格式不正确:', res)
           typeQuestionOptions.value = []
@@ -814,7 +821,7 @@ export default {
         loading.value = true
         const res = await listTemplate(queryParams.value)
         console.log('获取列表数据响应:', res)
-        
+
         if (res.code === 200) {
           templateList.value = (res.rows || []).map(item => ({
             ...item,
@@ -848,7 +855,10 @@ export default {
     // 处理搜索
     const handleQuery = () => {
       queryParams.value.pageNum = 1
-      console.log('搜索参数:', queryParams.value) // 添加日志
+      // 确保 processors 是字符串格式
+      if (Array.isArray(queryParams.value.processors)) {
+        queryParams.value.processors = queryParams.value.processors.join(',')
+      }
       getList()
     }
 
@@ -966,7 +976,7 @@ export default {
       }
     }
 
-    // ��理分页
+    // 处理分页
     const handleSizeChange = (val) => {
       queryParams.value.pageSize = val
       getList()
@@ -1003,7 +1013,7 @@ export default {
         listingId: '',
         storeId: '',
         typeQuestion: '',
-        processors: '',
+        processors: '', // 重置为空字符串
         proceStatus: ''
       }
       handleQuery()
@@ -1199,7 +1209,7 @@ export default {
             ElMessage.success('解决方案更新成功')
             row.customSolution = '' // 清空自定义输入
             row.showCustomSolution = false // 隐藏输入框
-            
+
             // 更新成功后重新获取解决方案列表
             await getFinalTreatmentList()
           } else {
@@ -1260,7 +1270,7 @@ export default {
 
 
 
-    // 添加去除HTML标签的���法
+    // 添加去除HTML标签的方法
     const stripHtml = (html) => {
       if (!html) return '';
       return html.replace(/<[^>]*>/g, '')  // 移除所有HTML标签
@@ -1309,7 +1319,7 @@ export default {
             ElMessage.success('产品类型更新成功')
             row.customProductType = '' // 清空自定义输入
             row.showCustomInput = false // 隐藏输入框
-            
+
             // 更新成功后重新获取产品类型列表
             await getProductTypeList()
           } else {
@@ -1336,12 +1346,12 @@ export default {
         if (Array.isArray(res)) {
           // 确保返回的数据是数组并且每个项都有 productType 属性
           productTypeOptions.value = res
-            .filter(item => item && item.productType) // 过滤掉空值
-            .map(item => ({
-              label: item.productType,
-              value: item.productType
-            }))
-          
+              .filter(item => item && item.productType) // 过滤掉空值
+              .map(item => ({
+                label: item.productType,
+                value: item.productType
+              }))
+
           console.log("处理后的产品类型选项:", productTypeOptions.value) // 添加日志查看处理后的数据
         } else {
           console.warn('产品类型列表返回的数据格式不正确:', res)
@@ -1421,6 +1431,17 @@ export default {
       getList() // 重新获取数据
     }
 
+    // 添加处理人选择变更的方法
+    const handleProcessorsChange = (values) => {
+      // 如果是数组,则转换为逗号分隔的字符串
+      if (Array.isArray(values)) {
+        queryParams.value.processors = values.join(',')
+      } else {
+        // 如果不是数组,则直接赋值
+        queryParams.value.processors = values || ''
+      }
+    }
+
     onMounted(() => {
       getDict()                  // 获取字典数据
       peopleList()               // 获取处理人列表
@@ -1474,7 +1495,7 @@ export default {
       handleImageClick,
       closeImageViewer,
       handleSortChange,
-    
+
     }
   }
 }
