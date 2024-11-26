@@ -45,12 +45,12 @@
             placeholder="问题类型"
             clearable
         >
-          <el-option label="售前" value="售前" />
-          <el-option label="买错" value="买错" />
-          <el-option label="质量问题" value="质量问题" />
-          <el-option label="车型不匹配" value="车型不匹配" />
-          <el-option label="仓库发错" value="仓库发错" />
-          <el-option label="专业问题" value="专业问题" />
+          <el-option
+              v-for="option in typeQuestionOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+          />
         </el-select>
 
         <el-select
@@ -58,9 +58,17 @@
             placeholder="处理状态"
             clearable
         >
-          <el-option label="待处理" value="待处理" />
-          <el-option label="处理中" value="处理中" />
-          <el-option label="已完成" value="已完成" />
+          <el-option
+              v-for="dict in processStatusOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="dict.dictLabel"
+          >
+            <span>{{ dict.dictLabel }}</span>
+            <span style="color: #999; font-size: 12px; margin-left: 8px">
+              {{ dict.remark }}
+            </span>
+          </el-option>
         </el-select>
 
         <el-select
@@ -255,7 +263,7 @@
                   </el-form-item>
                 </el-col>
               </el-row>
-              
+
               <!-- 新增问题类型行 -->
               <el-row :gutter="20">
                 <el-col :span="8">
@@ -269,10 +277,12 @@
                         placeholder="请选择问题类型"
                         style="width: 100%"
                     >
-                      <el-option label="售前" value="售前" />
-                      <el-option label="售后" value="售后" />
-                      <el-option label="订单" value="订单" />
-                      <el-option label="物流" value="物流" />
+                      <el-option
+                          v-for="option in typeQuestionOptions"
+                          :key="option.value"
+                          :label="option.label"
+                          :value="option.value"
+                      />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -365,17 +375,15 @@
                       placeholder="请选择工单处理状态"
                   >
                     <el-option
-                        v-for="(label, value) in {
-                        '待处理': '新建工单，等待处理',
-                        '处理中': '工单正在处理中',
-                        '已完成': '工单处理完成'
-                      }"
-                        :key="value"
-                        :label="value"
-                        :value="value"
+                        v-for="dict in processStatusOptions"
+                        :key="dict.dictValue"
+                        :label="dict.dictLabel"
+                        :value="dict.dictValue"
                     >
-                      <span>{{ value }}</span>
-                      <span style="color: #999; font-size: 12px; margin-left: 8px">{{ label }}</span>
+                      <span>{{ dict.dictLabel }}</span>
+                      <span style="color: #999; font-size: 12px; margin-left: 8px">
+                        {{ dict.remark }}
+                      </span>
                     </el-option>
                   </el-select>
                 </el-form-item>
@@ -389,17 +397,17 @@
             <div class="card-content">
               <el-form :model="currentItem" label-width="100px">
                 <el-form-item label="处理人">
-                  <el-select 
-                    v-model="currentItem.processors" 
-                    style="width: 100%"
-                    placeholder="请选择处理人"
-                    clearable
+                  <el-select
+                      v-model="currentItem.processors"
+                      style="width: 100%"
+                      placeholder="请选择处理人"
+                      clearable
                   >
                     <el-option
-                      v-for="user in userOptions"
-                      :key="user.value"
-                      :label="user.label"
-                      :value="user.value"
+                        v-for="user in userOptions"
+                        :key="user.value"
+                        :label="user.label"
+                        :value="user.value"
                     />
                   </el-select>
                 </el-form-item>
@@ -487,8 +495,18 @@ import {
   Tickets,
   Check
 } from '@element-plus/icons-vue'
-import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, exportTemplate, getPeopleList } from "@/api/template/template.js"
+import {
+  listTemplate,
+  getTemplate,
+  delTemplate,
+  addTemplate,
+  updateTemplate,
+  exportTemplate,
+  getPeopleList,
+  getquestionList  // 添加这个导入
+} from "@/api/template/template.js"
 import Editor from "@/components/Editor"
+import { getDicts } from "@/api/system/dict/data"; // 确保路径正确
 
 export default {
   name: "Template",
@@ -528,21 +546,21 @@ export default {
 
     // 将userOptions改为ref，以便动态更新
     const userOptions = ref([])
-    
+
     // 添加获取用户列表的方法
     const peopleList = async () => {
       try {
         const res = await getPeopleList(queryParams.value)
         console.log('获取处理人列表响应:', res)
-     
-          // 根据返回的数据结构重新映射
-          userOptions.value = res.map(item => ({
-            label: item.nickName,  // 使用 nickName 作为显示标签
-            value: item.nickName   // 使用 nickName 作为值
-          }))
-        
-          console.log('处理后的用户选项:', userOptions.value[0])
-       
+
+        // 根据返回的数据结构重新映射
+        userOptions.value = res.map(item => ({
+          label: item.nickName,  // 使用 nickName 作为显示标签
+          value: item.nickName   // 使用 nickName 作为值
+        }))
+
+        console.log('处理后的用户选项:', userOptions.value[0])
+
       } catch (error) {
         console.error('获取处理人列表失败:', error)
         ElMessage.error(error.message || '获取处理人列表失败')
@@ -577,14 +595,57 @@ export default {
       return name ? name.charAt(0).toUpperCase() : '?'
     }
 
-    // 获取列表数据
+    // 添加问题类型选项的 ref
+    const typeQuestionOptions = ref([])
+
+    // 修改获取问题类型选项的方法
+    const getTypeQuestionList = async () => {
+      try {
+        const res = await getquestionList(queryParams.value)
+        console.log('获取问题类型列表响应:', res)
+
+        if (Array.isArray(res)) {
+          // 确保返回的数据是数组并且每个项都有 typeQuestion 属性
+          typeQuestionOptions.value = res
+              .filter(item => item && item.typeQuestion) // 过滤掉空值
+              .map(item => ({
+                label: item.typeQuestion,
+                value: item.typeQuestion
+              }))
+        } else {
+          // 如果返回的不是数组，设置为空数组
+          typeQuestionOptions.value = []
+          console.warn('问题类型列表返回的数据格式不正确:', res)
+        }
+
+        console.log('处理后的问题类型选项:', typeQuestionOptions.value)
+      } catch (error) {
+        console.error('获取问题类型列表失败:', error)
+        ElMessage.error(error.message || '获取问题类型列表失败')
+        typeQuestionOptions.value = [] // 发生错误时设置为空数组
+      }
+    }
+
+    // 修改获取列表数据的方法
     const getList = async () => {
       try {
         loading.value = true
         const res = await listTemplate(queryParams.value)
-        console.log('获取到的数据:', res) // 调试日志
+        console.log('获取到的数据:', res)
         if (res.code === 200) {
-          templateList.value = res.rows || []
+          // 添加数据验证和清理
+          templateList.value = (res.rows || []).map(item => ({
+            ...item,
+            // 确保关键字段都有默认值
+            typeQuestion: item.typeQuestion || '未分类',
+            proceStatus: item.proceStatus || '待处理',
+            sku: item.sku || '',
+            orderNo: item.orderNo || '',
+            listingId: item.listingId || '',
+            processors: item.processors || '',
+            s_id: item.s_id || '',
+            storeId: item.storeId || ''
+          }))
           total.value = res.total || 0
         } else {
           throw new Error(res.msg || '获取数据失败')
@@ -592,6 +653,8 @@ export default {
       } catch (error) {
         console.error('获取数据失败:', error)
         ElMessage.error(error.message || '获取数据失败')
+        templateList.value = [] // 发生错误时设置为空数组
+        total.value = 0
       } finally {
         loading.value = false
       }
@@ -629,54 +692,54 @@ export default {
     }
 
 // 修改 handleSave 方法
-const handleSave = async () => {
-  try {
-    // 构建完整的提交数据
-    const submitData = {
-      s_id: currentItem.value.sId,
-      sku: currentItem.value.sku,
-      pre_questions: currentItem.value.preQuestions,
-      pre_response: currentItem.value.preResponse,
-      pre_ask_time: currentItem.value.preAskTime,
-      after_questions: currentItem.value.afterQuestions,
-      after_response: currentItem.value.afterResponse,
-      after_ask_time: currentItem.value.afterAskTime,
-      supplier_response: currentItem.value.supplierResponse,
-      order_no: currentItem.value.orderNo,
-      listing_id: currentItem.value.listingId,
-      store_id: currentItem.value.storeId,
-      type_question: currentItem.value.typeQuestion,
-      recorders: currentItem.value.recorders,
-      expect_results: currentItem.value.expectResults,
-      expect_time: currentItem.value.expectTime,
-      processors: currentItem.value.processors,
-      proce_status: currentItem.value.proceStatus,
-      finals_treatment: currentItem.value.finalTreatment,
-      remark1: currentItem.value.remark1,
-      remark2: currentItem.value.remark2,
-      standard_responses: currentItem.value.standardResponses,
-      final_treatment:currentItem.value.finalTreatment
-    }
+    const handleSave = async () => {
+      try {
+        // 构建完整的提交数据
+        const submitData = {
+          s_id: currentItem.value.sId,
+          sku: currentItem.value.sku,
+          pre_questions: currentItem.value.preQuestions,
+          pre_response: currentItem.value.preResponse,
+          pre_ask_time: currentItem.value.preAskTime,
+          after_questions: currentItem.value.afterQuestions,
+          after_response: currentItem.value.afterResponse,
+          after_ask_time: currentItem.value.afterAskTime,
+          supplier_response: currentItem.value.supplierResponse,
+          order_no: currentItem.value.orderNo,
+          listing_id: currentItem.value.listingId,
+          store_id: currentItem.value.storeId,
+          type_question: currentItem.value.typeQuestion,
+          recorders: currentItem.value.recorders,
+          expect_results: currentItem.value.expectResults,
+          expect_time: currentItem.value.expectTime,
+          processors: currentItem.value.processors,
+          proce_status: currentItem.value.proceStatus,
+          finals_treatment: currentItem.value.finalTreatment,
+          remark1: currentItem.value.remark1,
+          remark2: currentItem.value.remark2,
+          standard_responses: currentItem.value.standardResponses,
+          final_treatment:currentItem.value.finalTreatment
+        }
 
-    // 判断是新增还是修改
-    const api = submitData.s_id ? updateTemplate : addTemplate
-    console.log("api:", submitData.s_id)
-    console.log("提交的数据:", submitData) // 添加日志
+        // 判断是新增还是修改
+        const api = submitData.s_id ? updateTemplate : addTemplate
+        console.log("api:", submitData.s_id)
+        console.log("提交的数据:", submitData) // 添加日志
 
-    const res = await api(submitData)
-    
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-      showDetail.value = false
-      getList()
-    } else {
-      throw new Error(res.msg || '保存失败')
+        const res = await api(submitData)
+
+        if (res.code === 200) {
+          ElMessage.success('保存成功')
+          showDetail.value = false
+          getList()
+        } else {
+          throw new Error(res.msg || '保存失败')
+        }
+      } catch (error) {
+        console.error('保存失败:', error)
+        ElMessage.error(error.message || '保存失败')
+      }
     }
-  } catch (error) {
-    console.error('保存失败:', error)
-    ElMessage.error(error.message || '保存失败')
-  }
-}
 
     // 处理分页
     const handleSizeChange = (val) => {
@@ -749,15 +812,30 @@ const handleSave = async () => {
       }
     }
 
+    // 添加字典选项的 ref
+    const processStatusOptions = ref([])
+
+    // 获取字典数据的方法
+    const getDict = async () => {
+      try {
+        const res = await getDicts("process_status")
+        if (res.code === 200) {
+          processStatusOptions.value = res.data
+        }
+      } catch (error) {
+        console.error('获取字典数据失败:', error)
+      }
+    }
+
     // 添加完成工单方法
     const handleComplete = async () => {
       try {
         // 更新处理状态为已完成
         currentItem.value.proceStatus = '已完成'
-        
+
         // 调用保存方法
         await handleSave()
-        
+
         ElMessage.success('工单已完成')
       } catch (error) {
         console.error('完成工单失败:', error)
@@ -766,8 +844,11 @@ const handleSave = async () => {
     }
 
     onMounted(() => {
-      peopleList()  // 先获取处理人列表
-      getList()     // 再获取主列表数据
+      getDict()              // 获取字典数据
+      peopleList()           // 获取处理人列表
+      getTypeQuestionList()  // 获取问题类型列表
+      getList()              // 获取主列表数据
+
     })
 
     return {
@@ -795,7 +876,9 @@ const handleSave = async () => {
       getPreviewText,
       getStatusClass,
       handleComplete,
-      peopleList
+      peopleList,
+      processStatusOptions,
+      typeQuestionOptions,
     }
   }
 }
@@ -1238,5 +1321,4 @@ const handleSave = async () => {
   align-items: center;
   gap: 12px;
 }
-
 </style>

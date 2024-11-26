@@ -29,6 +29,14 @@ export function getPeopleList(query) {
   })
 }
 
+export function getquestionList(query) {
+  return request({
+    url: '/template/template/list/questionType',
+    method: 'get',
+    params: query
+  })
+}
+
 
 // 查询详细
 export function getTemplate(sId) {
