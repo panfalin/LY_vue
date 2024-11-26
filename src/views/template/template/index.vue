@@ -198,11 +198,11 @@
               <div class="question-content">
                 <div v-if="row.preQuestions" class="question-item">
                   <span class="question-label">售前:</span>
-                  <span class="question-text">{{ stripHtml(row.preQuestions) }}</span>
+                  <div class="question-text" v-html="row.preQuestions" @click="handleImageClick"></div>
                 </div>
                 <div v-if="row.afterQuestions" class="question-item">
                   <span class="question-label">售后:</span>
-                  <span class="question-text">{{ stripHtml(row.afterQuestions) }}</span>
+                  <div class="question-text" v-html="row.afterQuestions" @click="handleImageClick"></div>
                 </div>
               </div>
             </template>
@@ -293,13 +293,13 @@
 
           <el-table-column label="备注一" align="center" width="100">
             <template #default="{ row }">
-              <div class="remark-content">{{ stripHtml(row.remark1) || '-' }}</div>
+              <div class="remark-content" v-html="row.remark1 || '-'" @click="handleImageClick"></div>
             </template>
           </el-table-column>
 
           <el-table-column label="备注二" align="center" width="100">
             <template #default="{ row }">
-              <div class="remark-content">{{ stripHtml(row.remark2) || '-' }}</div>
+              <div class="remark-content" v-html="row.remark2 || '-'" @click="handleImageClick"></div>
             </template>
           </el-table-column>
 
@@ -418,7 +418,7 @@
                 </el-col>
               </el-row>
 
-              <!-- 新���类型行 -->
+              <!-- 新类型行 -->
               <el-row :gutter="20">
                 <el-col :span="8">
                   <el-form-item
@@ -657,6 +657,13 @@
         </div>
       </div>
     </div>
+
+    <!-- 添加图片预览组件 -->
+    <el-image-viewer
+        v-if="showImageViewer"
+        :url-list="[currentImageUrl]"
+        @close="closeImageViewer"
+    />
   </div>
 </template>
 
@@ -1390,6 +1397,25 @@ export default {
       }
     }
 
+    // 在 setup 中添加图片预览相关的逻辑
+    const showImageViewer = ref(false)
+    const currentImageUrl = ref('')
+
+    // 处理图片点击事件
+    const handleImageClick = (event) => {
+      // 检查点击的是否是图片元素
+      if (event.target.tagName === 'IMG') {
+        currentImageUrl.value = event.target.src
+        showImageViewer.value = true
+      }
+    }
+
+    // 关闭图片预览
+    const closeImageViewer = () => {
+      showImageViewer.value = false
+      currentImageUrl.value = ''
+    }
+
     onMounted(() => {
       getDict()                  // 获取字典数据
       peopleList()               // 获取处理人列表
@@ -1438,6 +1464,10 @@ export default {
       finalTreatmentOptions,
       toggleCustomInput,
       toggleCustomSolution,
+      showImageViewer,
+      currentImageUrl,
+      handleImageClick,
+      closeImageViewer,
     }
   }
 }
@@ -1893,6 +1923,7 @@ export default {
 .question-content {
   text-align: left;
   padding: 6px 10px;
+  max-width: 100%;
 }
 
 .question-item {
@@ -1906,6 +1937,29 @@ export default {
 .question-text {
   color: #333;
   margin-left: 4px;
+}
+
+/* 添加图片样式控制 */
+:deep(.question-text img),
+:deep(.remark-content img) {
+  max-width: 100%;
+  height: auto;
+  margin: 4px 0;
+  border-radius: 4px;
+  cursor: pointer; /* 添加指针样式表示可点击 */
+  transition: transform 0.2s; /* 添加过渡效果 */
+}
+
+:deep(.question-text img:hover),
+:deep(.remark-content img:hover) {
+  transform: scale(1.02); /* 鼠标悬停时略微放大 */
+}
+
+/* 移除之前的 white-space 和 word-break 样式，改为更合适的样式 */
+:deep(.el-table .cell) {
+  line-height: 1.5;
+  padding: 0 8px;
+  overflow: visible; /* 允许内容溢出，以便显示图片 */
 }
 
 /* 优化处理人单元格样 */
@@ -1982,20 +2036,6 @@ export default {
 
 .unassigned {
   color: #909399;
-}
-
-/* 备注内容样式 */
-.remark-content {
-  text-align: left;
-  padding: 6px 10px;
-  white-space: pre-wrap; /* 允许换行，替换原来的 nowrap */
-  word-break: break-word; /* 在单词内换行 */
-  color: #666;
-  font-size: 13px;
-}
-
-.remark-content:hover {
-  white-space: pre-wrap; /* 保持换行 */
 }
 
 /* 状态样式 */
@@ -2202,5 +2242,11 @@ export default {
 
 :deep(.el-input.el-input--small) {
   font-size: 13px;
+}
+
+
+/* 确保图片预览组件在最上层 */
+:deep(.el-image-viewer__wrapper) {
+  z-index: 2100;
 }
 </style>
