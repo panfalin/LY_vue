@@ -733,7 +733,7 @@ export default {
       listingId: '',
       storeId: '',
       typeQuestion: '',
-      processors: '',
+      processors: [],
       proceStatus: ''
     })
 
@@ -819,7 +819,15 @@ export default {
     const getList = async () => {
       try {
         loading.value = true
-        const res = await listTemplate(queryParams.value)
+        // 在发送请求前处理 processors
+        const params = {
+          ...queryParams.value,
+          processors: Array.isArray(queryParams.value.processors) 
+            ? queryParams.value.processors.join(',') 
+            : queryParams.value.processors
+        }
+        
+        const res = await listTemplate(params)
         console.log('获取列表数据响应:', res)
 
         if (res.code === 200) {
@@ -855,10 +863,6 @@ export default {
     // 处理搜索
     const handleQuery = () => {
       queryParams.value.pageNum = 1
-      // 确保 processors 是字符串格式
-      if (Array.isArray(queryParams.value.processors)) {
-        queryParams.value.processors = queryParams.value.processors.join(',')
-      }
       getList()
     }
 
@@ -1013,7 +1017,7 @@ export default {
         listingId: '',
         storeId: '',
         typeQuestion: '',
-        processors: '', // 重置为空字符串
+        processors: [],
         proceStatus: ''
       }
       handleQuery()
@@ -1433,13 +1437,8 @@ export default {
 
     // 添加处理人选择变更的方法
     const handleProcessorsChange = (values) => {
-      // 如果是数组,则转换为逗号分隔的字符串
-      if (Array.isArray(values)) {
-        queryParams.value.processors = values.join(',')
-      } else {
-        // 如果不是数组,则直接赋值
-        queryParams.value.processors = values || ''
-      }
+      // 直接使用数组值，不需要转换为字符串
+      queryParams.value.processors = values
     }
 
     onMounted(() => {
