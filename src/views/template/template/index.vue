@@ -939,6 +939,195 @@ export default {
       }
     }
 
+    const handleTypeChange = async (row) => {
+      try {
+        // 构建更新数据,参考编辑时的数据格式
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+
+        console.log('更新数据:', updateData) // 添加日志查看数据
+
+        // 调用更新接口
+        const res = await updateTemplate(updateData)
+
+        if (res.code === 200) {
+          ElMessage.success('问题类型更新成功')
+        } else {
+          throw new Error(res.msg || '新失败')
+        }
+      } catch (error) {
+        console.error('更新问题类型失败:', error)
+        ElMessage.error(error.message || '更新问题类型失败')
+        // 更新失败时恢复原值
+        getList()
+      }
+    }
+
+    // 添加产品类型变更处理方法
+    const handleProductTypeChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType, // 新增产品类型字段
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+
+        const res = await updateTemplate(updateData)
+
+        if (res.code === 200) {
+          ElMessage.success('产品类型更新成功')
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新产品类型失败:', error)
+        ElMessage.error(error.message || '更新产品类型失败')
+        getList()
+      }
+    }
+
+    // 添加解决方案更处理方法
+    const handleSolutionChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors,
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+
+        const res = await updateTemplate(updateData)
+
+        if (res.code === 200) {
+          ElMessage.success('解决方案更新成功')
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新解决方案失败:', error)
+        ElMessage.error(error.message || '更新解决方案失败')
+        getList()
+      }
+    }
+
+    // 添加处理人变更处理方法
+    const handleProcessorChange = async (row) => {
+      try {
+        const updateData = {
+          s_id: row.sId,
+          sku: row.sku,
+          pre_questions: row.preQuestions,
+          pre_response: row.preResponse,
+          pre_ask_time: row.preAskTime,
+          after_questions: row.afterQuestions,
+          after_response: row.afterResponse,
+          after_ask_time: row.afterAskTime,
+          supplier_response: row.supplierResponse,
+          order_no: row.orderNo,
+          listing_id: row.listingId,
+          store_id: row.storeId,
+          type_question: row.typeQuestion,
+          product_type: row.productType,
+          recorders: row.recorders,
+          expect_results: row.expectResults,
+          expect_time: row.expectTime,
+          processors: row.processors, // 更新处理人
+          proce_status: row.proceStatus,
+          finals_treatment: row.finalTreatment,
+          remark1: row.remark1,
+          remark2: row.remark2,
+          standard_responses: row.standardResponses,
+          final_treatment: row.finalTreatment
+        }
+
+        const res = await updateTemplate(updateData)
+
+        if (res.code === 200) {
+          ElMessage.success('处理人更新成功')
+          row.isEditingProcessor = false // 更新成功后关闭编辑状态
+        } else {
+          throw new Error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新处理人失败:', error)
+        ElMessage.error(error.message || '更新处理人失败')
+        getList()
+      }
+    }
+
+    // 添加去除HTML标签的方法
+    const stripHtml = (html) => {
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, '')  // 移除所有HTML标签
+                .replace(/&nbsp;/g, ' ')    // 替换HTML空格
+                .replace(/\s+/g, ' ')       // 合并多个空格
+                .trim();                    // 去除首尾空格
+    }
+
     onMounted(() => {
       getDict()              // 获取字典数据
       peopleList()           // 获取处理人列表
@@ -975,6 +1164,7 @@ export default {
       peopleList,
       processStatusOptions,
       typeQuestionOptions,
+      handleProcessorChange,
       handleTypeChange,
       handleProductTypeChange,
       handleSolutionChange,
