@@ -114,6 +114,7 @@
             :data="templateList"
             :height="600"
             style="width: 100%"
+            @sort-change="handleSortChange"
         >
           <el-table-column label="问题类型" align="left" width="120">
             <template #default="{ row }">
@@ -208,7 +209,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="询问时间" align="center" width="110">
+          <el-table-column label="询问时间" align="center" width="120" prop="preAskTime" sortable="custom" :sort-orders="['descending', 'ascending']">
             <template #default="{ row }">
               {{ formatDate(row.preAskTime || row.afterAskTime) }}
             </template>
@@ -732,9 +733,27 @@ export default {
       storeId: '',
       typeQuestion: '',
       processors: '',
-      proceStatus: ''
+      proceStatus: '',
+      orderByColumn: '', // 添加排序列
+      isAsc: ''         // 添加排序方向
     })
 
+    function handleSortChange({ column, prop, order }) {
+      console.log('排序变更:', { column, prop, order }) // 添加日志查看参数
+      
+      // 设置排序参数
+      queryParams.value = {
+        ...queryParams.value,
+        orderByColumn: prop,
+        isAsc: order === 'ascending' ? 'asc' : 'desc'
+      }
+      
+      // 打印完整的查询参数
+      console.log('完整查询参数:', queryParams.value)
+      
+      // 重新获取列表数据
+      getList()
+    }
     // 将userOptions改为ref以便动态更新
     const userOptions = ref([])
 
@@ -817,7 +836,18 @@ export default {
     const getList = async () => {
       try {
         loading.value = true
-        const res = await listTemplate(queryParams.value)
+        // 构建完整的查询参数
+        const params = {
+          ...queryParams.value,
+          pageNum: queryParams.value.pageNum,
+          pageSize: queryParams.value.pageSize,
+          orderByColumn: queryParams.value.orderByColumn, // 排序列
+          isAsc: queryParams.value.isAsc // 排序方向
+        }
+        
+        console.log('发送请求参数:', params) // 添加日志查看请求参数
+        
+        const res = await listTemplate(params)
         console.log('获取列表数据响应:', res)
         
         if (res.code === 200) {
@@ -1009,7 +1039,9 @@ export default {
         storeId: '',
         typeQuestion: '',
         processors: '',
-        proceStatus: ''
+        proceStatus: '',
+        orderByColumn: '', // 添加排序列
+        isAsc: ''         // 添加排序方向
       }
       handleQuery()
     }
@@ -1433,6 +1465,7 @@ export default {
       currentItem,
       queryParams,
       userOptions,
+      handleSortChange,
       getStatusType,
       formatDate,
       getInitials,
@@ -1725,7 +1758,7 @@ export default {
   background: #fff !important;
 }
 
-/* 编辑器标签样式 */
+/* 编辑器标签��式 */
 .editor-label {
   display: flex;
   align-items: center;

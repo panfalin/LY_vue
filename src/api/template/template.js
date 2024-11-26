@@ -15,7 +15,9 @@ export function listTemplate(query) {
       storeId: query.storeId,
       typeQuestion: query.typeQuestion,
       processors: query.processors,
-      proceStatus: query.proceStatus
+      proceStatus: query.proceStatus,
+      orderByColumn: query.orderByColumn,
+      isAsc: query.isAsc
     }
   })
 }
