@@ -209,7 +209,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="询问时间" align="center" width="120" prop="preAskTime" sortable="custom" :sort-orders="['descending', 'ascending']">
+          <el-table-column label="询问时间" align="center" width="110" sortable="custom" prop="preAskTime" :sort-orders="['ascending', 'descending', null]">
             <template #default="{ row }">
               {{ formatDate(row.preAskTime || row.afterAskTime) }}
             </template>
@@ -637,20 +637,14 @@
                   />
                 </el-form-item>
                 <el-form-item label="备注1">
-                  <el-input
-                      v-model="currentItem.remark1"
-                      type="textarea"
-                      rows="3"
-                      placeholder="请输入备注1"
-                  />
+                  <div class="editor-container">
+                    <editor v-model="currentItem.remark1" :min-height="150" />
+                  </div>
                 </el-form-item>
                 <el-form-item label="备注2">
-                  <el-input
-                      v-model="currentItem.remark2"
-                      type="textarea"
-                      rows="3"
-                      placeholder="请输入备注2"
-                  />
+                  <div class="editor-container">
+                    <editor v-model="currentItem.remark2" :min-height="150" />
+                  </div>
                 </el-form-item>
               </el-form>
             </div>
@@ -733,27 +727,9 @@ export default {
       storeId: '',
       typeQuestion: '',
       processors: '',
-      proceStatus: '',
-      orderByColumn: '', // 添加排序列
-      isAsc: ''         // 添加排序方向
+      proceStatus: ''
     })
 
-    function handleSortChange({ column, prop, order }) {
-      console.log('排序变更:', { column, prop, order }) // 添加日志查看参数
-      
-      // 设置排序参数
-      queryParams.value = {
-        ...queryParams.value,
-        orderByColumn: prop,
-        isAsc: order === 'ascending' ? 'asc' : 'desc'
-      }
-      
-      // 打印完整的查询参数
-      console.log('完整查询参数:', queryParams.value)
-      
-      // 重新获取列表数据
-      getList()
-    }
     // 将userOptions改为ref以便动态更新
     const userOptions = ref([])
 
@@ -836,18 +812,7 @@ export default {
     const getList = async () => {
       try {
         loading.value = true
-        // 构建完整的查询参数
-        const params = {
-          ...queryParams.value,
-          pageNum: queryParams.value.pageNum,
-          pageSize: queryParams.value.pageSize,
-          orderByColumn: queryParams.value.orderByColumn, // 排序列
-          isAsc: queryParams.value.isAsc // 排序方向
-        }
-        
-        console.log('发送请求参数:', params) // 添加日志查看请求参数
-        
-        const res = await listTemplate(params)
+        const res = await listTemplate(queryParams.value)
         console.log('获取列表数据响应:', res)
         
         if (res.code === 200) {
@@ -1001,7 +966,7 @@ export default {
       }
     }
 
-    // 处理分页
+    // ��理分页
     const handleSizeChange = (val) => {
       queryParams.value.pageSize = val
       getList()
@@ -1039,9 +1004,7 @@ export default {
         storeId: '',
         typeQuestion: '',
         processors: '',
-        proceStatus: '',
-        orderByColumn: '', // 添加排序列
-        isAsc: ''         // 添加排序方向
+        proceStatus: ''
       }
       handleQuery()
     }
@@ -1295,7 +1258,9 @@ export default {
       }
     }
 
-    // 添加去除HTML标签的方法
+
+
+    // 添加去除HTML标签的���法
     const stripHtml = (html) => {
       if (!html) return '';
       return html.replace(/<[^>]*>/g, '')  // 移除所有HTML标签
@@ -1448,6 +1413,14 @@ export default {
       currentImageUrl.value = ''
     }
 
+    // 修改 handleSortChange 方法
+    const handleSortChange = ({ prop, order }) => {
+      // 直接使用 queryParams.value 而不是 this.queryParams
+      queryParams.value.orderByColumn = prop // 排序字段
+      queryParams.value.isAsc = order === 'ascending' ? 'asc' : 'desc' // 排序方式
+      getList() // 重新获取数据
+    }
+
     onMounted(() => {
       getDict()                  // 获取字典数据
       peopleList()               // 获取处理人列表
@@ -1465,7 +1438,6 @@ export default {
       currentItem,
       queryParams,
       userOptions,
-      handleSortChange,
       getStatusType,
       formatDate,
       getInitials,
@@ -1501,6 +1473,8 @@ export default {
       currentImageUrl,
       handleImageClick,
       closeImageViewer,
+      handleSortChange,
+    
     }
   }
 }
@@ -1758,7 +1732,7 @@ export default {
   background: #fff !important;
 }
 
-/* 编辑器标签��式 */
+/* 编辑器标签样式 */
 .editor-label {
   display: flex;
   align-items: center;
