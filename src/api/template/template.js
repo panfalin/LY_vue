@@ -37,6 +37,23 @@ export function getquestionList(query) {
   })
 }
 
+export function listProductType(query) {
+  return request({
+    url: '/template/template/list/productType',
+    method: 'get',
+    params: query
+  })
+}
+
+export function listFinalTreatment(query) {
+  return request({
+    url: '/template/template/list/finalTreatment',
+    method: 'get',
+    params: query
+  })
+}
+
+
 
 // 查询详细
 export function getTemplate(sId) {
@@ -73,7 +90,8 @@ export function addTemplate(data) {
       finalTreatment: data.final_treatment,
       remark1: data.remark1,
       remark2: data.remark2,
-      standardResponses: data.standard_responses
+      standardResponses: data.standard_responses,
+      productType: data.product_type,
     }
   })
 }
@@ -105,7 +123,8 @@ export function updateTemplate(data) {
       finalTreatment: data.final_treatment,
       remark1: data.remark1,
       remark2: data.remark2,
-      standardResponses: data.standard_responses
+      standardResponses: data.standard_responses,
+      productType: data.product_type,
     }
   })
 }

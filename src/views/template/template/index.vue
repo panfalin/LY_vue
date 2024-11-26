@@ -42,49 +42,49 @@
             </template>
           </el-input>
 
-        <el-select
-            v-model="queryParams.typeQuestion"
-            placeholder="问题类型"
-            clearable
-        >
-          <el-option
-              v-for="option in typeQuestionOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-          />
-        </el-select>
-
-        <el-select
-            v-model="queryParams.proceStatus"
-            placeholder="处理状态"
-            clearable
-        >
-          <el-option
-              v-for="dict in processStatusOptions"
-              :key="dict.dictValue"
-              :label="dict.dictLabel"
-              :value="dict.dictLabel"
+          <el-select
+              v-model="queryParams.typeQuestion"
+              placeholder="问题类型"
+              clearable
           >
-            <span>{{ dict.dictLabel }}</span>
-            <span style="color: #999; font-size: 12px; margin-left: 8px">
+            <el-option
+                v-for="option in typeQuestionOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+            />
+          </el-select>
+
+          <el-select
+              v-model="queryParams.proceStatus"
+              placeholder="处理状态"
+              clearable
+          >
+            <el-option
+                v-for="dict in processStatusOptions"
+                :key="dict.dictValue"
+                :label="dict.dictLabel"
+                :value="dict.dictLabel"
+            >
+              <span>{{ dict.dictLabel }}</span>
+              <span style="color: #999; font-size: 12px; margin-left: 8px">
               {{ dict.remark }}
             </span>
-          </el-option>
-        </el-select>
+            </el-option>
+          </el-select>
 
-        <el-select
-            v-model="queryParams.processors"
-            placeholder="处理人"
-            clearable
-        >
-          <el-option
-              v-for="user in userOptions"
-              :key="user.value"
-              :label="user.label"
-              :value="user.value"
-          />
-        </el-select>
+          <el-select
+              v-model="queryParams.processors"
+              placeholder="处理人"
+              clearable
+          >
+            <el-option
+                v-for="user in userOptions"
+                :key="user.value"
+                :label="user.label"
+                :value="user.value"
+            />
+          </el-select>
 
           <div class="button-group">
             <el-button type="primary" @click="handleQuery">
@@ -110,18 +110,18 @@
       <!-- 表格内容区域 -->
       <div class="scrollable-container">
         <el-table
-          v-loading="loading"
-          :data="templateList"
-          :height="600"
-          style="width: 100%"
+            v-loading="loading"
+            :data="templateList"
+            :height="600"
+            style="width: 100%"
         >
           <el-table-column label="问题类型" align="left" width="120">
             <template #default="{ row }">
               <el-select
-                v-model="row.typeQuestion"
-                size="small"
-                style="width: 90px"
-                @change="handleTypeChange(row)"
+                  v-model="row.typeQuestion"
+                  size="small"
+                  style="width: 90px"
+                  @change="handleTypeChange(row)"
               >
                 <el-option label="售前" value="售前" />
                 <el-option label="售后" value="售后" />
@@ -131,27 +131,49 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="产品类型" align="center" width="120">
+          <el-table-column label="产品类型" align="center" width="180">
             <template #default="{ row }">
-              <el-select
-                v-model="row.productType"
-                size="small"
-                style="width: 90px"
-                @change="handleProductTypeChange(row)"
-              >
-                <el-option label="灯具" value="灯具" />
-                <el-option label="轮胎" value="轮胎" />
-                <el-option label="配件" value="配件" />
-                <el-option label="其他" value="其他" />
-              </el-select>
+              <div class="product-type-container">
+                <el-select
+                    v-model="row.productType"
+                    size="small"
+                    style="width: 100px"
+                    @change="handleProductTypeChange(row)"
+                >
+                  <el-option
+                      v-for="option in productTypeOptions"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                  />
+                </el-select>
+
+                <el-button
+                    type="primary"
+                    link
+                    @click="row.showCustomInput = true"
+                    v-if="!row.showCustomInput"
+                >
+                  <el-icon><Plus /></el-icon>
+                </el-button>
+
+                <el-input
+                    v-if="row.showCustomInput"
+                    v-model="row.customProductType"
+                    size="small"
+                    style="width: 90px"
+                    placeholder="自定义类型"
+                    @blur="handleCustomProductType(row)"
+                />
+              </div>
             </template>
           </el-table-column>
 
-          <el-table-column label="状态" align="center" width="70">
+          <el-table-column label="状态" align="center" width="100">
             <template #default="{ row }">
               <el-tag
-                :class="['status-tag', getStatusClass(row.proceStatus)]"
-                size="small"
+                  :class="['status-tag', getStatusClass(row.proceStatus)]"
+                  size="small"
               >
                 {{ row.proceStatus || '待处理' }}
               </el-tag>
@@ -185,20 +207,20 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="处理人" align="center" width="120">
+          <el-table-column label="处理人" align="center" width="150">
             <template #default="{ row }">
               <el-select
-                v-model="row.processors"
-                size="small"
-                style="width: 100px"
-                @change="handleProcessorChange(row)"
+                  v-model="row.processors"
+                  size="small"
+                  style="width: 130px"
+                  @change="handleProcessorChange(row)"
               >
                 <template #default>
                   <el-option
-                    v-for="user in userOptions"
-                    :key="user.value"
-                    :label="user.label"
-                    :value="user.value"
+                      v-for="user in userOptions"
+                      :key="user.value"
+                      :label="user.label"
+                      :value="user.value"
                   />
                 </template>
                 <!-- 自定义显示内容 -->
@@ -217,29 +239,51 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="解决方案" align="center" width="120">
+          <el-table-column label="解决方案" align="center" width="180">
             <template #default="{ row }">
-              <el-select
-                v-model="row.finalTreatment"
-                size="small"
-                style="width: 90px"
-                @change="handleSolutionChange(row)"
-              >
-                <el-option label="重发" value="重发" />
-                <el-option label="退款" value="退款" />
-                <el-option label="补发" value="补发" />
-                <el-option label="其他" value="其他" />
-              </el-select>
+              <div class="product-type-container">
+                <el-select
+                    v-model="row.finalTreatment"
+                    size="small"
+                    style="width: 100px"
+                    @change="handleSolutionChange(row)"
+                >
+                  <el-option
+                      v-for="option in finalTreatmentOptions"
+                      :key="option.value"
+                      :label="option.label"
+                      :value="option.value"
+                  />
+                </el-select>
+
+                <el-button
+                    type="primary"
+                    link
+                    @click="row.showCustomSolution = true"
+                    v-if="!row.showCustomSolution"
+                >
+                  <el-icon><Plus /></el-icon>
+                </el-button>
+
+                <el-input
+                    v-if="row.showCustomSolution"
+                    v-model="row.customSolution"
+                    size="small"
+                    style="width: 90px"
+                    placeholder="自定义方案"
+                    @blur="handleCustomSolution(row)"
+                />
+              </div>
             </template>
           </el-table-column>
 
-          <el-table-column label="备注一" align="center" min-width="120">
+          <el-table-column label="备注一" align="center" width="100">
             <template #default="{ row }">
               <div class="remark-content">{{ stripHtml(row.remark1) || '-' }}</div>
             </template>
           </el-table-column>
 
-          <el-table-column label="备注二" align="center" min-width="120">
+          <el-table-column label="备注二" align="center" width="100">
             <template #default="{ row }">
               <div class="remark-content">{{ stripHtml(row.remark2) || '-' }}</div>
             </template>
@@ -248,9 +292,9 @@
           <el-table-column label="操作" align="center" width="60" fixed="right">
             <template #default="{ row }">
               <el-button
-                link
-                type="primary"
-                @click.stop="handleUpdate(row)"
+                  link
+                  type="primary"
+                  @click.stop="handleUpdate(row)"
               >
                 编辑
               </el-button>
@@ -260,13 +304,13 @@
 
         <div class="pagination-wrapper">
           <el-pagination
-            v-model:current-page="queryParams.pageNum"
-            v-model:page-size="queryParams.pageSize"
-            :total="total"
-            :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
+              v-model:current-page="queryParams.pageNum"
+              v-model:page-size="queryParams.pageSize"
+              :total="total"
+              :page-sizes="[10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
           />
         </div>
       </div>
@@ -377,7 +421,7 @@
                           v-for="option in typeQuestionOptions"
                           :key="option.value"
                           :label="option.label"
-                          :value="option.value"
+                          :value="option.label"
                       />
                     </el-select>
                   </el-form-item>
@@ -474,7 +518,7 @@
                         v-for="dict in processStatusOptions"
                         :key="dict.dictValue"
                         :label="dict.dictLabel"
-                        :value="dict.dictValue"
+                        :value="dict.dictLabel"
                     >
                       <span>{{ dict.dictLabel }}</span>
                       <span style="color: #999; font-size: 12px; margin-left: 8px">
@@ -519,10 +563,38 @@
                   />
                 </el-form-item>
                 <el-form-item label="处理方案">
-                  <el-select v-model="currentItem.finalTreatment" style="width: 100%">
-                    <el-option label="重发" value="重发" />
-                    <el-option label="退款" value="退款" />
-                  </el-select>
+                  <div class="product-type-container">
+                    <el-select
+                        v-model="currentItem.finalTreatment"
+                        style="width: 100px"
+                        @change="handleSolutionChange(currentItem)"
+                    >
+                      <el-option
+                          v-for="option in finalTreatmentOptions"
+                          :key="option.value"
+                          :label="option.label"
+                          :value="option.value"
+                      />
+                    </el-select>
+
+                    <el-button
+                        type="primary"
+                        link
+                        @click="currentItem.showCustomSolution = true"
+                        v-if="!currentItem.showCustomSolution"
+                    >
+                      <el-icon><Plus /></el-icon>
+                    </el-button>
+
+                    <el-input
+                        v-if="currentItem.showCustomSolution"
+                        v-model="currentItem.customSolution"
+                        size="small"
+                        style="width: 90px"
+                        placeholder="自定义方案"
+                        @blur="handleCustomSolution(currentItem)"
+                    />
+                  </div>
                 </el-form-item>
                 <el-form-item label="期望结果">
                   <el-input
@@ -599,7 +671,9 @@ import {
   updateTemplate,
   exportTemplate,
   getPeopleList,
-  getquestionList  // 添加这个导入
+  getquestionList,  // 添加这个导入
+  listProductType,
+  listFinalTreatment
 } from "@/api/template/template.js"
 import Editor from "@/components/Editor"
 import { getDicts } from "@/api/system/dict/data"; // 确保路径正确
@@ -652,7 +726,7 @@ export default {
         // 根据返回的数据结构重新映射
         userOptions.value = res.map(item => ({
           label: item.nickName,  // 使用 nickName 作为显示标签
-          value: item.nickName   // 使用 nickName 作为值
+          value: item.nickName   // 使用 nickName 作值
         }))
 
         console.log('处理后的用户选项:', userOptions.value[0])
@@ -1013,7 +1087,7 @@ export default {
           remark1: row.remark1,
           remark2: row.remark2,
           standard_responses: row.standardResponses,
-          final_treatment: row.finalTreatment
+          final_treatment: row.finalTreatment,
         }
 
         const res = await updateTemplate(updateData)
@@ -1123,17 +1197,144 @@ export default {
     const stripHtml = (html) => {
       if (!html) return '';
       return html.replace(/<[^>]*>/g, '')  // 移除所有HTML标签
-                .replace(/&nbsp;/g, ' ')    // 替换HTML空格
-                .replace(/\s+/g, ' ')       // 合并多个空格
-                .trim();                    // 去除首尾空格
+          .replace(/&nbsp;/g, ' ')    // 替换HTML空格
+          .replace(/\s+/g, ' ')       // 合并多个空格
+          .trim();                    // 去除首尾空格
+    }
+
+    // 在 setup 函数中添加新的方法
+    const handleCustomProductType = async (row) => {
+      try {
+        if (row.customProductType) {
+          // 更新产品类型为自定义输入的值
+          row.productType = row.customProductType;
+
+          const updateData = {
+            s_id: row.sId,
+            sku: row.sku,
+            pre_questions: row.preQuestions,
+            pre_response: row.preResponse,
+            pre_ask_time: row.preAskTime,
+            after_questions: row.afterQuestions,
+            after_response: row.afterResponse,
+            after_ask_time: row.afterAskTime,
+            supplier_response: row.supplierResponse,
+            order_no: row.orderNo,
+            listing_id: row.listingId,
+            store_id: row.storeId,
+            type_question: row.typeQuestion,
+            product_type: row.productType, // 使用自定义输入的值
+            recorders: row.recorders,
+            expect_results: row.expectResults,
+            expect_time: row.expectTime,
+            processors: row.processors,
+            proce_status: row.proceStatus,
+            finals_treatment: row.finalTreatment,
+            remark1: row.remark1,
+            remark2: row.remark2,
+            standard_responses: row.standardResponses,
+            final_treatment: row.finalTreatment,
+          }
+
+          const res = await updateTemplate(updateData)
+
+          if (res.code === 200) {
+            ElMessage.success('产品类型更新成功')
+            row.customProductType = '' // 清空自定义输入
+            row.showCustomInput = false // 隐藏输入框
+          } else {
+            throw new Error(res.msg || '更新失败')
+          }
+        }
+      } catch (error) {
+        console.error('更新产品类型失败:', error)
+        ElMessage.error(error.message || '更新产品类型失败')
+        getList()
+      }
+    }
+
+    // 添加处理自定义解决方案的方法
+    const handleCustomSolution = async (row) => {
+      try {
+        if (row.customSolution) {
+          // 更新解决方案为自定义输入的值
+          row.finalTreatment = row.customSolution;
+
+          const updateData = {
+            s_id: row.sId,
+            // ... 其他字段保持不变
+            final_treatment: row.finalTreatment,
+          }
+
+          const res = await updateTemplate(updateData)
+
+          if (res.code === 200) {
+            ElMessage.success('解决方案更新成功')
+            row.customSolution = '' // 清空自定义输入
+            row.showCustomSolution = false // 隐藏输入框
+          } else {
+            throw new Error(res.msg || '更新失败')
+          }
+        }
+      } catch (error) {
+        console.error('更新解决方案失败:', error)
+        ElMessage.error(error.message || '更新解决方案失败')
+        getList()
+      }
+    }
+
+    // 在 setup 中添加新的 ref
+    const productTypeOptions = ref([])
+    const finalTreatmentOptions = ref([])
+
+    // 添加获取产品类型选项的方法
+    const getProductTypeList = async () => {
+      try {
+        const res = await listProductType()
+        console.log("产品类型=====》", res)
+        // 过滤掉空值并映射数据
+        productTypeOptions.value = res
+            .filter(item => item && item.productType && item.productType.trim()) // 过滤掉null、undefined和空字符串
+            .map(item => ({
+              label: item.productType.trim(), // 去除首尾空格
+              value: item.productType.trim()
+            }))
+
+
+      } catch (error) {
+        console.error('获取产品类型列表失败:', error)
+        ElMessage.error('获取产品类型列表失败')
+        productTypeOptions.value = []
+      }
+    }
+
+    // 添加获取解决方案选项的方法  
+    const getFinalTreatmentList = async () => {
+      try {
+        const res = await listFinalTreatment()
+
+        // 过滤掉空值并映射数据
+        finalTreatmentOptions.value = res
+            .filter(item => item && item.finalTreatment && item.finalTreatment.trim()) // 过滤掉null、undefined和空字符串
+            .map(item => ({
+              label: item.finalTreatment.trim(), // 去除首尾空格
+              value: item.finalTreatment.trim()
+            }))
+
+      } catch (error) {
+        console.error('获取解决方案列表失败:', error)
+        ElMessage.error('获取解决方案列表失败')
+        finalTreatmentOptions.value = []
+      }
     }
 
     onMounted(() => {
-      getDict()              // 获取字典数据
-      peopleList()           // 获取处理人列表
-      getTypeQuestionList()  // 获取问题类型列表
-      getList()              // 获取主列表数据
-
+      getDict()                  // 获取字典数据
+      peopleList()               // 获取处理人列表
+      getTypeQuestionList()      // 获取问题类型列表
+      getProductTypeList()       // 获取产品类型列表
+      getFinalTreatmentList()    // 获取解决方案列表
+      getList()                  // 获取主列表数据
     })
 
     return {
@@ -1168,7 +1369,11 @@ export default {
       handleTypeChange,
       handleProductTypeChange,
       handleSolutionChange,
-      stripHtml
+      stripHtml,
+      handleCustomProductType,
+      handleCustomSolution,
+      productTypeOptions,
+      finalTreatmentOptions,
     }
   }
 }
@@ -1717,14 +1922,14 @@ export default {
 .remark-content {
   text-align: left;
   padding: 6px 10px;
-  white-space: pre-wrap;     /* 允许换行，替换原来的 nowrap */
-  word-break: break-word;    /* 在单词内换行 */
+  white-space: pre-wrap; /* 允许换行，替换原来的 nowrap */
+  word-break: break-word; /* 在单词内换行 */
   color: #666;
   font-size: 13px;
 }
 
 .remark-content:hover {
-  white-space: pre-wrap;    /* 保持换行 */
+  white-space: pre-wrap; /* 保持换行 */
 }
 
 /* 状态样式 */
@@ -1763,31 +1968,31 @@ export default {
 
 /* 修改表格表头样式 */
 :deep(.el-table th) {
-  background-color: #f0f2f5;    /* 稍深的背景色 */
-  color: #1a1a1a;              /* 更深的文字颜色 */
-  font-weight: 600;            /* 加粗 */
-  font-size: 15px;             /* 增大字体 */
-  padding: 14px 8px;           /* 增加内边距 */
-  border-bottom: 2px solid #e5e7eb;  /* 加粗底部边框 */
-  text-transform: none;        /* 防止文字变形 */
+  background-color: #f0f2f5; /* 稍深的背景色 */
+  color: #1a1a1a; /* 更深的文字颜色 */
+  font-weight: 600; /* 加粗 */
+  font-size: 15px; /* 增大字体 */
+  padding: 14px 8px; /* 增加内边距 */
+  border-bottom: 2px solid #e5e7eb; /* 加粗底部边框 */
+  text-transform: none; /* 防止文字变形 */
 }
 
 /* 表头文字对齐 */
 :deep(.el-table th > .cell) {
   padding: 0 8px;
-  line-height: 1.6;           /* 增加行高 */
-  white-space: nowrap;        /* 防止文字换行 */
-  color: #1a1a1a;            /* 确保文字颜色一致 */
+  line-height: 1.6; /* 增加行高 */
+  white-space: nowrap; /* 防止文字换行 */
+  color: #1a1a1a; /* 确保文字颜色一致 */
 }
 
 /* 表头hover效果 */
 :deep(.el-table th.is-leaf) {
-  border-bottom: 2px solid #e5e7eb;  /* 保持底部边框一致 */
+  border-bottom: 2px solid #e5e7eb; /* 保持底部边框一致 */
 }
 
 /* 表头分割线 */
 :deep(.el-table__header th.el-table__cell) {
-  border-right: 1px solid #ebeef5;  /* 添加右侧分割线 */
+  border-right: 1px solid #ebeef5; /* 添加右侧分割线 */
 }
 
 /* 最后一个表头单元格不显示右边框 */
@@ -1841,42 +2046,42 @@ export default {
 
 /* 表格行高度 */
 :deep(.el-table__row) {
-  height: auto !important;  /* 自适应高度，而不是固定高度 */
-  min-height: 48px;        /* 设置最小高度 */
+  height: auto !important; /* 自适应高度，而不是固定高度 */
+  min-height: 48px; /* 设置最小高度 */
 }
 
 /* 调整表格内下拉框样式 */
 :deep(.el-select .el-input__wrapper) {
-  padding: 0 4px;  /* 减小内边距 */
+  padding: 0 4px; /* 减小内边距 */
 }
 
 :deep(.el-select .el-input__inner) {
-  font-size: 13px;  /* 调整字体大小 */
-  height: 28px;     /* 调整高度 */
+  font-size: 13px; /* 调整字体大小 */
+  height: 28px; /* 调整高度 */
   line-height: 28px;
 }
 
 /* 调整下拉选项样式 */
 :deep(.el-select-dropdown__item) {
-  padding: 0 8px;  /* 调整选项内边距 */
-  height: 32px;    /* 调整选项高度 */
+  padding: 0 8px; /* 调整选项内边距 */
+  height: 32px; /* 调整选项高度 */
   line-height: 32px;
   font-size: 13px;
 }
 
 /* 优化下拉框显示 */
 :deep(.el-input__suffix) {
-  right: 2px;  /* 调整下拉箭头位置 */
+  right: 2px; /* 调整下拉箭头位置 */
 }
 
 :deep(.el-input__suffix-inner) {
-  font-size: 12px;  /* 调整下拉箭头大小 */
+  font-size: 12px; /* 调整下拉箭头大小 */
 }
 
 /* 修改表格内容显示样式 */
 :deep(.el-table .cell) {
-  white-space: pre-wrap !important;  /* 允许内容换行 */
-  word-break: break-word;            /* 在单词内换行 */
+  white-space: pre-wrap !important; /* 允许内容换行 */
+  word-break: break-word; /* 在单词内换行 */
   line-height: 1.5;
   padding: 0 8px;
 }
@@ -1891,8 +2096,8 @@ export default {
   margin-bottom: 6px;
   line-height: 1.5;
   font-size: 13px;
-  white-space: pre-wrap;     /* 允许换行 */
-  word-break: break-word;    /* 在单词内换行 */
+  white-space: pre-wrap; /* 允许换行 */
+  word-break: break-word; /* 在单词内换行 */
 }
 
 .question-text {
@@ -1904,20 +2109,32 @@ export default {
 .remark-content {
   text-align: left;
   padding: 6px 10px;
-  white-space: pre-wrap;     /* 允许换行，替换原来的 nowrap */
-  word-break: break-word;    /* 在单词内换行 */
+  white-space: pre-wrap; /* 允许换行，替换原来的 nowrap */
+  word-break: break-word; /* 在单词内换行 */
   color: #666;
   font-size: 13px;
 }
 
 /* 移除hover时的样式覆盖 */
 .remark-content:hover {
-  white-space: pre-wrap;    /* 保持换行 */
+  white-space: pre-wrap; /* 保持换行 */
 }
 
 /* 调整表格行高 */
 :deep(.el-table__row) {
-  height: auto !important;  /* 自适应高度，而不是固定高度 */
-  min-height: 48px;        /* 设置最小高度 */
+  height: auto !important; /* 自适应高度，而不是固定高度 */
+  min-height: 48px; /* 设置最小高度 */
+}
+
+/* 添加到已有的样式中 */
+.product-type-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+:deep(.el-input.el-input--small) {
+  font-size: 13px;
 }
 </style>
