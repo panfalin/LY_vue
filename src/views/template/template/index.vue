@@ -250,7 +250,7 @@
               </el-select>
             </template>
           </el-table-column>
-
+          <el-table-column label="记录人" align="center" prop="recorders" width="80" />
           <el-table-column label="解决方案" align="center" width="180">
             <template #default="{ row }">
               <div class="product-type-container">
@@ -443,6 +443,94 @@
                           :value="option.label"
                       />
                     </el-select>
+                  </el-form-item>
+                </el-col>
+                
+                <!-- 添加记录人选择器 -->
+                <el-col :span="8">
+                  <el-form-item
+                      label="记录人"
+                      :rules="[{ required: true, message: '请选择记录人' }]"
+                  >
+                    <el-select
+                        v-model="currentItem.recorders"
+                        style="width: 100%"
+                        placeholder="请选择记录人"
+                        clearable
+                    >
+                      <el-option
+                          v-for="user in userOptions"
+                          :key="user.value"
+                          :label="user.label"
+                          :value="user.value"
+                      >
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <el-avatar :size="24" class="assignee-avatar">
+                            {{ getInitials(user.label) }}
+                          </el-avatar>
+                          <span>{{ user.label }}</span>
+                        </div>
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <!-- 在基本信息卡片中添加数据标签字段 -->
+              <el-row :gutter="20">
+                <el-col :span="24">
+                  <el-form-item label="数据标签">
+                    <div class="tag-container">
+                      <!-- 已选标签展示区域 -->
+                      <el-tag
+                        v-for="tag in currentItem.dataTags"
+                        :key="tag"
+                        closable
+                        :disable-transitions="false"
+                        @close="handleRemoveTag(tag)"
+                        class="data-tag"
+                      >
+                        {{ tag }}
+                      </el-tag>
+
+                      <!-- 添加标签按钮 -->
+                      <el-popover
+                        placement="bottom"
+                        :width="200"
+                        trigger="click"
+                        @show="handlePopoverShow"
+                      >
+                        <template #reference>
+                          <el-button class="tag-add-button" type="primary" link>
+                            <el-icon><Plus /></el-icon>
+                          </el-button>
+                        </template>
+                        
+                        <!-- 标签选择列表 -->
+                        <div class="tag-list">
+                          <div
+                            v-for="tag in dataTagOptions"
+                            :key="tag.dictValue"
+                            class="tag-item"
+                            @click="handleTagSelect(tag.dictLabel)"
+                          >
+                            {{ tag.dictLabel }}
+                          </div>
+                          <!-- 自定义标签输入框 -->
+                          <el-input
+                            v-if="showCustomTagInput"
+                            v-model="customTagValue"
+                            size="small"
+                            placeholder="输入自定义标签"
+                            @keyup.enter="handleCustomTagAdd"
+                            @blur="handleCustomTagAdd"
+                          />
+                          <div class="tag-item custom" @click="showCustomTagInput = true">
+                            <el-icon><Plus /></el-icon> 自定义标签
+                          </div>
+                        </div>
+                      </el-popover>
+                    </div>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -641,12 +729,9 @@
                   />
                 </el-form-item>
                 <el-form-item label="备注1">
-                  <el-input
-                      v-model="currentItem.remark1"
-                      type="textarea"
-                      rows="3"
-                      placeholder="请输入备注1"
-                  />
+                  <div class="editor-container">
+                    <editor v-model="currentItem.remark1" :min-height="150" />
+                  </div>
                 </el-form-item>
                 <el-form-item label="备注2">
                   <div class="editor-container">
@@ -696,7 +781,9 @@ import {
   getPeopleList,
   getquestionList,  // 添加这个导入
   listProductType,
-  listFinalTreatment
+  listFinalTreatment,
+  addTemplateDict,
+  
 } from "@/api/template/template.js"
 import Editor from "@/components/Editor"
 import { getDicts } from "@/api/system/dict/data"; // 确保路径正确
@@ -867,16 +954,29 @@ export default {
     }
 
     // 处理新增
-    const handleAdd = () => {
+    const handleAdd = async () => {
       currentItem.value = {}  // 清空当前项
+      // 获取最新的数据标签字典
+      await getDataTagDict()
       showDetail.value = true // 显示详情页
     }
 
     // 处理编辑
     const handleUpdate = async (row) => {
       try {
-        console.log('编辑行数据:', row) // 调试日志
-        currentItem.value = { ...row }  // 使用解构赋值创建新对象
+        console.log('编辑行数据:', row)
+        currentItem.value = { ...row }
+        
+        // 处理数据标签的回显
+        if (currentItem.value.dataTag) {
+          currentItem.value.dataTags = currentItem.value.dataTag.split(',').filter(Boolean)
+        } else {
+          currentItem.value.dataTags = []
+        }
+        
+        // 获取最新的数据标签字典
+        await getDataTagDict()
+        
         showDetail.value = true
       } catch (error) {
         console.error('编辑失败:', error)
@@ -937,6 +1037,11 @@ export default {
     // 添加保存方法
     const handleSave = async () => {
       try {
+        // 处理数据标签，将数组转换为逗号分隔的字符串
+        const dataTagsString = currentItem.value.dataTags ? 
+          currentItem.value.dataTags.join(',') : '';
+
+        // 构建完整的提交数据
         const submitData = {
           s_id: currentItem.value.sId,
           sku: currentItem.value.sku,
@@ -961,7 +1066,8 @@ export default {
           remark1: currentItem.value.remark1,
           remark2: currentItem.value.remark2,
           standard_responses: currentItem.value.standardResponses,
-          final_treatment: currentItem.value.finalTreatment
+          final_treatment: currentItem.value.finalTreatment,
+          data_tag: dataTagsString  // 使用 data_tag 作为字段名
         }
 
         const api = submitData.s_id ? updateTemplate : addTemplate
@@ -1065,6 +1171,11 @@ export default {
         console.error('获取字典数据失败:', error)
       }
     }
+
+
+
+
+
 
     // 添加完成工单方法
     const handleComplete = async () => {
@@ -1441,7 +1552,102 @@ export default {
       queryParams.value.processors = values
     }
 
+    // 在 setup 函数中添加
+    const dataTagOptions = ref([]) // 数据标签选项
+    const selectedTag = ref('') // 当前选中的标签
+    const inputVisible = ref(false) // 控制输入框显示
+    const showCustomTagInput = ref(false) // 控制自定义标签输入框显示
+    const customTagValue = ref('') // 自定义标签值
+
+    // 获取数据标签字典
+    const getDataTagDict = async () => {
+      try {
+        const res = await getDicts('data_tag')
+        console.log("获取数据标签字典响应data_tag:", res) // 添加日志查看返回数据
+        if (res.code === 200) {
+          dataTagOptions.value = res.data
+        }
+      } catch (error) {
+        console.error('获取数据标签字典失败:', error)
+      }
+    }
+
+    // 处理标签选择
+    const handleTagSelect = (value) => {
+      if (!currentItem.value.dataTags) {
+        currentItem.value.dataTags = []
+      }
+      if (value && !currentItem.value.dataTags.includes(value)) {
+        currentItem.value.dataTags.push(value)
+      }
+      selectedTag.value = '' // 清空选择
+    }
+
+    // 移除标签
+    const handleRemoveTag = (tag) => {
+      currentItem.value.dataTags = currentItem.value.dataTags.filter(t => t !== tag)
+    }
+
+    // 处理选择框显示状态变化
+    const handleSelectVisible = (visible) => {
+      if (!visible) {
+        selectedTag.value = ''
+      }
+    }
+
+    // 处理自���义标签添加
+    const handleCustomTagAdd = async () => {
+      if (customTagValue.value && !currentItem.value.dataTags.includes(customTagValue.value)) {
+        // 先添加到字典
+        await handleAddDict(customTagValue.value)
+        // 清空输入框并隐藏
+        customTagValue.value = ''
+        showCustomTagInput.value = false
+      }
+    }
+
+// 修改 handlePopoverShow 方法
+const handlePopoverShow = async () => {
+  // 每次打开弹窗时重新获取数据标签字典
+  await getDataTagDict()
+}
+
+    // 添加字典的方法
+    const handleAddDict = async (value) => {
+      try {
+        console.log("添加字典:", value)
+        const dictData = {
+          dict_label: value,      // 字典标签
+          dict_value: value,      // 字典键值
+          dict_type: 'data_tag',  // 字典类型
+          dict_sort: 0,           // 字典排序
+          status: '0',
+          list_class:'default',           // 状态（0正常 1停用）
+          remark: value  // 备注
+        }
+
+        const res = await addTemplateDict(dictData)
+        if (res.code === 200) {
+          ElMessage.success('添加标签成功')
+          // 重新获取数据标签字典
+          await getDataTagDict()
+          // 添加到当前选中的标签中
+          if (!currentItem.value.dataTags) {
+            currentItem.value.dataTags = []
+          }
+          currentItem.value.dataTags.push(value)
+          
+        } else {
+          throw new Error(res.msg || '添加失败')
+        }
+      } catch (error) {
+        console.error('添加字典失败:', error)
+        ElMessage.error(error.message || '添加字典失败')
+      }
+    }
+
     onMounted(() => {
+      // 移除 getDataTagDict() 的初始调用
       getDict()                  // 获取字典数据
       peopleList()               // 获取处理人列表
       getTypeQuestionList()      // 获取问题类型列表
@@ -1494,7 +1700,15 @@ export default {
       handleImageClick,
       closeImageViewer,
       handleSortChange,
-
+      dataTagOptions,
+      selectedTag,
+      inputVisible,
+      handleTagSelect,
+      handleRemoveTag,
+      handleSelectVisible,
+      showCustomTagInput,
+      customTagValue,
+      handleCustomTagAdd
     }
   }
 }
@@ -2276,4 +2490,66 @@ export default {
 :deep(.el-image-viewer__wrapper) {
   z-index: 2100;
 }
+
+/* 在 style 标签中添加 */
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.data-tag {
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.tag-select {
+  width: 240px;
+}
+
+:deep(.el-select__tags) {
+  flex-wrap: wrap;
+}
+
+/* 数据标签相关样式 */
+.tag-add-button {
+  padding: 8px;
+  height: 32px;
+  width: 32px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tag-add-button:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
+.tag-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tag-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tag-item:hover {
+  background-color: #f5f7fa;
+}
+
+.tag-item.custom {
+  color: var(--el-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
 </style>

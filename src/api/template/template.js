@@ -94,9 +94,29 @@ export function addTemplate(data) {
       remark2: data.remark2,
       standardResponses: data.standard_responses,
       productType: data.product_type,
+      dataTag: data.data_tag,
     }
   })
 }
+
+
+// 新增
+export function addTemplateDict(data) {
+  return request({
+    url: '/template/template/dict',
+    method: 'post',
+    data: {
+      dictLabel: data.dict_label,
+      dictValue: data.dict_value,
+      dictType: data.dict_type,
+      listClass: data.list_class,
+      status: data.status,
+    }
+  })
+}
+
+
+
 
 // 修改
 export function updateTemplate(data) {
@@ -127,6 +147,7 @@ export function updateTemplate(data) {
       remark2: data.remark2,
       standardResponses: data.standard_responses,
       productType: data.product_type,
+      dataTag: data.data_tag,
     }
   })
 }
@@ -147,3 +168,6 @@ export function exportTemplate(query) {
     params: query
   })
 }
+
+
+
