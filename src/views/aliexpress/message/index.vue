@@ -133,20 +133,29 @@
       <div class="chat-input">
         <div class="input-toolbar">
           <el-button-group>
-            <el-button icon="Picture">图片</el-button>
-            <el-button icon="Files">文件</el-button>
-            <el-button icon="ChatDotSquare">快捷回复</el-button>
+            <el-upload
+              ref="imageUploadRef"
+              :show-file-list="false"
+              accept="image/*"
+              :before-upload="handleImageUpload"
+            >
+              <el-button icon="Picture">图片</el-button>
+            </el-upload>
           </el-button-group>
         </div>
-        <div class="input-area">
+        
+        <!-- 使用 Element Plus 的富文本编辑器 -->
+        <div class="editor-container">
           <el-input
             v-model="messageInput"
             type="textarea"
-            :rows="3"
-            placeholder="输入消息..."
-            @keyup.enter.ctrl="sendMessage"
+            :rows="5"
+            :autosize="{ minRows: 3, maxRows: 5 }"
+            placeholder="请输入消息..."
+            resize="none"
           />
         </div>
+        
         <div class="input-actions">
           <el-button type="primary" @click="sendMessage">发送消息</el-button>
         </div>
@@ -195,7 +204,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 import { listClient, getClient } from '@/api/aliexpress/client'
-import { listMessage, updateMessageRead, getMessage,addMessage } from '@/api/aliexpress/message'
+import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products"
 
 // 状态数据
@@ -256,24 +265,37 @@ const getMessageList = async (storeId = '', readStatus = '') => {
       isRead: readStatus
     }
     
-    const res = await listClient(params)
+    // 并行获取消息列表和未读消息数量
+    const [res, resUnread] = await Promise.all([
+      listClient(params),
+      listMessageUnread(params)
+    ])
     
     if (res.code === 200) {
-      const newList = res.rows.map(msg => ({
-        id: msg.messageId,
-        clientId: msg.clientId,
-        customerName: msg.clientName || '未知用户',
-        clientNumber: msg.clientNumber,
-        email: msg.email,
-        storeName: msg.storeName || '速卖通店铺',
-        storeId: msg.shopId,
-        lastMessage: msg.messageContent || '暂无消息',
-        messageCount: msg.messageCount || 0,
-        unreadCount: msg.unreadCount || 0,
-        lastTime: msg.updateTime || msg.createTime,
-        avatarUrl: msg.avatarUrl,
-        isRead: msg.isRead
-      }))
+      const newList = res.rows.map(msg => {
+        // 查找对应的未读消息数量
+        const unreadInfo = resUnread.rows?.find(
+          unread => unread.clientId === msg.clientId && 
+                    unread.storeName === msg.storeName
+        )
+        
+        return {
+          id: msg.messageId,
+          clientId: msg.clientId,
+          customerName: msg.clientName || '未知用户',
+          clientNumber: msg.clientNumber,
+          email: msg.email,
+          storeName: msg.storeName || '速卖通店铺',
+          storeId: msg.shopId,
+          lastMessage: msg.messageContent || '暂无消息',
+          messageCount: msg.messageCount || 0,
+          // 使用未读消息接口返回的数量
+          unreadCount: unreadInfo?.unreadCount || 0,
+          lastTime: msg.updateTime || msg.createTime,
+          avatarUrl: msg.avatarUrl,
+          isRead: msg.isRead
+        }
+      })
 
       // 检查是否有变化
       const hasChanges = JSON.stringify(newList) !== JSON.stringify(messageList.value)
@@ -411,7 +433,23 @@ const generateMessageId = (senderId, receiverId) => {
   return `${smaller}_${bigger}`
 }
 
-// 修改发送消息的方法
+// 使用 Element Plus 的富文本编辑器配置
+const editorConfig = {
+  placeholder: '请输入内容',
+  height: 150
+}
+
+// 图片上传处理
+const handleImageUpload = (file) => {
+  const isImage = file.type.indexOf('image/') !== -1
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  return true
+}
+
+// 修改发送消息方法
 const sendMessage = async () => {
   if (!messageInput.value.trim()) return
   
@@ -424,16 +462,12 @@ const sendMessage = async () => {
       senderId: senderId,
       receiverId: receiverId,
       shopId: currentMessage.value.storeName,
-      messageContent: messageInput.value,
+      messageContent: messageInput.value, // 富文本内容
       sendTime: new Date().toISOString().slice(0, 10),
       isRead: '未读',
-      // 添加排序后的消息ID
-      conversationId : generateMessageId(senderId, receiverId)
+      conversationId: generateMessageId(senderId, receiverId)
     }
 
-    console.log('发送消息参数:', messageData)
-    
-    // 调用发送消息接口
     const res = await addMessage(messageData)
     
     // 发送成功后，将消息添加到聊天记录中
@@ -444,18 +478,14 @@ const sendMessage = async () => {
       senderId: messageData.senderId,
       receiverId: messageData.receiverId,
       isRead: messageData.isRead,
-      id: messageData.messageId // 使用生成的消息ID
+      id: messageData.messageId
     })
     
     // 清空输入框
     messageInput.value = ''
     
-    // 滚动到底部
     scrollToBottom()
-    
-    // 重新加载聊天记录
     loadChatHistory()
-
   } catch (error) {
     console.error('发送消息失败:', error)
   }
@@ -467,7 +497,7 @@ const POLLING_INTERVAL = 3000 // 3秒
 // 添加轮询定时器引用
 const pollingTimer = ref(null)
 
-// 添加最新消息时间戳，用于优化请求
+// 添加新消息时间戳，用于优化请求
 const lastUpdateTime = ref(null)
 
 // 修改轮询方法，同时更新消息列表和聊天记录
@@ -602,7 +632,7 @@ const formatTime = (date) => {
   const messageDate = new Date(date)
   const diff = now - messageDate
   
-  // 转换为分钟
+  // 换为分钟
   const minutes = Math.floor(diff / 1000 / 60)
   // 转换为小时
   const hours = Math.floor(minutes / 60)
@@ -718,7 +748,7 @@ const scrollToBottom = () => {
   text-overflow: ellipsis;
 }
 
-/* 中间聊天区域样式 */
+/* 中间聊天域样式 */
 .chat-main {
   flex: 1;
   display: flex;
@@ -925,5 +955,21 @@ const scrollToBottom = () => {
 
 .service .message-content {
   background-color: #f4f4f5;
+}
+
+.editor-container {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.editor-container :deep(.el-textarea__inner) {
+  border: none;
+  padding: 10px;
+  min-height: 120px;
+}
+
+.editor-container :deep(.el-textarea__inner:focus) {
+  box-shadow: none;
 }
 </style>

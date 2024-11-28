@@ -9,6 +9,15 @@ export function listMessage(query) {
   })
 }
 
+export function listMessageUnread() {
+  return request({
+    url: '/aliexpress/message/list/unread',
+    method: 'get'
+  })
+}
+
+
+
 // 查询消息详细
 export function getMessage(senderId, shopId) {
   return request({
