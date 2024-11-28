@@ -10,12 +10,14 @@ export function listMessage(query) {
 }
 
 // 查询消息详细
-export function getMessage(messageId) {
+export function getMessage(senderId, shopId) {
   return request({
-    url: '/aliexpress/message/' + messageId,
+    url: '/aliexpress/message/' + senderId + '/' + shopId,
     method: 'get'
   })
 }
+
+
 
 // 新增消息
 export function addMessage(data) {
@@ -30,6 +32,14 @@ export function addMessage(data) {
 export function updateMessage(data) {
   return request({
     url: '/aliexpress/message',
+    method: 'put',
+    data: data
+  })
+}
+
+export function updateMessageRead(data) {
+  return request({
+    url: '/aliexpress/message/read',
     method: 'put',
     data: data
   })

@@ -12,11 +12,43 @@
         />
       </div>
       
+      <!-- 在搜索框下方添加筛选选项 -->
+      <div class="filter-options">
+        <!-- 消息状态筛选 -->
+        <el-radio-group 
+          v-model="filterStatus" 
+          size="small"
+          @change="handleStatusChange"
+        >
+          <el-radio-button label="all">全部消息</el-radio-button>
+          <el-radio-button label="unread">未读消息</el-radio-button>
+          <el-radio-button label="read">已读消息</el-radio-button>
+        </el-radio-group>
+        
+        <!-- 店铺筛选 -->
+        <el-select
+          v-model="filterShop"
+          placeholder="请选择店铺"
+          clearable
+          style="width: 100%"
+          filterable
+          size="small"
+          @change="handleStoreChange"
+        >
+          <el-option
+            v-for="storeName in storeOptionNames"
+            :key="storeName.value"
+            :label="storeName.label"
+            :value="storeName.label"
+          />
+        </el-select>
+      </div>
+      
       <!-- 消息列表 -->
       <div class="message-list">
         <el-scrollbar>
           <div
-            v-for="msg in messageList"
+            v-for="msg in filteredMessages"
             :key="msg.id"
             class="message-item"
             :class="{ active: currentMessage?.id === msg.id }"
@@ -81,12 +113,16 @@
             >
               <div class="message-avatar">
                 <el-avatar :size="32">
-                  {{ msg.isCustomer ? getInitials(currentMessage?.customerName) : 'CS' }}
+                  {{ msg.isCustomer ? getInitials(msg.senderId) : getInitials(msg.receiverId) }}
                 </el-avatar>
               </div>
               <div class="message-content">
-                <div class="message-text" v-html="msg.content"></div>
-                <div class="message-time">{{ formatTime(msg.time) }}</div>
+                <div class="message-sender">{{ msg.isCustomer ? msg.senderId : msg.receiverId }}</div>
+                <div class="message-text">{{ msg.content }}</div>
+                <div class="message-time">
+                  {{ formatTime(msg.time) }}
+                  <span class="message-status">{{ msg.isRead }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -157,7 +193,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+
 import { listClient, getClient } from '@/api/aliexpress/client'
+import { listMessage, updateMessageRead, getMessage } from '@/api/aliexpress/message'
+import { listStores } from "@/api/products/products"
 
 // 状态数据
 const searchQuery = ref('')
@@ -170,99 +209,239 @@ const orderHistory = ref([])
 // 移除模拟数据,改用ref空数组
 const messageList = ref([])
 
-// 添加获取用户列表的方法
-const getMessageList = async () => {
+// 筛选状态
+const filterStatus = ref('all')
+const filterShop = ref('')
+
+// 店铺列表
+const shopList = ref([])
+
+// 店铺选项数据
+const storeOptionNames = ref([])
+
+// 添加一个变量记录当前选中的用户ID和处理状态
+const currentProcessing = ref({
+  clientId: null,
+  processing: false
+})
+
+// 格式化店铺数据方法
+const formatStoresname = (stores) => {
+  return stores.map(store => ({
+    value: store.storeId,
+    label: store.storeName
+  }))
+}
+
+// 获取店铺列表的方法
+const getStoreList = async () => {
   try {
-    const res = await listClient({
-      pageNum: 1,
-      pageSize: 10
-    })
-    
-    console.log('接口返回数据:', res) // 添加日志查看返回数据
-    
-    if (res.code === 200) {
-      // 根据实际返回的数据结构调整映射逻辑
-      messageList.value = res.rows.map(client => ({
-        id: client.clientId,
-        customerName: client.clientName || '未知用户',
-        clientNumber: client.clientNumber, // 客户编号
-        email: client.email,
-        storeName: client.shopName || '速卖通店铺', // 店铺名称
-        storeId: client.shopId, // 店铺ID
-        lastMessage: client.remark || '暂无消息', // 最后一条消息
-        messageCount: client.messageCount || 0, // 消息数量
-        unreadCount: client.unreadCount || 0, // 未读消息数
-        lastTime: client.updateTime || client.createdTime, // 最后更新时间
-        avatarUrl: client.avatarUrl // 头像URL
-      }))
+    const res = await listStores()
+    if (res.rows) {
+      storeOptionNames.value = formatStoresname(res.rows)
+      console.log("storeOptionNames.value====>", storeOptionNames.value)
     }
   } catch (error) {
-    console.error('获取消息列表失败:', error)
-    ElMessage.error('获取消息列表失败')
+    console.error('获取店铺列表失败:', error)
   }
 }
 
-// 计算属性：过滤后的消息列表
-const filteredMessages = computed(() => {
-  if (!searchQuery.value) return messageList.value
+// 修改获取消息列表的方法
+const getMessageList = async (storeId = '', readStatus = '') => {
+  try {
+    const params = {
+      pageNum: 1,
+      pageSize: 10,
+      storeName: storeId,
+      isRead: readStatus
+    }
+    console.log("请求参数:", params)
+    const res = await listClient(params)
+    
+    if (res.code === 200) {
+      messageList.value = res.rows.map(msg => ({
+        id: msg.messageId,
+        clientId: msg.clientId,
+        customerName: msg.clientName || '未知用户',
+        clientNumber: msg.clientNumber,
+        email: msg.email,
+        storeName: msg.storeName || '速卖通店铺',
+        storeId: msg.shopId,
+        lastMessage: msg.messageContent || '暂无消息',
+        messageCount: msg.messageCount || 0,
+        unreadCount: msg.unreadCount || 0,
+        lastTime: msg.updateTime || msg.createTime,
+        avatarUrl: msg.avatarUrl,
+        isRead: msg.isRead
+      }))
+      console.log("处理后的消息列表:", messageList.value)
+    }
+  } catch (error) {
+    console.error('获取消息列表失败:', error)
+  }
+}
+
+// 修改消息状态变更处理方法
+const handleStatusChange = (value) => {
+  filterStatus.value = value
+  let readStatus = ''
   
-  const keyword = searchQuery.value.toLowerCase()
-  return messageList.value.filter(msg => 
-    msg.customerName.toLowerCase().includes(keyword) ||
-    msg.email?.toLowerCase().includes(keyword) ||
-    msg.lastMessage.toLowerCase().includes(keyword)
-  )
+  // 根据选择的状态设置参数
+  switch(value) {
+    case 'unread':
+      readStatus = '未读'
+      break
+    case 'read':
+      readStatus = '已读'
+      break
+    default:
+      readStatus = ''
+  }
+  
+  // 重新获取消息列表
+  getMessageList(filterShop.value, readStatus)
+}
+
+// 修改店铺选择变更处理方法
+const handleStoreChange = (value) => {
+  filterShop.value = value
+  
+  // 获取当前消息状态
+  let readStatus = ''
+  switch(filterStatus.value) {
+    case 'unread':
+      readStatus = '0'
+      break
+    case 'read':
+      readStatus = '1'
+      break
+  }
+  
+  // 重新获取消息列表，同时传入消息状态
+  getMessageList(value, readStatus)
+}
+
+// 修改初始化加载
+onMounted(() => {
+  getStoreList() // 先获取店铺列表
+  getMessageList() // 再获取消息列表
 })
 
-// 在组件挂载时获取数据
-onMounted(() => {
-  getMessageList()
+// 移除或简化原有的过滤计算属性，因为现在完全依赖后端过滤
+const filteredMessages = computed(() => {
+  let result = messageList.value
+
+  // 只保留关键词搜索功能
+  if (searchQuery.value) {
+    const keyword = searchQuery.value.toLowerCase()
+    result = result.filter(msg => 
+      msg.customerName.toLowerCase().includes(keyword) ||
+      msg.email?.toLowerCase().includes(keyword) ||
+      msg.lastMessage.toLowerCase().includes(keyword)
+    )
+  }
+
+  return result
 })
 
 // 方法
 const selectMessage = async (message) => {
+  // 如果正在处理同一个用户的请求，则直接返回
+  if (currentProcessing.value.processing && currentProcessing.value.clientId === message.clientId) {
+    return
+  }
+
   try {
-    currentMessage.value = message
-    
-    // 获取用户详细信息
-    const res = await getClient(message.id)
-    if (res.code === 200) {
-      currentUser.value = {
-        id: res.data.clientId,
-        name: res.data.clientName,
-        email: res.data.email,
-        phone: res.data.phone,
-        country: res.data.country,
-        registerTime: res.data.createTime,
-        orders: res.data.orders || [] // 假设API返回了订单信息
-      }
-      
-      // 更新订单历史
-      orderHistory.value = currentUser.value.orders.map(order => ({
-        orderId: order.orderId,
-        amount: order.totalAmount,
-        status: order.status,
-        createTime: order.createTime,
-        products: order.products || []
-      }))
+    // 设置当前正在处理的用户和状态
+    currentProcessing.value = {
+      clientId: message.clientId,
+      processing: true
     }
+
+    currentMessage.value = message
+    console.log("message====>", message)
+    // 直接使用消息列表中的用户信息更新右侧面板
+    currentUser.value = {
+      id: message.clientId,
+      name: message.customerName,
+      email: message.email,
+      phone: message.clientNumber || '暂无',
+      country: message.country || '暂无',
+      registerTime: message.lastTime
+    }
+
+    // 调用修改消息接口，更新消息状态
+    if(message.lastMessage !== '暂无消息') {
+      await updateMessageRead({
+        senderId: message.clientId,  // 用户ID
+        shopId: message.storeName,    // 店铺名
+        isRead: '已读'                   // 设置为已读
+      })
+    }
+
+    // 加载聊天记录
+    loadChatHistory(message.id)
+    
+    // 更新完状态后重新获取消息列表
+    getMessageList(filterShop.value)
   } catch (error) {
-    console.error('获取用户详情失败:', error)
-    ElMessage.error('获取用户详情失败')
+    //console.error('获取用户订单失败:', error)
+  } finally {
+    // 处理完成后重置状态
+    currentProcessing.value = {
+      clientId: null,
+      processing: false
+    }
   }
 }
 
-const loadChatHistory = (messageId) => {
-  // 模拟加载聊天记录
-  chatMessages.value = [
-    {
-      id: 1,
-      content: '您好，请问有什么可以帮您？',
-      time: new Date(),
-      isCustomer: false
-    },
-    // ... 更多聊天记录
-  ]
+// 修改加载聊天记录的方法
+const loadChatHistory = async (messageId) => {
+  try {
+    // 确保必要的参数存在
+    if (!currentMessage.value?.clientId || !currentMessage.value?.storeName) {
+      console.log("缺少必要参数:", {
+        senderId: currentMessage.value?.clientId,
+        shopId: currentMessage.value?.storeName
+      })
+      return
+    }
+
+    // 直接传入senderId和shopId作为路径参数
+    const res = await getMessage(
+      currentMessage.value.clientId.toString(),
+      currentMessage.value.storeName.toString()
+    )
+    
+    console.log("获取聊天记录参数:", {
+      senderId: currentMessage.value.clientId,
+      shopId: currentMessage.value.storeName
+    })
+    console.log("获取到的聊天记录响应:", res.rows)
+    
+ 
+      // 将后端返回的聊天记录映射为前端需要的格式
+      chatMessages.value = res.rows.map(msg => ({
+        id: msg.messageId,
+        content: msg.messageContent || '',
+        time: msg.sendTime,
+        // 判断是否为客户消息：发送者ID是否为当前选中的客户
+        isCustomer: msg.senderId === currentMessage.value.clientId,
+        senderName: msg.senderId || '', // 使用senderId作为发送者名称
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+        isRead: msg.isRead,
+        shopId: msg.shopId,
+        updateTime: msg.updateTime
+      }))
+      
+      console.log("处理后的聊天记录:", chatMessages.value)
+      scrollToBottom()
+
+  } catch (error) {
+    console.error('获取聊天记录失败:', error)
+    chatMessages.value = []
+  }
 }
 
 const loadUserInfo = (messageId) => {
@@ -303,7 +482,30 @@ const sendMessage = () => {
 const getInitials = (name) => name ? name.charAt(0) : '?'
 
 const formatTime = (date) => {
-  return formatDistance(new Date(date), new Date(), { addSuffix: true })
+  if (!date) return ''
+  
+  const now = new Date()
+  const messageDate = new Date(date)
+  const diff = now - messageDate
+  
+  // 转换为分钟
+  const minutes = Math.floor(diff / 1000 / 60)
+  // 转换为小时
+  const hours = Math.floor(minutes / 60)
+  // 转换为天
+  const days = Math.floor(hours / 24)
+  
+  if (minutes < 1) {
+    return '刚刚'
+  } else if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 30) {
+    return `${days}天前`
+  } else {
+    return messageDate.toLocaleDateString()
+  }
 }
 
 const formatDate = (date) => {
@@ -557,5 +759,57 @@ const scrollToBottom = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.filter-options {
+  padding: 12px;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-options :deep(.el-radio-group) {
+  display: flex;
+  width: 100%;
+}
+
+.filter-options :deep(.el-radio-button) {
+  flex: 1;
+}
+
+.filter-options :deep(.el-radio-button__inner) {
+  width: 100%;
+}
+
+.filter-options :deep(.el-select) {
+  width: 100%;
+}
+
+.message-sender {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.message-status {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.message-content {
+  position: relative;
+  padding: 12px;
+  border-radius: 8px;
+  max-width: 400px;
+}
+
+.customer .message-content {
+  background-color: #e1f3ff;
+}
+
+.service .message-content {
+  background-color: #f4f4f5;
 }
 </style>
