@@ -113,15 +113,13 @@
             >
               <div class="message-avatar">
                 <el-avatar :size="32">
-                  {{ msg.isCustomer ? getInitials(msg.senderId) : getInitials(msg.receiverId) }}
+                  {{ msg.isCustomer ? getInitials(msg.senderId) : '客服' }}
                 </el-avatar>
               </div>
               <div class="message-content">
-                <div class="message-sender">{{ msg.isCustomer ? msg.senderId : msg.receiverId }}</div>
                 <div class="message-text">{{ msg.content }}</div>
                 <div class="message-time">
                   {{ formatTime(msg.time) }}
-                  <span class="message-status">{{ msg.isRead }}</span>
                 </div>
               </div>
             </div>
@@ -826,6 +824,7 @@ const scrollToBottom = () => {
   font-size: 12px;
   color: #909399;
   margin-top: 4px;
+  text-align: right;
 }
 
 .chat-input {
