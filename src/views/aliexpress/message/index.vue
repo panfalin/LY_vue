@@ -192,10 +192,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 import { listClient, getClient } from '@/api/aliexpress/client'
-import { listMessage, updateMessageRead, getMessage } from '@/api/aliexpress/message'
+import { listMessage, updateMessageRead, getMessage,addMessage } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products"
 
 // 状态数据
@@ -255,11 +255,11 @@ const getMessageList = async (storeId = '', readStatus = '') => {
       storeName: storeId,
       isRead: readStatus
     }
-    console.log("请求参数:", params)
+    
     const res = await listClient(params)
     
     if (res.code === 200) {
-      messageList.value = res.rows.map(msg => ({
+      const newList = res.rows.map(msg => ({
         id: msg.messageId,
         clientId: msg.clientId,
         customerName: msg.clientName || '未知用户',
@@ -274,7 +274,12 @@ const getMessageList = async (storeId = '', readStatus = '') => {
         avatarUrl: msg.avatarUrl,
         isRead: msg.isRead
       }))
-      console.log("处理后的消息列表:", messageList.value)
+
+      // 检查是否有变化
+      const hasChanges = JSON.stringify(newList) !== JSON.stringify(messageList.value)
+      if (hasChanges) {
+        messageList.value = newList
+      }
     }
   } catch (error) {
     console.error('获取消息列表失败:', error)
@@ -380,12 +385,15 @@ const selectMessage = async (message) => {
     }
 
     // 加载聊天记录
-    loadChatHistory(message.id)
+    await loadChatHistory(message.id)
+    
+    // 开始轮询
+    startPolling()
     
     // 更新完状态后重新获取消息列表
     getMessageList(filterShop.value)
   } catch (error) {
-    //console.error('获取用户订单失败:', error)
+    console.error('获取用户信息失败:', error)
   } finally {
     // 处理完成后重置状态
     currentProcessing.value = {
@@ -395,52 +403,172 @@ const selectMessage = async (message) => {
   }
 }
 
-// 修改加载聊天记录的方法
+// 添加一个工具方法来生成消息ID
+const generateMessageId = (senderId, receiverId) => {
+  // 将两个ID按字符串大小排序
+  const [smaller, bigger] = [senderId, receiverId].sort()
+  // 用下划线连接
+  return `${smaller}_${bigger}`
+}
+
+// 修改发送消息的方法
+const sendMessage = async () => {
+  if (!messageInput.value.trim()) return
+  
+  try {
+    const senderId = '客服'
+    const receiverId = currentMessage.value.clientId
+    
+    // 构造发送消息的参数
+    const messageData = {
+      senderId: senderId,
+      receiverId: receiverId,
+      shopId: currentMessage.value.storeName,
+      messageContent: messageInput.value,
+      sendTime: new Date().toISOString().slice(0, 10),
+      isRead: '未读',
+      // 添加排序后的消息ID
+      conversationId : generateMessageId(senderId, receiverId)
+    }
+
+    console.log('发送消息参数:', messageData)
+    
+    // 调用发送消息接口
+    const res = await addMessage(messageData)
+    
+    // 发送成功后，将消息添加到聊天记录中
+    chatMessages.value.push({
+      content: messageInput.value,
+      time: messageData.sendTime,
+      isCustomer: false,
+      senderId: messageData.senderId,
+      receiverId: messageData.receiverId,
+      isRead: messageData.isRead,
+      id: messageData.messageId // 使用生成的消息ID
+    })
+    
+    // 清空输入框
+    messageInput.value = ''
+    
+    // 滚动到底部
+    scrollToBottom()
+    
+    // 重新加载聊天记录
+    loadChatHistory()
+
+  } catch (error) {
+    console.error('发送消息失败:', error)
+  }
+}
+
+// 添加轮询间隔时间常量（毫秒）
+const POLLING_INTERVAL = 3000 // 3秒
+
+// 添加轮询定时器引用
+const pollingTimer = ref(null)
+
+// 添加最新消息时间戳，用于优化请求
+const lastUpdateTime = ref(null)
+
+// 修改轮询方法，同时更新消息列表和聊天记录
+const startPolling = () => {
+  // 先清除可能存在的定时器
+  stopPolling()
+  
+  // 设置新的定时器
+  pollingTimer.value = setInterval(async () => {
+    if (currentMessage.value?.clientId && currentMessage.value?.storeName) {
+      // 同时更新消息列表和聊天记录
+      await Promise.all([
+        loadChatHistory(),
+        getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' : 
+                                       filterStatus.value === 'read' ? '已读' : '')
+      ])
+    }
+  }, POLLING_INTERVAL)
+}
+
+// 添加停止轮询的方法
+const stopPolling = () => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value)
+    pollingTimer.value = null
+  }
+}
+
+// 在组件卸载时清除定时器
+onUnmounted(() => {
+  stopPolling()
+})
+
+// 修改加载聊天记录的方法，优化更新逻辑
 const loadChatHistory = async (messageId) => {
   try {
-    // 确保必要的参数存在
     if (!currentMessage.value?.clientId || !currentMessage.value?.storeName) {
-      console.log("缺少必要参数:", {
-        senderId: currentMessage.value?.clientId,
-        shopId: currentMessage.value?.storeName
-      })
       return
     }
 
-    // 直接传入senderId和shopId作为路径参数
     const res = await getMessage(
       currentMessage.value.clientId.toString(),
       currentMessage.value.storeName.toString()
     )
     
-    console.log("获取聊天记录参数:", {
-      senderId: currentMessage.value.clientId,
-      shopId: currentMessage.value.storeName
-    })
-    console.log("获取到的聊天记录响应:", res.rows)
-    
- 
-      // 将后端返回的聊天记录映射为前端需要的格式
-      chatMessages.value = res.rows.map(msg => ({
-        id: msg.messageId,
+    if (res.rows && res.rows.length > 0) {
+      const newMessages = res.rows.map(msg => ({
+        id: generateMessageId(msg.senderId, msg.receiverId),
         content: msg.messageContent || '',
         time: msg.sendTime,
-        // 判断是否为客户消息：发送者ID是否为当前选中的客户
         isCustomer: msg.senderId === currentMessage.value.clientId,
-        senderName: msg.senderId || '', // 使用senderId作为发送者名称
+        senderName: msg.senderId || '',
         senderId: msg.senderId,
         receiverId: msg.receiverId,
         isRead: msg.isRead,
         shopId: msg.shopId,
         updateTime: msg.updateTime
       }))
-      
-      console.log("处理后的聊天记录:", chatMessages.value)
-      scrollToBottom()
 
+      // 检查是否有新消息或消息状态变化
+      const hasChanges = newMessages.some(newMsg => {
+        const existingMsg = chatMessages.value.find(msg => msg.id === newMsg.id)
+        return !existingMsg || 
+               existingMsg.isRead !== newMsg.isRead || 
+               existingMsg.content !== newMsg.content
+      })
+
+      if (hasChanges) {
+        chatMessages.value = newMessages
+        scrollToBottom()
+        notifyNewMessage()
+        
+        // 更新当前选中消息的未读状态
+        if (currentMessage.value) {
+          const latestMessage = newMessages[newMessages.length - 1]
+          currentMessage.value = {
+            ...currentMessage.value,
+            lastMessage: latestMessage.content,
+            lastTime: latestMessage.time,
+            unreadCount: newMessages.filter(msg => msg.isRead === '未读').length
+          }
+        }
+      }
+    }
   } catch (error) {
     console.error('获取聊天记录失败:', error)
-    chatMessages.value = []
+  }
+}
+
+// 添加新消息提示方法
+const notifyNewMessage = () => {
+  // 可以添加提示音或其他通知方式
+  const audio = new Audio('/path/to/notification-sound.mp3') // 添加提示音文件
+  audio.play().catch(e => console.log('无法播放提示音:', e))
+  
+  // 或者使用系统通知
+  if (Notification.permission === 'granted') {
+    new Notification('新消息提醒', {
+      body: '您有新的消息',
+      icon: '/path/to/icon.png'
+    })
   }
 }
 
@@ -462,20 +590,6 @@ const loadUserInfo = (messageId) => {
     },
     // ... 更多订单
   ]
-}
-
-const sendMessage = () => {
-  if (!messageInput.value.trim()) return
-  
-  chatMessages.value.push({
-    id: Date.now(),
-    content: messageInput.value,
-    time: new Date(),
-    isCustomer: false
-  })
-  
-  messageInput.value = ''
-  scrollToBottom()
 }
 
 // 工具方法
