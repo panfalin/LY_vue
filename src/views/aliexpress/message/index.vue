@@ -194,15 +194,49 @@
         <div class="card-header">
           <h3>历史订单</h3>
         </div>
-        <el-table :data="orderHistory" style="width: 100%" size="small">
-          <el-table-column prop="orderId" label="订单号" width="120" />
-          <el-table-column prop="amount" label="金额" width="80" />
-          <el-table-column prop="status" label="状态">
-            <template #default="{ row }">
-              <el-tag :type="getOrderStatusType(row.status)">{{ row.status }}</el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="order-list">
+          <div v-for="order in orderHistory" :key="order.orderId" class="order-item">
+            <div class="order-header">
+              <span class="order-id">订单号: {{ order.orderId }}</span>
+              <el-tag 
+                :type="getOrderStatusType(order.status)" 
+                size="small"
+              >
+                {{ order.status }}
+              </el-tag>
+            </div>
+            <div class="order-content">
+              <!-- 添加产品信息区域 -->
+              <div class="product-info">
+                <el-image 
+                  class="product-image" 
+                  :src="order.productImage" 
+                  fit="cover"
+                  :preview-src-list="[order.productImage]"
+                >
+                  <template #error>
+                    <div class="image-placeholder">
+                      <el-icon><Picture /></el-icon>
+                    </div>
+                  </template>
+                </el-image>
+                <div class="product-details">
+                  <div class="product-name">{{ order.productName }}</div>
+                </div>
+              </div>
+              <div class="order-info">
+                <div class="order-amount">
+                  <span class="label">金额:</span>
+                  <span class="value">US ${{ order.amount }}</span>
+                </div>
+                <div class="order-time">
+                  <span class="label">时间:</span>
+                  <span class="value">{{ formatTime(order.createTime) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -226,6 +260,7 @@ import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread
 import { listStores } from "@/api/products/products"
 import request from '@/utils/request'
 import { ElImageViewer } from 'element-plus'
+import { getOrder } from '@/api/aliexpress/order'
 
 // 状态数据
 const searchQuery = ref('')
@@ -399,7 +434,6 @@ const selectMessage = async (message) => {
   }
 
   try {
-    // 设置当前正在处理的用户和状态
     currentProcessing.value = {
       clientId: message.clientId,
       processing: true
@@ -415,6 +449,24 @@ const selectMessage = async (message) => {
       phone: message.clientNumber || '暂无',
       country: message.country || '暂无',
       registerTime: message.lastTime
+    }
+
+    // 获取订单数据
+    try {
+      const res = await getOrder(message.clientId, message.storeName)
+      console.log("res====>", res)
+        // 处理订单数据
+        orderHistory.value = res.rows.map(order => ({
+          orderId: order.orderId,
+          amount: order.orderAmount,
+          status: order.orderStatus,
+          createTime: order.createdTime,
+          productName: order.produceName || '未知商品',
+          productImage: order.producePicture || ''  // 如果没有图片则使用空字符串
+        }))
+    } catch (error) {
+      console.error('获取订单数据出错:', error)
+      orderHistory.value = [] // 出错时清空订单列表
     }
 
     // 调用修改消息接口，更新消息状态
@@ -434,6 +486,7 @@ const selectMessage = async (message) => {
     
     // 更新完状态后重新获取消息列表
     getMessageList(filterShop.value)
+
   } catch (error) {
     console.error('获取用户信息失败:', error)
   } finally {
@@ -689,7 +742,7 @@ const notifyNewMessage = () => {
   // 或者使用系统通知
   if (Notification.permission === 'granted') {
     new Notification('新消息提醒', {
-      body: '您有新的消息',
+      body: '您有新消息',
       icon: '/path/to/icon.png'
     })
   }
@@ -751,9 +804,11 @@ const formatDate = (date) => {
 
 const getOrderStatusType = (status) => {
   const statusMap = {
-    '已完成': 'success',
     '待发货': 'warning',
-    '已取消': 'danger'
+    '已发货': 'info',
+    '已完成': 'success',
+    '已取消': 'danger',
+    '退款中': 'danger'
   }
   return statusMap[status] || 'info'
 }
@@ -766,6 +821,40 @@ const scrollToBottom = () => {
     }, 100)
   }
 }
+
+// 添加模拟订单数据
+const mockOrderHistory = [
+  {
+    orderId: '111055265202523',
+    amount: 29.99,
+    status: '待发货',
+    createTime: '2024-03-15 10:30:00'
+  },
+  {
+    orderId: '111055265202524',
+    amount: 45.50,
+    status: '已发货',
+    createTime: '2024-03-14 15:20:00'
+  },
+  {
+    orderId: '111055265202525',
+    amount: 99.99,
+    status: '已完成',
+    createTime: '2024-03-13 09:15:00'
+  },
+  {
+    orderId: '111055265202526',
+    amount: 15.99,
+    status: '已取消',
+    createTime: '2024-03-12 14:45:00'
+  },
+  {
+    orderId: '111055265202527',
+    amount: 159.99,
+    status: '退款中',
+    createTime: '2024-03-11 16:30:00'
+  }
+]
 </script>
 
 <style scoped>
@@ -1109,5 +1198,117 @@ const scrollToBottom = () => {
   height: auto;
   margin: 4px 0;
   border-radius: 4px;
+}
+
+/* 订单列表样式 */
+.order-list {
+  padding: 8px 0;
+}
+
+.order-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.order-id {
+  font-size: 13px;
+  color: #606266;
+}
+
+.order-content {
+  font-size: 13px;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-amount, .order-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  color: #909399;
+  min-width: 40px;
+}
+
+.value {
+  color: #303133;
+}
+
+/* 修改订单状态标签样式 */
+:deep(.el-tag--small) {
+  height: 20px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+/* 产品信息样式 */
+.product-info {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 0;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  color: #909399;
+}
+
+.product-details {
+  flex: 1;
+  min-width: 0; /* 防止文本溢出 */
+}
+
+.product-name {
+  font-size: 13px;
+  color: #303133;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 调整订单内容的间距 */
+.order-content {
+  padding: 0 4px;
+}
+
+/* 调整订单信息的布局 */
+.order-info {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f2f5;
 }
 </style>

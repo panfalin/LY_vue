@@ -10,12 +10,14 @@ export function listOrder(query) {
 }
 
 // 查询订单详细
-export function getOrder(orderId) {
+export function getOrder(clientId,storeName) {
   return request({
-    url: '/aliexpress/order/' + orderId,
+    url: '/aliexpress/order/' + clientId + '/' + storeName,
     method: 'get'
   })
 }
+
+
 
 // 新增订单
 export function addOrder(data) {
