@@ -603,13 +603,29 @@ const sendMessage = async () => {
     const senderId = '客服'
     const receiverId = currentMessage.value.clientId
     
+    // 获取当前时间，并调整为东八区
+    debugger
+    const now = new Date()
+    // 使用 toLocaleString 获取本地时间字符串，指定为中国时区
+    const currentTime = now.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-') // 将斜杠替换为横杠
+
+    console.log("currentTime====>", currentTime) // 本地时间，格式：YYYY-MM-DD HH:mm:ss
+    
     // 构造发送消息的参数
     const messageData = {
       senderId: senderId,
       receiverId: receiverId,
       shopId: currentMessage.value.storeName,
       messageContent: messageInput.value,
-      sendTime: new Date().toISOString().slice(0, 10),
+      sendTime: currentTime, // 使用本地时间
       isRead: '未读',
       conversationId: generateMessageId(senderId, receiverId)
     }
@@ -626,7 +642,7 @@ const sendMessage = async () => {
       isRead: messageData.isRead,
       id: messageData.messageId
     })
-    
+
     // 清空输入框和可编辑div的内容
     messageInput.value = ''
     editableDiv.value.innerHTML = ''
