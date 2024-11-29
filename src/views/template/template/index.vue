@@ -6,15 +6,29 @@
       <div class="sticky-header">
         <!-- 搜索区域 -->
         <div class="filter-container">
+          <!-- 保留原有的搜索框 -->
           <el-input
-              v-model="queryParams.sku"
-              placeholder="输入SKU搜索..."
-              class="search-input"
-              clearable
-              @keyup.enter="handleQuery"
+            v-model="queryParams.sku"
+            placeholder="输入SKU搜索..."
+            class="search-input"
+            clearable
+            @keyup.enter="handleQuery"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+
+          <!-- 添加问题内容搜索框 -->
+          <el-input
+            v-model="queryParams.questionContent"
+            placeholder="搜索问题内容..."
+            class="search-input"
+            clearable
+            @keyup.enter="handleQuery"
+          >
+            <template #prefix>
+              <el-icon><ChatDotSquare /></el-icon>
             </template>
           </el-input>
 
@@ -769,7 +783,8 @@ import {
   QuestionFilled,
   InfoFilled,
   Tickets,
-  Check
+  Check,
+  ChatDotSquare
 } from '@element-plus/icons-vue'
 import {
   listTemplate,
@@ -803,7 +818,8 @@ export default {
     InfoFilled,
     Tickets,
     Editor,
-    Check
+    Check,
+    ChatDotSquare
   },
   setup() {
     const loading = ref(false)
@@ -821,7 +837,8 @@ export default {
       storeId: '',
       typeQuestion: '',
       processors: [],
-      proceStatus: ''
+      proceStatus: '',
+      questionContent: '' // 添加问题内容搜索参数
     })
 
     // 将userOptions改为ref以便动态更新

@@ -17,7 +17,10 @@ export function listTemplate(query) {
       processors: query.processors,
       proceStatus: query.proceStatus,
       orderByColumn: query.orderByColumn,
-      isAsc: query.isAsc
+      isAsc: query.isAsc,
+      preQuestions: query.questionContent,
+
+      
     }
   })
 }
