@@ -19,8 +19,6 @@ export function listTemplate(query) {
       orderByColumn: query.orderByColumn,
       isAsc: query.isAsc,
       preQuestions: query.questionContent,
-
-      
     }
   })
 }
@@ -169,6 +167,18 @@ export function exportTemplate(query) {
     url: '/template/template/export',
     method: 'post',
     params: query
+  })
+}
+
+// 获取问题内容联想词
+export function getQuestionSuggestions(keyword) {
+  return request({
+    url: '/template/template/suggestions',
+    method: 'get',
+    params: {
+      keyword: keyword,
+      fields: ['preQuestions', 'afterQuestions']
+    }
   })
 }
 

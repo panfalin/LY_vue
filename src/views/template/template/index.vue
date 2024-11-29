@@ -8,11 +8,11 @@
         <div class="filter-container">
           <!-- 保留原有的搜索框 -->
           <el-input
-            v-model="queryParams.sku"
-            placeholder="输入SKU搜索..."
-            class="search-input"
-            clearable
-            @keyup.enter="handleQuery"
+              v-model="queryParams.sku"
+              placeholder="输入SKU搜索..."
+              class="search-input"
+              clearable
+              @keyup.enter="handleQuery"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
@@ -227,9 +227,30 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="询问时间" align="center" width="110" sortable="custom" prop="preAskTime" :sort-orders="['ascending', 'descending', null]">
+          <!-- 将单个询问时间列拆分为两列 -->
+          <el-table-column 
+            label="售前询问" 
+            align="center" 
+            width="110" 
+            sortable="custom" 
+            prop="preAskTime" 
+            :sort-orders="['ascending', 'descending', null]"
+          >
             <template #default="{ row }">
-              {{ formatDate(row.preAskTime || row.afterAskTime) }}
+              {{ formatDate(row.preAskTime) || '-' }}
+            </template>
+          </el-table-column>
+
+          <el-table-column 
+            label="售后询问" 
+            align="center" 
+            width="110" 
+            sortable="custom" 
+            prop="afterAskTime" 
+            :sort-orders="['ascending', 'descending', null]"
+          >
+            <template #default="{ row }">
+              {{ formatDate(row.afterAskTime) || '-' }}
             </template>
           </el-table-column>
 
@@ -427,7 +448,7 @@
                   >
                     <el-input
                         v-model="currentItem.listingId"
-                        placeholder="请输入商品刊登ID"
+                        placeholder="��输入商品刊登ID"
                     >
                       <template #prefix>
                         <el-icon><Link /></el-icon>
@@ -1193,7 +1214,6 @@ export default {
 
 
 
-
     // 添加完成工单方法
     const handleComplete = async () => {
       try {
@@ -1646,7 +1666,7 @@ const handlePopoverShow = async () => {
         const res = await addTemplateDict(dictData)
         if (res.code === 200) {
           ElMessage.success('添加标签成功')
-          // 重新获取数据标签字典
+          // 重新获取数据标签字��
           await getDataTagDict()
           // 添加到当前选中的标签中
           if (!currentItem.value.dataTags) {
