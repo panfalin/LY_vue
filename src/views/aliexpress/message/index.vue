@@ -117,7 +117,11 @@
                 </el-avatar>
               </div>
               <div class="message-content">
-                <div class="message-text">{{ msg.content }}</div>
+                <div 
+                  class="message-text" 
+                  v-html="msg.content" 
+                  @click="handleImageClick"
+                ></div>
                 <div class="message-time">
                   {{ formatTime(msg.time) }}
                 </div>
@@ -142,16 +146,22 @@
           </el-button-group>
         </div>
         
-        <!-- 使用 Element Plus 的富文本编辑器 -->
+        <!-- 修改输入框部分 -->
         <div class="editor-container">
+          <!-- 添加一个隐藏的输入框用于存储实际内容 -->
           <el-input
             v-model="messageInput"
-            type="textarea"
-            :rows="5"
-            :autosize="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入消息..."
-            resize="none"
+            type="hidden"
           />
+          <!-- 添加一个可编辑的div来显示内容 -->
+          <div
+            ref="editableDiv"
+            class="editable-div"
+            contenteditable="true"
+            @input="handleInput"
+            @paste="handlePaste"
+            placeholder="请输入消息..."
+          ></div>
         </div>
         
         <div class="input-actions">
@@ -195,6 +205,16 @@
         </el-table>
       </div>
     </div>
+
+    <!-- 修改图片预览组件 -->
+    <el-image-viewer
+      v-if="showImageViewer"
+      :url-list="[previewImageUrl]"
+      :initial-index="0"
+      @close="closeImageViewer"
+      :on-switch="handleSwitch"
+      hide-on-click-modal
+    />
   </div>
 </template>
 
@@ -204,6 +224,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { listClient, getClient } from '@/api/aliexpress/client'
 import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products"
+import request from '@/utils/request'
+import { ElImageViewer } from 'element-plus'
 
 // 状态数据
 const searchQuery = ref('')
@@ -385,7 +407,7 @@ const selectMessage = async (message) => {
 
     currentMessage.value = message
     console.log("message====>", message)
-    // 直接使用消息列表中的用户信息更新右侧面板
+    // 直接使用消息列表的用户信息更新右侧面板
     currentUser.value = {
       id: message.clientId,
       name: message.customerName,
@@ -431,20 +453,93 @@ const generateMessageId = (senderId, receiverId) => {
   return `${smaller}_${bigger}`
 }
 
-// 使用 Element Plus 的富文本编辑器配置
+// 使用 Element Plus 富文本编辑器配置
 const editorConfig = {
   placeholder: '请输入内容',
   height: 150
 }
 
-// 图片上传处理
-const handleImageUpload = (file) => {
+// 添加图片预览相关的状态
+const showImageViewer = ref(false)
+const previewImageUrl = ref('')
+
+// 添加关闭预览的方法
+const closeImageViewer = () => {
+  showImageViewer.value = false
+  previewImageUrl.value = ''
+}
+
+// 修改图片点击预览方法
+const handleImageClick = (event) => {
+  const img = event.target.closest('img')
+  if (img) {
+    previewImageUrl.value = img.src
+    showImageViewer.value = true
+  }
+}
+
+// 可选：添加切换图片的处理方法
+const handleSwitch = (index) => {
+  console.log('切换到图片:', index)
+}
+
+// 添加可编辑div的引用
+const editableDiv = ref(null)
+
+// 处理输入事件
+const handleInput = (e) => {
+  messageInput.value = e.target.innerHTML
+}
+
+// 处理粘贴事件，防止粘贴带格式的内容
+const handlePaste = (e) => {
+  e.preventDefault()
+  const text = e.clipboardData.getData('text/plain')
+  document.execCommand('insertText', false, text)
+}
+
+// 修改图片上传处理方法
+const handleImageUpload = async (file) => {
   const isImage = file.type.indexOf('image/') !== -1
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     return false
   }
-  return true
+
+  // 创建 FormData 对象
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    // 手动上传文件
+    const res = await request({
+      url: '/common/upload',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (res.code === 200) {
+      // 获取图片URL
+      const imgUrl = import.meta.env.VITE_APP_BASE_API + res.fileName
+      // 构造图片HTML
+      const imgHtml = `<img src="${imgUrl}" style="max-width:200px;" />`
+      
+      // 将图片插入到可编辑div中
+      document.execCommand('insertHTML', false, imgHtml)
+      // 同步内容到messageInput
+      messageInput.value = editableDiv.value.innerHTML
+    } else {
+      ElMessage.error('图片上传失败')
+    }
+  } catch (error) {
+    console.error('图片上传失败:', error)
+    ElMessage.error('图片上传失败')
+  }
+
+  return false
 }
 
 // 修改发送消息方法
@@ -460,7 +555,7 @@ const sendMessage = async () => {
       senderId: senderId,
       receiverId: receiverId,
       shopId: currentMessage.value.storeName,
-      messageContent: messageInput.value, // 富文本内容
+      messageContent: messageInput.value,
       sendTime: new Date().toISOString().slice(0, 10),
       isRead: '未读',
       conversationId: generateMessageId(senderId, receiverId)
@@ -479,11 +574,11 @@ const sendMessage = async () => {
       id: messageData.messageId
     })
     
-    // 清空输入框
+    // 清空输入框和可编辑div的内容
     messageInput.value = ''
+    editableDiv.value.innerHTML = ''
     
     scrollToBottom()
-    loadChatHistory()
   } catch (error) {
     console.error('发送消息失败:', error)
   }
@@ -970,5 +1065,49 @@ const scrollToBottom = () => {
 
 .editor-container :deep(.el-textarea__inner:focus) {
   box-shadow: none;
+}
+
+.message-text {
+  color: #303133;
+  line-height: 1.5;
+}
+
+.message-text img {
+  max-width: 200px;
+  height: auto;
+  margin: 4px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.message-text img:hover {
+  transform: scale(1.02);
+}
+
+/* 确保图片预览组件在最上层 */
+:deep(.el-image-viewer__wrapper) {
+  z-index: 2100;
+}
+
+/* 添加可编辑div的样式 */
+.editable-div {
+  min-height: 120px;
+  padding: 10px;
+  outline: none;
+  overflow-y: auto;
+  word-break: break-word;
+}
+
+.editable-div:empty:before {
+  content: attr(placeholder);
+  color: #999;
+}
+
+.editable-div img {
+  max-width: 200px;
+  height: auto;
+  margin: 4px 0;
+  border-radius: 4px;
 }
 </style>
