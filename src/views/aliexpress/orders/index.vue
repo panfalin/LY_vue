@@ -311,7 +311,7 @@ import {
   updateOrders,
   getAllStores,
   getAllCountry
-} from "@/api/orders/orders";
+} from "@/api/orders/orders.js";
 import {getCurrentInstance} from 'vue';
 import {parseTime} from "../../../utils/ruoyi.js";
 

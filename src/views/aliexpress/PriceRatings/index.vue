@@ -297,7 +297,7 @@
 </template>
 
 <script setup name="PriceRatings">
-import { listPriceRatings, getPriceRatings, delPriceRatings, addPriceRatings, updatePriceRatings, onMounted } from "@/api/PriceRatings/PriceRatings";
+import { listPriceRatings, getPriceRatings, delPriceRatings, addPriceRatings, updatePriceRatings, onMounted } from "@/api/PriceRatings/PriceRatings.js";
 import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent, GridComponent } from 'echarts/components';

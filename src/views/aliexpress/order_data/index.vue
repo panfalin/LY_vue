@@ -644,7 +644,7 @@ import {
   addOrder_data,
   updateOrder_data,
   getAllStores
-} from "@/api/order_data/order_data";
+} from "@/api/order_data/order_data.js";
 import {ref} from "vue";
 
 const {proxy} = getCurrentInstance();
