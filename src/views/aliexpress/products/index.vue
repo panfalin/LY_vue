@@ -440,7 +440,7 @@ import {
   updateProducts,
   listCategories,
   listStores
-} from "@/api/products/products";
+} from "@/api/products/products.js";
 
 const {proxy} = getCurrentInstance();
 

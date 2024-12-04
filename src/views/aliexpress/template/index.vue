@@ -820,9 +820,9 @@ import {
   listFinalTreatment,
   addTemplateDict,
   
-} from "@/api/template/template.js"
-import Editor from "@/components/Editor"
-import { getDicts } from "@/api/system/dict/data"; // 确保路径正确
+} from "@/api/aliexpress/template.js"
+import Editor from "@/components/Editor/index.vue"
+import { getDicts } from "@/api/system/dict/data.js"; // 确保路径正确
 
 export default {
   name: "Template",

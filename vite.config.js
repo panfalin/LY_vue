@@ -36,6 +36,18 @@ export default defineConfig(({ mode, command }) => {
           // target: 'https://api.wzs.pub/mock/13',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')
+        },
+        '/upload': {
+          target: 'http://192.168.1.204:3800',
+          changeOrigin: true
+        },
+        '/uploads': {
+          target: 'http://192.168.1.204:3800',
+          changeOrigin: true
+        },
+        '/images': {
+          target: 'http://192.168.1.204:3800',
+          changeOrigin: true
         }
       }
     },
