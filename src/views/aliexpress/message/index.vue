@@ -35,6 +35,7 @@
           size="small"
           @change="handleStoreChange"
         >
+
           <el-option
             v-for="storeName in storeOptionNames"
             :key="storeName.value"
