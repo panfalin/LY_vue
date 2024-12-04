@@ -315,12 +315,11 @@ const getMessageList = async (storeId = '', readStatus = '') => {
   try {
     const params = {
       pageNum: 1,
-      pageSize: 10,
+      pageSize: 9999, // 设置一个足够大的数字来获取所有消息
       storeName: storeId,
       isRead: readStatus
     }
     
-    // 并行获取消息列表和未读消息数量
     const [res, resUnread] = await Promise.all([
       listClient(params),
       listMessageUnread(params)
@@ -328,7 +327,6 @@ const getMessageList = async (storeId = '', readStatus = '') => {
     
     if (res.code === 200) {
       const newList = res.rows.map(msg => {
-        // 查找对应的未读消息数量
         const unreadInfo = resUnread.rows?.find(
           unread => unread.clientId === msg.clientId && 
                     unread.storeName === msg.storeName
@@ -344,7 +342,6 @@ const getMessageList = async (storeId = '', readStatus = '') => {
           storeId: msg.shopId,
           lastMessage: msg.messageContent || '暂无消息',
           messageCount: msg.messageCount || 0,
-          // 使用未读消息接口返回的数量
           unreadCount: unreadInfo?.unreadCount || 0,
           lastTime: msg.updateTime || msg.createTime,
           avatarUrl: msg.avatarUrl,
@@ -352,11 +349,8 @@ const getMessageList = async (storeId = '', readStatus = '') => {
         }
       })
 
-      // 检查是否有变化
-      const hasChanges = JSON.stringify(newList) !== JSON.stringify(messageList.value)
-      if (hasChanges) {
-        messageList.value = newList
-      }
+      // 直接更新消息列表
+      messageList.value = newList
     }
   } catch (error) {
     console.error('获取消息列表失败:', error)
@@ -626,7 +620,7 @@ const sendMessage = async () => {
       shopId: currentMessage.value.storeName,
       messageContent: messageInput.value,
       sendTime: currentTime, // 使用本地时间
-      isRead: '未读',
+      isRead: '已读',
       conversationId: generateMessageId(senderId, receiverId)
     }
 
