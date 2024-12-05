@@ -598,6 +598,36 @@ const generateSendId = () => {
   return `${timestamp}_${random}`
 }
 
+// 添加一个清理HTML和特殊字符的函数
+const cleanHtmlContent = (html) => {
+  // 替换&nbsp;为普通空格
+  let content = html.replace(/&nbsp;/g, ' ')
+  
+  // 替换<br>和<div><br></div>为换行符
+  content = content.replace(/<br\s*\/?>/gi, '\n')
+  content = content.replace(/<div><br><\/div>/gi, '\n')
+  
+  // 替换<div>开头的为换行符（保留内容）
+  content = content.replace(/<div>/gi, '\n')
+  
+  // 移除所有剩余的HTML标签
+  content = content.replace(/<[^>]+>/g, '')
+  
+  // 处理连续的换行符
+  content = content.replace(/\n\s*\n/g, '\n')
+  
+  // 移除开头的换行符
+  content = content.replace(/^\n+/, '')
+  
+  // 移除结尾的换行符
+  content = content.replace(/\n+$/, '')
+  
+  // 处理连续的空格
+  content = content.replace(/\s+/g, ' ')
+  
+  return content.trim()
+}
+
 // 修改发送消息方法
 const sendMessage = async () => {
   if (!messageInput.value.trim()) return
@@ -605,9 +635,9 @@ const sendMessage = async () => {
   try {
     const senderId = '客服'
     const receiverId = currentMessage.value.clientId
-    const send_id = generateSendId() // 生成唯一send_id
+    const send_id = generateSendId()
 
-    // 获取当前时间，并调整为东八区
+        // 获取当前时间，并调整为东八区
     const now = new Date()
     const currentTime = now.toLocaleString('zh-CN', {
       year: 'numeric',
@@ -618,17 +648,22 @@ const sendMessage = async () => {
       second: '2-digit',
       hour12: false
     }).replace(/\//g, '-')
+    // 清理消息内容
+    const cleanMessageContent = cleanHtmlContent(messageInput.value)
+    
+    // 如果清理后的内容为空，则不发送
+    if (!cleanMessageContent) return
 
     // 构造发送消息的参数
     const messageData = {
       senderId: senderId,
       receiverId: receiverId,
       shopId: currentMessage.value.storeName,
-      messageContent: messageInput.value,
+      messageContent: cleanMessageContent,  // 使用清理后的内容
       sendTime: currentTime,
       isRead: '已读',
       conversationId: generateMessageId(senderId, receiverId),
-      sendId: send_id  // 添加send_id字段
+      sendId: send_id
     }
 
     // 发送消息到主接口
@@ -638,25 +673,24 @@ const sendMessage = async () => {
     try {
       await axios.post('http://127.0.0.1:5000/send_message', {
         receiverId: receiverId,
-        messageContent: messageInput.value,
+        messageContent: cleanMessageContent,  // 使用清理后的内容
         shopId: currentMessage.value.storeName
       })
       console.log('send_id发送成功:', send_id)
     } catch (error) {
       console.error('发送send_id失败:', error)
-      // 这里可以根据需求决定是否需要处理错误
     }
 
     // 发送成功后，将消息添加到聊天记录中
     chatMessages.value.push({
-      content: messageInput.value,
+      content: cleanMessageContent,  // 使用清理后的内容
       time: messageData.sendTime,
       isCustomer: false,
       senderId: messageData.senderId,
       receiverId: messageData.receiverId,
       isRead: messageData.isRead,
       id: messageData.messageId,
-      send_id: send_id  // 也可以存储send_id用于后续追踪
+      send_id: send_id
     })
 
     // 清空输入框和可编辑div的内容
@@ -664,8 +698,6 @@ const sendMessage = async () => {
     editableDiv.value.innerHTML = ''
 
     scrollToBottom()
-    
-
 
   } catch (error) {
     console.error('发送消息失败:', error)
