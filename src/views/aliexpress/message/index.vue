@@ -255,7 +255,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-
+import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
 import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products"
@@ -591,6 +591,13 @@ const handleImageUpload = async (file) => {
   return false
 }
 
+// 添加生成唯一send_id的方法
+const generateSendId = () => {
+  const timestamp = new Date().getTime()
+  const random = Math.floor(Math.random() * 1000)
+  return `${timestamp}_${random}`
+}
+
 // 修改发送消息方法
 const sendMessage = async () => {
   if (!messageInput.value.trim()) return
@@ -598,11 +605,10 @@ const sendMessage = async () => {
   try {
     const senderId = '客服'
     const receiverId = currentMessage.value.clientId
+    const send_id = generateSendId() // 生成唯一send_id
 
     // 获取当前时间，并调整为东八区
-    debugger
     const now = new Date()
-    // 使用 toLocaleString 获取本地时间字符串，指定为中国时区
     const currentTime = now.toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
@@ -611,9 +617,7 @@ const sendMessage = async () => {
       minute: '2-digit',
       second: '2-digit',
       hour12: false
-    }).replace(/\//g, '-') // 将斜杠替换为横杠
-
-    console.log("currentTime====>", currentTime) // 本地时间，格式：YYYY-MM-DD HH:mm:ss
+    }).replace(/\//g, '-')
 
     // 构造发送消息的参数
     const messageData = {
@@ -621,12 +625,27 @@ const sendMessage = async () => {
       receiverId: receiverId,
       shopId: currentMessage.value.storeName,
       messageContent: messageInput.value,
-      sendTime: currentTime, // 使用本地时间
+      sendTime: currentTime,
       isRead: '已读',
-      conversationId: generateMessageId(senderId, receiverId)
+      conversationId: generateMessageId(senderId, receiverId),
+      sendId: send_id  // 添加send_id字段
     }
 
+    // 发送消息到主接口
     const res = await addMessage(messageData)
+
+    // 发送成功后，调用额外的接口
+    try {
+      await axios.post('http://127.0.0.1:5000/send_message', {
+        receiverId: receiverId,
+        messageContent: messageInput.value,
+        shopId: currentMessage.value.storeName
+      })
+      console.log('send_id发送成功:', send_id)
+    } catch (error) {
+      console.error('发送send_id失败:', error)
+      // 这里可以根据需求决定是否需要处理错误
+    }
 
     // 发送成功后，将消息添加到聊天记录中
     chatMessages.value.push({
@@ -636,7 +655,8 @@ const sendMessage = async () => {
       senderId: messageData.senderId,
       receiverId: messageData.receiverId,
       isRead: messageData.isRead,
-      id: messageData.messageId
+      id: messageData.messageId,
+      send_id: send_id  // 也可以存储send_id用于后续追踪
     })
 
     // 清空输入框和可编辑div的内容
@@ -644,6 +664,9 @@ const sendMessage = async () => {
     editableDiv.value.innerHTML = ''
 
     scrollToBottom()
+    
+
+
   } catch (error) {
     console.error('发送消息失败:', error)
   }
@@ -725,7 +748,7 @@ const loadChatHistory = async (messageId) => {
 
       if (hasChanges) {
         chatMessages.value = newMessages
-        scrollToBottom()
+        // scrollToBottom()
         notifyNewMessage()
 
         // 更新当前选中消息的未读状态
