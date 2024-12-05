@@ -5,60 +5,60 @@
       <!-- 搜索框 -->
       <div class="search-box">
         <el-input
-          v-model="searchQuery"
-          placeholder="搜索消息..."
-          prefix-icon="Search"
-          clearable
+            v-model="searchQuery"
+            placeholder="搜索消息..."
+            prefix-icon="Search"
+            clearable
         />
       </div>
-      
+
       <!-- 在搜索框下方添加筛选选项 -->
       <div class="filter-options">
         <!-- 消息状态筛选 -->
-        <el-radio-group 
-          v-model="filterStatus" 
-          size="small"
-          @change="handleStatusChange"
+        <el-radio-group
+            v-model="filterStatus"
+            size="small"
+            @change="handleStatusChange"
         >
           <el-radio-button label="all">全部消息</el-radio-button>
           <el-radio-button label="unread">未读消息</el-radio-button>
           <el-radio-button label="read">已读消息</el-radio-button>
         </el-radio-group>
-        
+
         <!-- 店铺筛选 -->
         <el-select
-          v-model="filterShop"
-          placeholder="请选择店铺"
-          clearable
-          style="width: 100%"
-          filterable
-          size="small"
-          @change="handleStoreChange"
+            v-model="filterShop"
+            placeholder="请选择店铺"
+            clearable
+            style="width: 100%"
+            filterable
+            size="small"
+            @change="handleStoreChange"
         >
 
           <el-option
-            v-for="storeName in storeOptionNames"
-            :key="storeName.value"
-            :label="storeName.label"
-            :value="storeName.label"
+              v-for="storeName in storeOptionNames"
+              :key="storeName.value"
+              :label="storeName.label"
+              :value="storeName.label"
           />
         </el-select>
       </div>
-      
+
       <!-- 消息列表 -->
       <div class="message-list">
         <el-scrollbar>
           <div
-            v-for="msg in filteredMessages"
-            :key="msg.id"
-            class="message-item"
-            :class="{ active: currentMessage?.id === msg.id }"
-            @click="selectMessage(msg)"
+              v-for="msg in filteredMessages"
+              :key="msg.id"
+              class="message-item"
+              :class="{ active: currentMessage?.id === msg.id }"
+              @click="selectMessage(msg)"
           >
             <div class="message-avatar">
-              <el-avatar 
-                :size="40" 
-                :src="msg.avatarUrl"
+              <el-avatar
+                  :size="40"
+                  :src="msg.avatarUrl"
               >
                 {{ getInitials(msg.customerName) }}
               </el-avatar>
@@ -108,9 +108,9 @@
         <el-scrollbar>
           <div class="chat-messages">
             <div
-              v-for="msg in chatMessages"
-              :key="msg.id"
-              :class="['message-bubble', msg.isCustomer ? 'customer' : 'service']"
+                v-for="msg in chatMessages"
+                :key="msg.id"
+                :class="['message-bubble', msg.isCustomer ? 'customer' : 'service']"
             >
               <div class="message-avatar">
                 <el-avatar :size="32">
@@ -118,10 +118,10 @@
                 </el-avatar>
               </div>
               <div class="message-content">
-                <div 
-                  class="message-text" 
-                  v-html="msg.content" 
-                  @click="handleImageClick"
+                <div
+                    class="message-text"
+                    v-html="formatMessageContent(msg.content)"
+                    @click="handleImageClick"
                 ></div>
                 <div class="message-time">
                   {{ formatTime(msg.time) }}
@@ -137,34 +137,34 @@
         <div class="input-toolbar">
           <el-button-group>
             <el-upload
-              ref="imageUploadRef"
-              :show-file-list="false"
-              accept="image/*"
-              :before-upload="handleImageUpload"
+                ref="imageUploadRef"
+                :show-file-list="false"
+                accept="image/*"
+                :before-upload="handleImageUpload"
             >
               <el-button icon="Picture">图片</el-button>
             </el-upload>
           </el-button-group>
         </div>
-        
+
         <!-- 修改输入框部分 -->
         <div class="editor-container">
           <!-- 添加一个隐藏的输入框用于存储实际内容 -->
           <el-input
-            v-model="messageInput"
-            type="hidden"
+              v-model="messageInput"
+              type="hidden"
           />
           <!-- 添加一个可编辑的div来显示内容 -->
           <div
-            ref="editableDiv"
-            class="editable-div"
-            contenteditable="true"
-            @input="handleInput"
-            @paste="handlePaste"
-            placeholder="请输入消息..."
+              ref="editableDiv"
+              class="editable-div"
+              contenteditable="true"
+              @input="handleInput"
+              @paste="handlePaste"
+              placeholder="请输入消息..."
           ></div>
         </div>
-        
+
         <div class="input-actions">
           <el-button type="primary" @click="sendMessage">发送消息</el-button>
         </div>
@@ -199,9 +199,9 @@
           <div v-for="order in orderHistory" :key="order.orderId" class="order-item">
             <div class="order-header">
               <span class="order-id">订单号: {{ order.orderId }}</span>
-              <el-tag 
-                :type="getOrderStatusType(order.status)" 
-                size="small"
+              <el-tag
+                  :type="getOrderStatusType(order.status)"
+                  size="small"
               >
                 {{ order.status }}
               </el-tag>
@@ -209,11 +209,11 @@
             <div class="order-content">
               <!-- 添加产品信息区域 -->
               <div class="product-info">
-                <el-image 
-                  class="product-image" 
-                  :src="order.productImage" 
-                  fit="cover"
-                  :preview-src-list="[order.productImage]"
+                <el-image
+                    class="product-image"
+                    :src="order.productImage"
+                    fit="cover"
+                    :preview-src-list="[order.productImage]"
                 >
                   <template #error>
                     <div class="image-placeholder">
@@ -228,7 +228,7 @@
               <div class="order-info">
                 <div class="order-amount">
                   <span class="label">金额:</span>
-                  <span class="value">US ${{ order.amount }}</span>
+                  <span class="value">{{ order.amount }}</span>
                 </div>
                 <div class="order-time">
                   <span class="label">时间:</span>
@@ -243,12 +243,12 @@
 
     <!-- 修改图片预览组件 -->
     <el-image-viewer
-      v-if="showImageViewer"
-      :url-list="[previewImageUrl]"
-      :initial-index="0"
-      @close="closeImageViewer"
-      :on-switch="handleSwitch"
-      hide-on-click-modal
+        v-if="showImageViewer"
+        :url-list="[previewImageUrl]"
+        :initial-index="0"
+        @close="closeImageViewer"
+        :on-switch="handleSwitch"
+        hide-on-click-modal
     />
   </div>
 </template>
@@ -320,19 +320,19 @@ const getMessageList = async (storeId = '', readStatus = '') => {
       storeName: storeId,
       isRead: readStatus
     }
-    
+    console.log("params====>", params)
     const [res, resUnread] = await Promise.all([
       listClient(params),
       listMessageUnread(params)
     ])
-    
+    console.log("res====>", res)
     if (res.code === 200) {
       const newList = res.rows.map(msg => {
         const unreadInfo = resUnread.rows?.find(
-          unread => unread.clientId === msg.clientId && 
-                    unread.storeName === msg.storeName
+            unread => unread.clientId === msg.clientId &&
+                unread.storeName === msg.storeName
         )
-        
+
         return {
           id: msg.messageId,
           clientId: msg.clientId,
@@ -344,12 +344,12 @@ const getMessageList = async (storeId = '', readStatus = '') => {
           lastMessage: msg.messageContent || '暂无消息',
           messageCount: msg.messageCount || 0,
           unreadCount: unreadInfo?.unreadCount || 0,
-          lastTime: msg.updateTime || msg.createTime,
+          lastTime:  msg.createdTime,
           avatarUrl: msg.avatarUrl,
           isRead: msg.isRead
         }
       })
-
+      console.log("newList====>", newList)
       // 直接更新消息列表
       messageList.value = newList
     }
@@ -362,7 +362,7 @@ const getMessageList = async (storeId = '', readStatus = '') => {
 const handleStatusChange = (value) => {
   filterStatus.value = value
   let readStatus = ''
-  
+
   // 根据选择的状态设置参数
   switch(value) {
     case 'unread':
@@ -374,7 +374,7 @@ const handleStatusChange = (value) => {
     default:
       readStatus = ''
   }
-  
+
   // 重新获取消息列表
   getMessageList(filterShop.value, readStatus)
 }
@@ -382,7 +382,7 @@ const handleStatusChange = (value) => {
 // 修改店铺选择变更处理方法
 const handleStoreChange = (value) => {
   filterShop.value = value
-  
+
   // 获取当前消息状态
   let readStatus = ''
   switch(filterStatus.value) {
@@ -393,7 +393,7 @@ const handleStoreChange = (value) => {
       readStatus = '1'
       break
   }
-  
+
   // 重新获取消息列表，同时传入消息状态
   getMessageList(value, readStatus)
 }
@@ -411,10 +411,10 @@ const filteredMessages = computed(() => {
   // 只保留关键词搜索功能
   if (searchQuery.value) {
     const keyword = searchQuery.value.toLowerCase()
-    result = result.filter(msg => 
-      msg.customerName.toLowerCase().includes(keyword) ||
-      msg.email?.toLowerCase().includes(keyword) ||
-      msg.lastMessage.toLowerCase().includes(keyword)
+    result = result.filter(msg =>
+        msg.customerName.toLowerCase().includes(keyword) ||
+        msg.email?.toLowerCase().includes(keyword) ||
+        msg.lastMessage.toLowerCase().includes(keyword)
     )
   }
 
@@ -423,6 +423,7 @@ const filteredMessages = computed(() => {
 
 // 方法
 const selectMessage = async (message) => {
+  console.log("message.clientId====>", message.clientId)
   // 如果正在处理同一个用户的请求，则直接返回
   if (currentProcessing.value.processing && currentProcessing.value.clientId === message.clientId) {
     return
@@ -450,15 +451,15 @@ const selectMessage = async (message) => {
     try {
       const res = await getOrder(message.clientId, message.storeName)
       console.log("res====>", res)
-        // 处理订单数据
-        orderHistory.value = res.rows.map(order => ({
-          orderId: order.orderId,
-          amount: order.orderAmount,
-          status: order.orderStatus,
-          createTime: order.createdTime,
-          productName: order.produceName || '未知商品',
-          productImage: order.producePicture || ''  // 如果没有图片则使用空字符串
-        }))
+      // 处理订单数据
+      orderHistory.value = res.rows.map(order => ({
+        orderId: order.orderId,
+        amount: order.orderAmount,
+        status: order.orderStatus,
+        createTime: order.createdTime,
+        productName: order.produceName || '未知商品',
+        productImage: order.producePicture || ''  // 如果没有图片则使用空字符串
+      }))
     } catch (error) {
       console.error('获取订单数据出错:', error)
       orderHistory.value = [] // 出错时清空订单列表
@@ -475,10 +476,10 @@ const selectMessage = async (message) => {
 
     // 加载聊天记录
     await loadChatHistory(message.id)
-    
+
     // 开始轮询
     startPolling()
-    
+
     // 更新完状态后重新获取消息列表
     getMessageList(filterShop.value)
 
@@ -574,7 +575,7 @@ const handleImageUpload = async (file) => {
       const imgUrl = import.meta.env.VITE_APP_BASE_API + res.fileName
       // 构造图片HTML
       const imgHtml = `<img src="${imgUrl}" style="max-width:200px;" />`
-      
+
       // 将图片插入到可编辑div中
       document.execCommand('insertHTML', false, imgHtml)
       // 同步内容到messageInput
@@ -593,11 +594,11 @@ const handleImageUpload = async (file) => {
 // 修改发送消息方法
 const sendMessage = async () => {
   if (!messageInput.value.trim()) return
-  
+
   try {
     const senderId = '客服'
     const receiverId = currentMessage.value.clientId
-    
+
     // 获取当前时间，并调整为东八区
     debugger
     const now = new Date()
@@ -613,7 +614,7 @@ const sendMessage = async () => {
     }).replace(/\//g, '-') // 将斜杠替换为横杠
 
     console.log("currentTime====>", currentTime) // 本地时间，格式：YYYY-MM-DD HH:mm:ss
-    
+
     // 构造发送消息的参数
     const messageData = {
       senderId: senderId,
@@ -626,7 +627,7 @@ const sendMessage = async () => {
     }
 
     const res = await addMessage(messageData)
-    
+
     // 发送成功后，将消息添加到聊天记录中
     chatMessages.value.push({
       content: messageInput.value,
@@ -641,7 +642,7 @@ const sendMessage = async () => {
     // 清空输入框和可编辑div的内容
     messageInput.value = ''
     editableDiv.value.innerHTML = ''
-    
+
     scrollToBottom()
   } catch (error) {
     console.error('发送消息失败:', error)
@@ -661,15 +662,15 @@ const lastUpdateTime = ref(null)
 const startPolling = () => {
   // 先清除可能存在的定时器
   stopPolling()
-  
+
   // 设置新的定时器
   pollingTimer.value = setInterval(async () => {
     if (currentMessage.value?.clientId && currentMessage.value?.storeName) {
       // 同时更新消息列表和聊天记录
       await Promise.all([
         loadChatHistory(),
-        getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' : 
-                                       filterStatus.value === 'read' ? '已读' : '')
+        getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' :
+            filterStatus.value === 'read' ? '已读' : '')
       ])
     }
   }, POLLING_INTERVAL)
@@ -696,10 +697,10 @@ const loadChatHistory = async (messageId) => {
     }
 
     const res = await getMessage(
-      currentMessage.value.clientId.toString(),
-      currentMessage.value.storeName.toString()
+        currentMessage.value.clientId.toString(),
+        currentMessage.value.storeName.toString()
     )
-    
+
     if (res.rows && res.rows.length > 0) {
       const newMessages = res.rows.map(msg => ({
         id: generateMessageId(msg.senderId, msg.receiverId),
@@ -717,16 +718,16 @@ const loadChatHistory = async (messageId) => {
       // 检查是否有新消息或消息状态变化
       const hasChanges = newMessages.some(newMsg => {
         const existingMsg = chatMessages.value.find(msg => msg.id === newMsg.id)
-        return !existingMsg || 
-               existingMsg.isRead !== newMsg.isRead || 
-               existingMsg.content !== newMsg.content
+        return !existingMsg ||
+            existingMsg.isRead !== newMsg.isRead ||
+            existingMsg.content !== newMsg.content
       })
 
       if (hasChanges) {
         chatMessages.value = newMessages
         scrollToBottom()
         notifyNewMessage()
-        
+
         // 更新当前选中消息的未读状态
         if (currentMessage.value) {
           const latestMessage = newMessages[newMessages.length - 1]
@@ -749,7 +750,7 @@ const notifyNewMessage = () => {
   // 可以添加提示音或其他通知方式
   const audio = new Audio('/path/to/notification-sound.mp3') // 添加提示音文件
   audio.play().catch(e => console.log('无法播放提示音:', e))
-  
+
   // 或者使用系统通知
   if (Notification.permission === 'granted') {
     new Notification('新消息提醒', {
@@ -767,7 +768,7 @@ const loadUserInfo = (messageId) => {
     email: 'zhangsan@example.com',
     registerTime: new Date()
   }
-  
+
   // 模拟加载订单历史
   orderHistory.value = [
     {
@@ -784,18 +785,18 @@ const getInitials = (name) => name ? name.charAt(0) : '?'
 
 const formatTime = (date) => {
   if (!date) return ''
-  
+
   const now = new Date()
   const messageDate = new Date(date)
   const diff = now - messageDate
-  
+
   // 换为分钟
   const minutes = Math.floor(diff / 1000 / 60)
   // 转换为小时
   const hours = Math.floor(minutes / 60)
   // 转换为天
   const days = Math.floor(hours / 24)
-  
+
   if (minutes < 1) {
     return '刚刚'
   } else if (minutes < 60) {
@@ -866,6 +867,31 @@ const mockOrderHistory = [
     createTime: '2024-03-11 16:30:00'
   }
 ]
+
+// 添加消息内容格式化方法
+const formatMessageContent = (content) => {
+  if (!content) return ''
+
+  // 检查是否是图片URL
+  const isImageUrl = (url) => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) ||
+        url.includes('alicdn.com') ||  // 针对阿里云图片
+        url.includes('aliexpress.com')  // 针对速卖通图片
+  }
+
+  // 如果内容是图片URL，转换为img标签
+  if (isImageUrl(content.trim())) {
+    return `<img src="${content}" style="max-width:200px;" />`
+  }
+
+  // 如果内容中包含HTML标签（可能已经是图片），直接返回
+  if (/<[^>]*>/g.test(content)) {
+    return content
+  }
+
+  // 普通文本，进行换行符转换
+  return content.replace(/\n/g, '<br>')
+}
 </script>
 
 <style scoped>
