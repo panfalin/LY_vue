@@ -58,7 +58,7 @@
             <div class="message-avatar">
               <el-avatar
                   :size="40"
-                  :src="msg.avatarUrl"
+                  :src="getProxiedImageUrl(msg.avatarUrl)"
               >
                 {{ getInitials(msg.customerName) }}
               </el-avatar>
@@ -211,7 +211,7 @@
               <div class="product-info">
                 <el-image
                     class="product-image"
-                    :src="order.productImage"
+                    :src="getProxiedImageUrl(order.productImage)"
                     fit="cover"
                     :preview-src-list="[order.productImage]"
                 >
@@ -800,6 +800,12 @@ const loadChatHistory = async (messageId) => {
   }
 }
 
+const getProxiedImageUrl = (url) => {
+  if (!url) return '';
+  // 使用 images.weserv.nl 代理服务
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
+};
+
 // 添加新消息提示方法
 const notifyNewMessage = () => {
   // 可以添加提示音或其他通知方式
@@ -936,7 +942,8 @@ const formatMessageContent = (content) => {
 
   // 如果内容是图片URL，转换为img标签
   if (isImageUrl(content.trim())) {
-    return `<img src="${content}" style="max-width:200px;" />`
+    const proxiedUrl = getProxiedImageUrl(content.trim())
+    return `<img src="${proxiedUrl}" style="max-width:200px;" />`
   }
 
   // 如果内容中包含HTML标签（可能已经是图片），直接返回
