@@ -637,7 +637,7 @@ const sendMessage = async () => {
     const receiverId = currentMessage.value.clientId
     const send_id = generateSendId()
 
-        // 获取当前时间，并调整为东八区
+    // 获取当前时间，并调整为东八区
     const now = new Date()
     const currentTime = now.toLocaleString('zh-CN', {
       year: 'numeric',
@@ -648,48 +648,64 @@ const sendMessage = async () => {
       second: '2-digit',
       hour12: false
     }).replace(/\//g, '-')
-    // 清理消息内容
-    const cleanMessageContent = cleanHtmlContent(messageInput.value)
+
+    // 检查消息内容是否包含图片
+    const hasImage = /<img[^>]+src="([^">]+)"/i.test(messageInput.value)
     
-    // 如果清理后的内容为空，则不发送
-    if (!cleanMessageContent) return
-
-    // 构造发送消息的参数
-    const messageData = {
-      senderId: senderId,
-      receiverId: receiverId,
-      shopId: currentMessage.value.storeName,
-      messageContent: cleanMessageContent,  // 使用清理后的内容
-      sendTime: currentTime,
-      isRead: '已读',
-      conversationId: generateMessageId(senderId, receiverId),
-      sendId: send_id
-    }
-
-    // 发送消息到主接口
-    const res = await addMessage(messageData)
-
-    // 发送成功后，调用额外的接口
-    try {
-      await axios.post('http://127.0.0.1:5000/send_message', {
+    let messageContent
+    if (hasImage) {
+      const imgMatch = messageInput.value.match(/<img[^>]+src="([^">]+)"/i)
+      messageContent = imgMatch ? imgMatch[1] : ''
+      
+      try {
+        // 获取图片数据
+        const response = await fetch(messageContent)
+        const blob = await response.blob()
+        
+        // 从URL中获取文件名
+        const fileName = messageContent.split('/').pop() || 'image.jpg'
+        
+        // 创建File对象
+        const file = new File([blob], fileName, { type: blob.type })
+        
+        // 创建FormData对象
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('receiverId', receiverId)
+        formData.append('shopId', currentMessage.value.storeName)
+        
+        // 发送图片数据到接口
+        await axios.post('http://192.168.1.122:5000/send_message', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+      } catch (error) {
+        console.error('图片处理失败:', error)
+        throw error
+      }
+    } else {
+      // 如果是文本消息，则清理HTML内容
+      messageContent = cleanHtmlContent(messageInput.value)
+      // 发送普通文本消息
+      await axios.post('http://192.168.1.122:5000/send_message', {
         receiverId: receiverId,
-        messageContent: cleanMessageContent,  // 使用清理后的内容
+        messageContent: messageContent,
         shopId: currentMessage.value.storeName
       })
-      console.log('send_id发送成功:', send_id)
-    } catch (error) {
-      console.error('发送send_id失败:', error)
     }
+
+    console.log('send_id发送成功:', send_id)
 
     // 发送成功后，将消息添加到聊天记录中
     chatMessages.value.push({
-      content: cleanMessageContent,  // 使用清理后的内容
-      time: messageData.sendTime,
+      content: messageContent,
+      time: currentTime,
       isCustomer: false,
-      senderId: messageData.senderId,
-      receiverId: messageData.receiverId,
-      isRead: messageData.isRead,
-      id: messageData.messageId,
+      senderId: senderId,
+      receiverId: receiverId,
+      isRead: '已读',
+      id: generateMessageId(senderId, receiverId),
       send_id: send_id
     })
 
@@ -723,7 +739,7 @@ const startPolling = () => {
     if (currentMessage.value?.clientId && currentMessage.value?.storeName) {
       // 同时更新消息列表和聊天记录
       await Promise.all([
-        loadChatHistory(),
+        //loadChatHistory(),
         getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' :
             filterStatus.value === 'read' ? '已读' : '')
       ])
@@ -1404,7 +1420,7 @@ const formatMessageContent = (content) => {
   padding: 0 4px;
 }
 
-/* 调整订单信息的布局 */
+/* 调整订单���息的布局 */
 .order-info {
   margin-top: 8px;
   padding-top: 8px;
