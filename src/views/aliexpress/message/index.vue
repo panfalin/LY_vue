@@ -121,7 +121,8 @@
                 <div
                     class="message-text"
                     v-html="formatMessageContent(msg.content)"
-                    @click="handleImageClick"
+                    @click="handleMessageClick"
+                 
                 ></div>
                 <div class="message-time">
                   {{ formatTime(msg.time) }}
@@ -948,27 +949,86 @@ const mockOrderHistory = [
 // 添加消息内容格式化方法
 const formatMessageContent = (content) => {
   if (!content) return ''
+  
+  const content_str = content.trim()
 
   // 检查是否是图片URL
   const isImageUrl = (url) => {
     return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) ||
-        url.includes('alicdn.com') ||  // 针对阿里云图片
-        url.includes('aliexpress.com')  // 针对速卖通图片
+        url.includes('alicdn.com/kf/') ||  // 阿里云图片
+        url.includes('/i.alicdn.com/')     // 阿里云图片的另一种格式
   }
 
-  // 如果内容是图片URL，转换为img标签
-  if (isImageUrl(content.trim())) {
-    const proxiedUrl = getProxiedImageUrl(content.trim())
+  // 检查是否是商品链接
+  const isProductUrl = (url) => {
+    return url.includes('aliexpress.com/item/') || // 商品链接
+           url.includes('aliexpress.com/p/')
+  }
+
+  // 检查是否是推荐商品消息（以"推荐商品"开头）
+  if (content_str.startsWith('推荐商品')) {
+    const lines = content_str.split('\n')
+    if (lines.length >= 2) {
+      // 提取商品信息
+      const title = lines[1]  // 商品标题
+      const remainingContent = lines[2] || ''  // 包含价格、图片和链接的行
+      
+      // 使用正则表达式匹配价格格式 "US $数��"
+      const priceMatch = remainingContent.match(/US \$\d+(\.\d{2})?/)
+      const price = priceMatch ? priceMatch[0] : ''
+      
+      // 分割其余部分来获取图片和链接
+      const parts = remainingContent.split(' ')
+      const imageUrl = parts.find(part => isImageUrl(part))
+      const productUrl = parts.find(part => isProductUrl(part))
+      
+      if (imageUrl && productUrl) {
+        const proxiedUrl = getProxiedImageUrl(imageUrl)
+        return `
+          <a href="${productUrl}" target="_blank" class="product-card">
+            <div class="product-info">
+              <div class="product-title">${title}</div>
+              <div class="product-price">${price}</div>
+            </div>
+            <img src="${proxiedUrl}" class="product-image" />
+          </a>
+        `
+      }
+    }
+  }
+
+  // 其他类型消息的处理保持不变
+  if (isImageUrl(content_str)) {
+    const proxiedUrl = getProxiedImageUrl(content_str)
     return `<img src="${proxiedUrl}" style="max-width:200px;" />`
   }
-
-  // 如果内容中包含HTML标签（可能已经是图片），直接返回
-  if (/<[^>]*>/g.test(content)) {
-    return content
+  
+  if (isProductUrl(content_str)) {
+    return `<a href="${content_str}" target="_blank" class="product-link">${content_str}</a>`
   }
 
-  // 普通文本，进行换行符转换
-  return content.replace(/\n/g, '<br>')
+  if (/<[^>]*>/g.test(content_str)) {
+    return content_str
+  }
+
+  return content_str.replace(/\n/g, '<br>')
+}
+
+// 添加消息点击处理函数
+const handleMessageClick = (event) => {
+  // 如果点击的是推荐商品卡片中的图片，不执行任何操作（让 a 标签的跳转生效）
+  if (event.target.tagName === 'IMG' && event.target.closest('.product-card')) {
+    return
+  }
+
+
+
+  
+  // 如果是普通图片，执行预览
+  if (event.target.tagName === 'IMG') {
+    handleImageClick(event)
+    // ... 预览图片的代码
+  }
 }
 </script>
 
@@ -1420,10 +1480,47 @@ const formatMessageContent = (content) => {
   padding: 0 4px;
 }
 
-/* 调整订单���息的布局 */
+/* 调整订单信息的布局 */
 .order-info {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid #f0f2f5;
+}
+
+.product-link {
+  color: #1890ff;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.product-link:hover {
+  color: #40a9ff;
+}
+
+.product-recommendation {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.product-recommendation:hover {
+  background-color: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.product-title {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.product-recommendation img {
+  display: block;
+  margin: 0 auto;
 }
 </style>
