@@ -255,7 +255,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
 import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
@@ -797,7 +797,12 @@ const loadChatHistory = async (messageId) => {
 
       if (hasChanges) {
         chatMessages.value = newMessages
-        // scrollToBottom()
+        
+        // 使用 nextTick 确保在 DOM 更新后再滚动
+        nextTick(() => {
+          scrollToBottom()
+        })
+        
         notifyNewMessage()
 
         // 更新当前选中消息的未读状态
