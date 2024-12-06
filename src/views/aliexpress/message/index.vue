@@ -113,8 +113,11 @@
                 :class="['message-bubble', msg.isCustomer ? 'customer' : 'service']"
             >
               <div class="message-avatar">
-                <el-avatar :size="32">
-                  {{ msg.isCustomer ? getInitials(msg.senderId) : '客服' }}
+                <el-avatar 
+                    :size="32"
+                    :src="msg.isCustomer ? getProxiedImageUrl(msg.avatarUrl) : ''"
+                >
+                  {{ msg.isCustomer ? getInitials(msg.senderName) : '客服' }}
                 </el-avatar>
               </div>
               <div class="message-content">
@@ -409,7 +412,7 @@ onMounted(() => {
 const filteredMessages = computed(() => {
   let result = messageList.value
 
-  // 只保留关键词搜索功能
+  // 关键词搜索
   if (searchQuery.value) {
     const keyword = searchQuery.value.toLowerCase()
     result = result.filter(msg =>
@@ -419,7 +422,16 @@ const filteredMessages = computed(() => {
     )
   }
 
-  return result
+  // 对消息进行排序：未读消息在前，已读消息在后
+  // 在每个分组内按时间倒序排序
+  return result.sort((a, b) => {
+    // 首先按未读状态排序
+    if (a.unreadCount > 0 && b.unreadCount === 0) return -1
+    if (a.unreadCount === 0 && b.unreadCount > 0) return 1
+    
+    // 如果未读状态相同，则按时间倒序排序
+    return new Date(b.lastTime) - new Date(a.lastTime)
+  })
 })
 
 // 方法
@@ -784,6 +796,7 @@ const loadChatHistory = async (messageId) => {
         receiverId: msg.receiverId,
         isRead: msg.isRead,
         shopId: msg.shopId,
+        avatarUrl: msg.avatarUrl,
         updateTime: msg.updateTime
       }))
 
@@ -978,11 +991,11 @@ const formatMessageContent = (content) => {
       const title = lines[1]  // 商品标题
       const remainingContent = lines[2] || ''  // 包含价格、图片和链接的行
       
-      // 使用正则表达式匹配价格格式 "US $数��"
+      // 使用正则表达式匹配价格格式 "US $数"
       const priceMatch = remainingContent.match(/US \$\d+(\.\d{2})?/)
       const price = priceMatch ? priceMatch[0] : ''
       
-      // 分割其余部分来获取图片和链接
+      // 分割其余部分来获取图���和链接
       const parts = remainingContent.split(' ')
       const imageUrl = parts.find(part => isImageUrl(part))
       const productUrl = parts.find(part => isProductUrl(part))
