@@ -27,7 +27,7 @@
         >
           <el-radio-button label="all">全部消息</el-radio-button>
           <el-radio-button label="unread">未读消息</el-radio-button>
-          <el-radio-button label="read">已读消息</el-radio-button>
+          <el-radio-button label="unrespond">未回复消息</el-radio-button>
         </el-radio-group>
 
         <!-- 店铺筛选 -->
@@ -100,12 +100,7 @@
           <span class="customer-name">{{ currentMessage?.customerName }}</span>
           <span class="store-tag">{{ currentMessage?.storeName }}</span>
         </div>
-        <div class="chat-tools">
-          <el-button-group>
-            <el-button icon="Refresh">刷新</el-button>
-            <el-button icon="Delete">清空</el-button>
-          </el-button-group>
-        </div>
+       
       </div>
 
       <!-- 聊天内容区域 -->
@@ -266,10 +261,10 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
-import { listMessage, updateMessageRead, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
+import { listMessage, updateMessageRead,updateMessageStatus, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products"
 import request from '@/utils/request'
-import { ElImageViewer } from 'element-plus'
+import { ElImageViewer, ElMessage } from 'element-plus'
 import { getOrder } from '@/api/aliexpress/order'
 
 // 状态数据
@@ -337,13 +332,14 @@ const getLastUpdateTimeFromServer = async () => {
 }
 
 // 修改获取消息列表的方法
-const getMessageList = async (storeId = '', readStatus = '') => {
+const getMessageList = async (storeId = '', readStatus = '',messageStatus = '') => {
   try {
     const params = {
       pageNum: 1,
       pageSize: 9999,
       storeName: storeId,
-      isRead: readStatus
+      isRead: readStatus,
+      messageStatus: messageStatus
     }
     console.log("params====>", params)
     const [res, resUnread] = await Promise.all([
@@ -371,7 +367,8 @@ const getMessageList = async (storeId = '', readStatus = '') => {
           unreadCount: unreadInfo?.unreadCount || 0,
           lastTime:  msg.createdTime,
           avatarUrl: msg.avatarUrl,
-          isRead: msg.isRead
+          isRead: msg.isRead,
+          messageStatus: msg.messageStatus
         }
       })
       console.log("newList====>", newList)
@@ -390,21 +387,23 @@ const getMessageList = async (storeId = '', readStatus = '') => {
 const handleStatusChange = (value) => {
   filterStatus.value = value
   let readStatus = ''
+  let messageStatus = ''
 
   // 根据选择的状态设置参数
   switch(value) {
     case 'unread':
       readStatus = '未读'
       break
-    case 'read':
-      readStatus = '已读'
+    case 'unrespond':
+      messageStatus = '未回复'
       break
     default:
       readStatus = ''
+      messageStatus=''
   }
 
   // 重新获取消息列表
-  getMessageList(filterShop.value, readStatus)
+  getMessageList(filterShop.value, readStatus,messageStatus)
 }
 
 // 修改店铺选择变更处理方法
@@ -713,24 +712,57 @@ const sendMessage = async () => {
         formData.append('shopId', currentMessage.value.storeName)
         
         // 发送图片数据到接口
-        await axios.post('http://192.168.1.122:5000/send_message', formData, {
+        const result = await axios.post('http://192.168.1.122:5000/send_message', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         })
+        
+        // 处理返回结果
+        if (result.data) {
+          // 成功提示
+          ElMessage({
+            type: 'success',
+            message: result.data.message || '图片发送成功'
+          })
+          
+        }
       } catch (error) {
         console.error('图片处理失败:', error)
+        ElMessage({
+          type: 'error',
+          message: error.response?.data?.message || '图片发送失败'
+        })
         throw error
       }
     } else {
       // 如果是文本消息，则清理HTML内容
       messageContent = cleanHtmlContent(messageInput.value)
-      // 发送普通文本消息
-      await axios.post('http://192.168.1.122:5000/send_message', {
-        receiverId: receiverId,
-        messageContent: messageContent,
-        shopId: currentMessage.value.storeName
-      })
+      try {
+        // 发送普通文本消息
+        const result = await axios.post('http://192.168.1.122:5000/send_message', {
+          receiverId: receiverId,
+          messageContent: messageContent,
+          shopId: currentMessage.value.storeName
+        })
+        console.log("resultmesssssss====>", result)
+        // 处理返回结果
+        if (result.data) {
+          // 成功提示
+          ElMessage({
+            type: 'success',
+            message: result.data.message || '消息发送成功'
+          })
+
+        }
+      } catch (error) {
+        console.error('消息发送失败:', error)
+        ElMessage({
+          type: 'error',
+          message: error.response?.data?.message || '消息发送失败'
+        })
+        throw error
+      }
     }
 
     console.log('send_id发送成功:', send_id)
@@ -750,7 +782,16 @@ const sendMessage = async () => {
     // 清空输入框和可编辑div的内容
     messageInput.value = ''
     editableDiv.value.innerHTML = ''
+    console.log("generateMessageId====>", generateMessageId(senderId, receiverId))
 
+    await updateMessageStatus({
+      receiverId: receiverId,  // 用户ID
+      shopId: currentMessage.value.storeName,    // 店铺名
+      messageStatus: '已回复', // 设置为已读
+      conversationId: generateMessageId(senderId, receiverId)                
+    })
+    
+    
     scrollToBottom()
 
   } catch (error) {
@@ -779,7 +820,7 @@ const startPolling = () => {
       await Promise.all([
         //loadChatHistory(),
         getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' :
-            filterStatus.value === 'read' ? '已读' : '')
+            filterStatus.value === 'unrespond' ? '未回复' : '')
       ])
     }
   }, POLLING_INTERVAL)

@@ -54,6 +54,16 @@ export function updateMessageRead(data) {
   })
 }
 
+export function updateMessageStatus(data) {
+  return request({
+    url: '/aliexpress/message/status',
+    method: 'put',
+    data: data
+  })
+}
+
+
+
 // 删除消息
 export function delMessage(messageId) {
   return request({
