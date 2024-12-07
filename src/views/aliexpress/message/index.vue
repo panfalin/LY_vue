@@ -12,6 +12,11 @@
         />
       </div>
 
+      <!-- 在搜索框上方添加更新时间显示 -->
+      <div class="last-update-time">
+        最近更新时间: {{ lastUpdateTimeDate }}
+      </div>
+
       <!-- 在搜索框下方添加筛选选项 -->
       <div class="filter-options">
         <!-- 消息状态筛选 -->
@@ -294,6 +299,9 @@ const currentProcessing = ref({
   processing: false
 })
 
+// 添加上次更新时间的响应式变量
+const lastUpdateTimeDate = ref('--')
+
 // 格式化店铺数据方法
 const formatStoresname = (stores) => {
   return stores.map(store => ({
@@ -315,12 +323,25 @@ const getStoreList = async () => {
   }
 }
 
+// 获取最后更新时间
+const getLastUpdateTimeFromServer = async () => {
+  try {
+    const response = await fetch('http://192.168.1.122:5001/get_last_update_time')
+    const res = await response.json()
+    if (res.last_update_time) {
+      lastUpdateTimeDate.value = formatTimeData(res.last_update_time)
+    }
+  } catch (error) {
+    console.error('获取最后更新时间失败:', error)
+  }
+}
+
 // 修改获取消息列表的方法
 const getMessageList = async (storeId = '', readStatus = '') => {
   try {
     const params = {
       pageNum: 1,
-      pageSize: 9999, // 设置一个足够大的数字来获取所有消息
+      pageSize: 9999,
       storeName: storeId,
       isRead: readStatus
     }
@@ -356,6 +377,9 @@ const getMessageList = async (storeId = '', readStatus = '') => {
       console.log("newList====>", newList)
       // 直接更新消息列表
       messageList.value = newList
+      
+      // 获取服务器端的最后更新时间
+      await getLastUpdateTimeFromServer()
     }
   } catch (error) {
     console.error('获取消息列表失败:', error)
@@ -406,6 +430,7 @@ const handleStoreChange = (value) => {
 onMounted(() => {
   getStoreList() // 先获取店铺列表
   getMessageList() // 再获取消息列表
+  getLastUpdateTimeFromServer()
 })
 
 // 移除或简化原有的过滤计算属性，因为现在完全依赖后端过滤
@@ -878,6 +903,22 @@ const loadUserInfo = (messageId) => {
 
 // 工具方法
 const getInitials = (name) => name ? name.charAt(0) : '?'
+
+
+// 格式化时间的方法（如果还没有的话）
+const formatTimeData = (date) => {
+  if (!date) return '--'
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+
 
 const formatTime = (date) => {
   if (!date) return ''
@@ -1540,5 +1581,15 @@ const handleMessageClick = (event) => {
 .product-recommendation img {
   display: block;
   margin: 0 auto;
+}
+
+/* 添加更新时间的样式 */
+.last-update-time {
+  padding: 8px 16px;
+  color: #909399;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ebeef5;
 }
 </style>

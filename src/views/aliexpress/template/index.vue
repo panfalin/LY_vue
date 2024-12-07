@@ -146,6 +146,7 @@
                 <el-option label="售后" value="售后" />
                 <el-option label="订单" value="订单" />
                 <el-option label="物流" value="物流" />
+                <el-option label="新人问题" value="新人问题" />
               </el-select>
             </template>
           </el-table-column>
