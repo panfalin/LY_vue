@@ -120,15 +120,20 @@
                   {{ msg.isCustomer ? getInitials(msg.senderName) : '客服' }}
                 </el-avatar>
               </div>
-              <div class="message-content">
-                <div
-                    class="message-text"
-                    v-html="formatMessageContent(msg.content)"
-                    @click="handleMessageClick"
-                 
-                ></div>
-                <div class="message-time">
-                  {{ formatTime(msg.time) }}
+              <div class="message-wrapper">
+                <div class="message-content">
+                  <div
+                      class="message-text"
+                      v-html="formatMessageContent(msg.content)"
+                      @click="handleMessageClick"
+                  ></div>
+                  <div class="message-time">
+                    {{ formatTime(msg.time) }}
+                  </div>
+                </div>
+                <!-- 添加消息状态显示 -->
+                <div class="message-read-status" :class="{ 'unread': msg.isRead === '未读' }">
+                  {{ msg.isRead }}
                 </div>
               </div>
             </div>
@@ -1116,7 +1121,7 @@ const formatMessageContent = (content) => {
 
 // 添加消息点击处理函数
 const handleMessageClick = (event) => {
-  // 如果点击的是推荐商品卡片中的图片，不执行任何操作（让 a 标签的跳转生效）
+  // 如果点击的是推荐商品卡片中的图片，不执行任何操作（让 a 标签���跳转生效）
   if (event.target.tagName === 'IMG' && event.target.closest('.product-card')) {
     return
   }
@@ -1633,4 +1638,57 @@ const handleMessageClick = (event) => {
   align-items: center;
   border-bottom: 1px solid #ebeef5;
 }
+
+
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.service .message-wrapper {
+  align-items: flex-end;
+}
+
+.message-read-status {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.message-read-status.unread {
+  color: #409EFF;
+}
+
+/* 调整消息气泡的样式以适应新的布局 */
+.message-bubble {
+  display: flex;
+  gap: 12px;
+  max-width: 80%;
+  margin-bottom: 20px; /* 增加气泡之间的间距 */
+}
+
+.message-bubble.customer {
+  margin-right: auto;
+}
+
+.message-bubble.service {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+
+.message-content {
+  background-color: #f4f4f5;
+  padding: 12px;
+  border-radius: 8px;
+  position: relative;
+  margin-bottom: 2px; /* 为已读/未读状态留出空间 */
+}
+
+.service .message-content {
+  background-color: #ecf5ff;
+}
+
+
 </style>
