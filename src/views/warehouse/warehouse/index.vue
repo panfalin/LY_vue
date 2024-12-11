@@ -199,6 +199,14 @@
           v-hasPermi="['warehouse:warehouse:export']"
         >导出装箱单</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="Box"
+          @click="openPrepareWarehouseDialog"
+        >备仓</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -303,11 +311,30 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 备仓弹窗 -->
+    <el-dialog
+      title="备仓操作"
+      v-model="prepareWarehouseDialogVisible"
+      width="400px"
+    >
+      <el-form :model="prepareWarehouseForm">
+        <el-form-item label="店铺名" prop="shopName">
+          <el-input v-model="prepareWarehouseForm.shopName" placeholder="请输入店铺名" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="prepareAllShops">一键全部店铺备仓</el-button>
+        <el-button @click="closePrepareWarehouseDialog">取消</el-button>
+        <el-button type="primary" @click="confirmPrepareWarehouse">确认</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Warehouse">
 import { listWarehouse, getWarehouse, delWarehouse, addWarehouse, updateWarehouse } from "@/api/warehouse/warehouse";
+import axios from 'axios';
 
 const { proxy } = getCurrentInstance();
 
@@ -320,6 +347,12 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+// 初始化备仓弹窗的可见性
+const prepareWarehouseDialogVisible = ref(false);
+const prepareWarehouseForm = reactive({
+  shopName: ''
+});
 
 const data = reactive({
   form: {},
@@ -359,6 +392,62 @@ function getList() {
     total.value = response.total;
     loading.value = false;
   });
+}
+
+// 打开备仓弹窗
+function openPrepareWarehouseDialog() {
+  prepareWarehouseDialogVisible.value = true;
+}
+
+// 关闭备仓弹窗
+function closePrepareWarehouseDialog() {
+  prepareWarehouseDialogVisible.value = false;
+}
+
+// 确认备仓操作
+function confirmPrepareWarehouse() {
+  if (!prepareWarehouseForm.shopName) {
+    proxy.$modal.msgError("请输入店铺名");
+    return;
+  }
+
+  proxy.$modal.loading("正在执行备仓操作...");
+
+  // 发送备仓请求
+  axios.post('http://192.168.1.122:5002/warehouse', 
+    {
+      username: prepareWarehouseForm.shopName
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  ).then(response => {
+    console.log('响应数据:', response);
+    if (response.data && response.status === 200) {
+      proxy.$modal.msgSuccess("备仓操作成功");
+      closePrepareWarehouseDialog();
+      // 刷新列表
+      getList();
+    } else {
+      proxy.$modal.msgError(response.data.message || "操作失败");
+    }
+  }).catch(error => {
+    console.error('备仓操作失败:', error);
+    const errorMsg = error.response?.data?.message || "备仓操作失败，请重试";
+    proxy.$modal.msgError(errorMsg);
+  }).finally(() => {
+    proxy.$modal.closeLoading();
+  });
+}
+
+// 一键全部店铺备仓
+function prepareAllShops() {
+  console.log('一键备仓所有店铺');
+  // 在这里添加一键备仓逻辑
+  closePrepareWarehouseDialog();
+  proxy.$modal.msgSuccess("所有店铺备仓成功");
 }
 
 // 取消按钮
