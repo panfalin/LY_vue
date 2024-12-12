@@ -107,36 +107,36 @@
       <div class="chat-content" ref="chatContent">
         <el-scrollbar>
           <div class="chat-messages">
-            <div
-                v-for="msg in chatMessages"
-                :key="msg.id"
-                :class="['message-bubble', msg.isCustomer ? 'customer' : 'service']"
-            >
-              <div class="message-avatar">
-                <el-avatar 
-                    :size="32"
-                    :src="msg.isCustomer ? getProxiedImageUrl(msg.avatarUrl) : ''"
-                >
-                  {{ msg.isCustomer ? getInitials(msg.senderName) : '客服' }}
-                </el-avatar>
+            <template v-for="(msg, index) in chatMessages" :key="msg.id">
+              <!-- 添加时间分割线 -->
+              <div v-if="shouldShowTimestamp(msg, index)" class="timestamp-divider">
+                {{ formatMessageTime(msg.time) }}
               </div>
-              <div class="message-wrapper">
-                <div class="message-content">
-                  <div
-                      class="message-text"
-                      v-html="formatMessageContent(msg.content)"
-                      @click="handleMessageClick"
-                  ></div>
-                  <div class="message-time">
-                    {{ formatTime(msg.time) }}
+              
+              <div :class="['message-bubble', msg.isCustomer ? 'customer' : 'service']">
+                <div class="message-avatar">
+                  <el-avatar 
+                      :size="32"
+                      :src="msg.isCustomer ? getProxiedImageUrl(msg.avatarUrl) : ''"
+                  >
+                    {{ msg.isCustomer ? getInitials(msg.senderName) : '客服' }}
+                  </el-avatar>
+                </div>
+                <div class="message-wrapper">
+                  <div class="message-content">
+                    <div
+                        class="message-text"
+                        v-html="formatMessageContent(msg.content)"
+                        @click="handleMessageClick"
+                    ></div>
+                  </div>
+                  <!-- 添加消息状态显示 -->
+                  <div class="message-read-status" :class="{ 'unread': msg.isRead === '未读' }">
+                    {{ msg.isRead }}
                   </div>
                 </div>
-                <!-- 添加消息状态显示 -->
-                <div class="message-read-status" :class="{ 'unread': msg.isRead === '未读' }">
-                  {{ msg.isRead }}
-                </div>
               </div>
-            </div>
+            </template>
           </div>
         </el-scrollbar>
       </div>
@@ -861,6 +861,7 @@ const loadChatHistory = async (messageId) => {
         id: generateMessageId(msg.senderId, msg.receiverId),
         content: msg.messageContent || '',
         time: msg.sendTime,
+        // createTime: msg.createTime,
         isCustomer: msg.senderId === currentMessage.value.clientId,
         senderName: msg.senderId || '',
         senderId: msg.senderId,
@@ -1121,7 +1122,7 @@ const formatMessageContent = (content) => {
 
 // 添加消息点击处理函数
 const handleMessageClick = (event) => {
-  // 如果点击的是推荐商品卡片中的图片，不执行任何操作（让 a 标签���跳转生效）
+  // 如果点击的是推荐商品卡片中的图片，不执行任何操作（让 a 标签的跳转生效）
   if (event.target.tagName === 'IMG' && event.target.closest('.product-card')) {
     return
   }
@@ -1134,6 +1135,45 @@ const handleMessageClick = (event) => {
     handleImageClick(event)
     // ... 预览图片的代码
   }
+}
+
+// 添加判断是否显示时间戳的方法
+const shouldShowTimestamp = (currentMsg, index) => {
+  if (index === 0) return true // 第一条消息总是显示时间
+  
+  const prevMsg = chatMessages.value[index - 1]
+  const currentTime = new Date(currentMsg.time)
+  const prevTime = new Date(prevMsg.time)
+  
+  // 如果两条消息间隔超过5分钟，显示时间戳
+  return (currentTime - prevTime) > 5 * 60 * 1000
+}
+
+// 添加格式化消息时间的方法
+const formatMessageTime = (time) => {
+  const msgDate = new Date(time)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  // 格式化时间部分
+  const timeStr = msgDate.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  
+  // 如果是今天的消息
+  if (msgDate.toDateString() === today.toDateString()) {
+    return timeStr
+  }
+  
+  // 如果是昨天的消息
+  if (msgDate.toDateString() === yesterday.toDateString()) {
+    return `昨天 ${timeStr}`
+  }
+  
+  // 其他日期显示完整日期
+  return `${msgDate.toLocaleDateString('zh-CN')} ${timeStr}`
 }
 </script>
 
@@ -1691,4 +1731,29 @@ const handleMessageClick = (event) => {
 }
 
 
+.message-bubble:hover .message-time {
+  background: rgba(144, 147, 153, 0.2);
+}
+
+/* 时间分割线样式 */
+.timestamp-divider {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #909399;
+}
+
+/* 左侧消息列表时间样式 */
+.message-header .message-time {
+  font-size: 11px;
+  color: #909399;
+}
+
+/* 最近更新时间样式 */
+.last-update-time {
+  padding: 8px 16px;
+  color: #909399;
+  font-size: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
 </style>
