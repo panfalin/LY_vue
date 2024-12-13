@@ -207,35 +207,45 @@
           @click="openPrepareWarehouseDialog"
         >备仓</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="Upload"
+          @click="handleImportExcel"
+        >导入Excel</el-button>
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          accept=".xlsx,.xls"
+          @change="handleFileChange"
+        />
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="warehouseList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="sku" align="center" prop="sku" />
-      <el-table-column label="备货单号" align="center" prop="stockId" />
-      <el-table-column label="备货仓" align="center" prop="stockWarehouse" />
-      <el-table-column label="货品编号" align="center" prop="goodsId" />
-      <el-table-column label="货品数量" align="center" prop="goodsNumber" />
-      <el-table-column label="店铺名" align="center" prop="shopId" />
-      <el-table-column label="箱号1" align="center" prop="box1" />
-      <el-table-column label="箱号2" align="center" prop="box2" />
-      <el-table-column label="箱号3" align="center" prop="box3" />
-      <el-table-column label="箱号4" align="center" prop="box4" />
-      <el-table-column label="箱号5" align="center" prop="box5" />
-      <el-table-column label="箱号6" align="center" prop="box6" />
-      <el-table-column label="箱号7" align="center" prop="box7" />
-      <el-table-column label="箱号8" align="center" prop="box8" />
-      <el-table-column label="箱号9" align="center" prop="box9" />
-      <el-table-column label="箱号10" align="center" prop="box10" />
-      <el-table-column label="外箱尺寸" align="center" prop="boxSize" />
-      <el-table-column label="重量" align="center" prop="weight" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['warehouse:warehouse:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['warehouse:warehouse:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+      <el-table-column label="sku" align="center" prop="sku" width="120" />
+      <el-table-column label="备货单号" align="center" prop="stockId" width="180" show-overflow-tooltip />
+      <el-table-column label="备货仓" align="center" prop="stockWarehouse" width="120" />
+      <el-table-column label="货品编号" align="center" prop="goodsId" width="180" show-overflow-tooltip />
+      <el-table-column label="货品数量" align="center" prop="goodsNumber" width="100" />
+      <el-table-column label="店铺名" align="center" prop="shopId" width="180" show-overflow-tooltip />
+      <el-table-column label="箱号1" align="center" prop="box1" width="100" />
+      <el-table-column label="箱号2" align="center" prop="box2" width="100" />
+      <el-table-column label="箱号3" align="center" prop="box3" width="100" />
+      <el-table-column label="箱号4" align="center" prop="box4" width="100" />
+      <el-table-column label="箱号5" align="center" prop="box5" width="100" />
+      <el-table-column label="箱号6" align="center" prop="box6" width="100" />
+      <el-table-column label="箱号7" align="center" prop="box7" width="100" />
+      <el-table-column label="箱号8" align="center" prop="box8" width="100" />
+      <el-table-column label="箱号9" align="center" prop="box9" width="100" />
+      <el-table-column label="箱号10" align="center" prop="box10" width="100" />
+      <el-table-column label="外箱尺寸" align="center" prop="boxSize" width="120" />
+      <el-table-column label="重量" align="center" prop="weight" width="100" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="120" />
     </el-table>
     
     <pagination
@@ -333,7 +343,7 @@
 </template>
 
 <script setup name="Warehouse">
-import { listWarehouse, getWarehouse, delWarehouse, addWarehouse, updateWarehouse } from "@/api/warehouse/warehouse";
+import { listWarehouse, getWarehouse, delWarehouse, addWarehouse, updateWarehouse, importExcel } from "@/api/warehouse/warehouse";
 import axios from 'axios';
 
 const { proxy } = getCurrentInstance();
@@ -425,7 +435,7 @@ function confirmPrepareWarehouse() {
     }
   ).then(response => {
     console.log('响应数据:', response);
-    if (response.data && response.status === 200) {
+    if (response.data && response === 200) {
       proxy.$modal.msgSuccess("备仓操作成功");
       closePrepareWarehouseDialog();
       // 刷新列表
@@ -567,6 +577,39 @@ function handleExportPackingList() {
   }).then(() => {
     proxy.$modal.msgSuccess("导出成功");
   }).catch(() => {});
+}
+
+// 触发文件选择
+function handleImportExcel() {
+  proxy.$refs.fileInput.click()
+}
+
+// 处理文件选择变化
+function handleFileChange(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  proxy.$modal.loading("正在导入数据，请稍候...")
+
+  importExcel(formData).then(response => {
+    console.log(response)
+    if (response === '数据导入成功！') {
+      proxy.$modal.msgSuccess("导入成功")
+      getList() // 刷新列表
+    } else {
+      proxy.$modal.msgError(response.msg || "导入失败")
+    }
+  }).catch(error => {
+    console.error('导入失败:', error)
+    proxy.$modal.msgError(error.message || "导入失败，请检查文件格式是否正确")
+  }).finally(() => {
+    proxy.$modal.closeLoading()
+    // 清空文件输入框
+    event.target.value = ''
+  })
 }
 
 getList();
