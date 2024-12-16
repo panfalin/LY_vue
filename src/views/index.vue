@@ -399,7 +399,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Document, Picture, Download, Refresh, Loading } from '@element-plus/icons-vue'
-import { listTODO, listStores, listTask, updateTask } from "@/api/products/products"
+import { listTODO, listStores, listTask, updateTask } from "@/api/products/products.js"
 import axios from 'axios';
 
 const {proxy} = getCurrentInstance();

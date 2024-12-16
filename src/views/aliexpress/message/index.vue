@@ -267,7 +267,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
 import { listMessage, updateMessageRead,updateMessageStatus, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
-import { listStores } from "@/api/products/products"
+import { listStores } from "@/api/products/products.js"
 import request from '@/utils/request'
 import { ElImageViewer, ElMessage } from 'element-plus'
 import { getOrder } from '@/api/aliexpress/order'
