@@ -435,13 +435,13 @@ function confirmPrepareWarehouse() {
     }
   ).then(response => {
     console.log('响应数据:', response);
-    if (response.data && response === 200) {
+    if (response.data && response.status === 200) {
       proxy.$modal.msgSuccess("备仓操作成功");
       closePrepareWarehouseDialog();
       // 刷新列表
       getList();
     } else {
-      proxy.$modal.msgError(response.data.message || "操作失败");
+      proxy.$modal.msgError(response.data.msg || "操作失败");
     }
   }).catch(error => {
     console.error('备仓操作失败:', error);
@@ -562,9 +562,12 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
+  // 获取搜索栏的备货单号
+  const warehouseNo = queryParams.value.stockId || 'warehouse'
+  console.log(queryParams.value)
   proxy.download('warehouse/warehouse/export', {
     ...queryParams.value
-  }, `warehouse_${new Date().getTime()}.xlsx`)
+  }, `${warehouseNo}.xlsx`)
 }
 
 /** 导出装箱单按钮操作 */

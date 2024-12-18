@@ -465,8 +465,6 @@ const filteredMessages = computed(() => {
 
 // 方法
 const selectMessage = async (message) => {
-  console.log("message.clientId====>", message.clientId)
-  // 如果正在处理同一个用户的请求，则直接返回
   if (currentProcessing.value.processing && currentProcessing.value.clientId === message.clientId) {
     return
   }
@@ -478,42 +476,44 @@ const selectMessage = async (message) => {
     }
 
     currentMessage.value = message
-    console.log("message====>", message)
-    // 直接使用消息列表的用户信息更新右侧面板
-    currentUser.value = {
-      id: message.clientId,
-      name: message.customerName,
-      email: message.email,
-      phone: message.clientNumber || '暂无',
-      country: message.country || '暂无',
-      registerTime: message.lastTime
+
+    // 获取当前筛选状态对应的参数
+    let readStatus = ''
+    let messageStatus = ''
+    
+    // 保持当前的筛选状态
+    switch(filterStatus.value) {
+      case 'unread':
+        readStatus = '未读'
+        break
+      case 'unrespond':
+        messageStatus = '未回复'
+        break
+    }
+
+    // 更新消息状态
+    if(message.lastMessage !== '暂无消息') {
+      await updateMessageRead({
+        senderId: message.clientId,
+        shopId: message.storeName,
+        isRead: '已读'
+      })
     }
 
     // 获取订单数据
     try {
       const res = await getOrder(message.clientId, message.storeName)
-      console.log("res====>", res)
-      // 处理订单数据
       orderHistory.value = res.rows.map(order => ({
         orderId: order.orderId,
         amount: order.orderAmount,
         status: order.orderStatus,
         createTime: order.createdTime,
         productName: order.produceName || '未知商品',
-        productImage: order.producePicture || ''  // 如果没有图片则使用空字符串
+        productImage: order.producePicture || ''
       }))
     } catch (error) {
       console.error('获取订单数据出错:', error)
-      orderHistory.value = [] // 出错时清空订单列表
-    }
-
-    // 调用修改消息接口，更新消息状态
-    if(message.lastMessage !== '暂无消息') {
-      await updateMessageRead({
-        senderId: message.clientId,  // 用户ID
-        shopId: message.storeName,    // 店铺名
-        isRead: '已读'                   // 设置为已读
-      })
+      orderHistory.value = []
     }
 
     // 加载聊天记录
@@ -522,13 +522,12 @@ const selectMessage = async (message) => {
     // 开始轮询
     startPolling()
 
-    // 更新完状态后重新获取消息列表
-    getMessageList(filterShop.value)
+    // 使用当前的筛选状态重新获取消息列表
+    await getMessageList(filterShop.value, readStatus, messageStatus)
 
   } catch (error) {
     console.error('获取用户信息失败:', error)
   } finally {
-    // 处理完成后重置状态
     currentProcessing.value = {
       clientId: null,
       processing: false
@@ -813,20 +812,27 @@ const pollingTimer = ref(null)
 // 添加新消息时间戳，用于优化请求
 const lastUpdateTime = ref(null)
 
-// 修改轮询方法，同时更新消息列表和聊天记录
+// 修改轮询方法
 const startPolling = () => {
-  // 先清除可能存在的定时器
   stopPolling()
 
-  // 设置新的定时器
   pollingTimer.value = setInterval(async () => {
     if (currentMessage.value?.clientId && currentMessage.value?.storeName) {
-      // 同时更新消息列表和聊天记录
-      await Promise.all([
-        //loadChatHistory(),
-        getMessageList(filterShop.value, filterStatus.value === 'unread' ? '未读' :
-            filterStatus.value === 'unrespond' ? '未回复' : '')
-      ])
+      // 获取当前筛选状态对应的参数
+      let readStatus = ''
+      let messageStatus = ''
+      
+      switch(filterStatus.value) {
+        case 'unread':
+          readStatus = '未读'
+          break
+        case 'unrespond':
+          messageStatus = '未回复'
+          break
+      }
+
+      // 保持当前筛选状态进行更新
+      await getMessageList(filterShop.value, readStatus, messageStatus)
     }
   }, POLLING_INTERVAL)
 }
@@ -1083,7 +1089,7 @@ const formatMessageContent = (content) => {
       const priceMatch = remainingContent.match(/US \$\d+(\.\d{2})?/)
       const price = priceMatch ? priceMatch[0] : ''
       
-      // 分割其余部分来获取图���和链接
+      // 分割其余部分来获取图和链接
       const parts = remainingContent.split(' ')
       const imageUrl = parts.find(part => isImageUrl(part))
       const productUrl = parts.find(part => isProductUrl(part))
