@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px"
-             style="max-width: 1000px; margin-bottom: 20px;">
+             style="max-width: 1500px; margin-bottom: 20px;">
       <el-form-item label="店铺" prop="storeName">
         <el-select
             v-model="queryParams.storeName"
@@ -30,6 +30,37 @@
           ></el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="类别" prop="category">
+        <el-select
+            v-model="queryParams.category"
+            placeholder="请选择类别"
+            clearable
+        >
+          <el-option label="POP" value="POP"></el-option>
+          <el-option label="半托管" value="半托管"></el-option>
+          <el-option label="全托管" value="全托管"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="货币类型" prop="category">
+        <el-select
+            v-model="queryParams.moneyType"
+            placeholder="请选择货币类型"
+            clearable
+        >
+          <el-option label="人民币店铺" value="CNY"></el-option>
+          <el-option label="美元店铺" value="USD"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="月份" prop="mouth">
+        <el-select
+            v-model="queryParams.mouth"
+            placeholder="请选择月份"
+            clearable
+        >
+          <el-option label="2024-11" value="2024-11"></el-option>
+          <el-option label="2024-10" value="2024-10"></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -37,7 +68,17 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="4">
+      <el-col :span="1.5">
+        <el-button
+        type="success"
+        plain
+        icon="Edit"
+        :disabled="single"
+        @click="handleUpdate"
+        v-hasPermi="['profit:profit:edit']"
+        >修改</el-button>
+      </el-col>
+      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
@@ -47,19 +88,7 @@
         >导出
         </el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['profit:profit:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="20">
-        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
-      </el-col>
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;"></right-toolbar>
     </el-row>
 
     <el-table
@@ -75,9 +104,13 @@
         :default-sort="{ prop: 'storeName', order: 'ascending' }"
         @sort-change="handleSortChange"
     >
+      <template #empty>
+        <el-empty description="暂无数据"></el-empty>
+      </template>
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column fixed label="店铺" align="center" prop="storeName" width="200" sortable/>
       <el-table-column fixed label="负责人" align="center" prop="storeManager" width="80" sortable/>
+      <el-table-column fixed label="月份" align="center" prop="mouth" width="80" sortable/>
       <el-table-column label="订单金额" align="center" prop="orderAmount" width="100" sortable/>
       <el-table-column label="运费" align="center" prop="shippingFee" width="80" sortable/>
       <el-table-column label="其他收入" align="center" prop="otherIncome" width="100" sortable/>
@@ -93,7 +126,7 @@
       <el-table-column label="毛利" align="center" prop="grossProfit" width="80" sortable/>
       <el-table-column label="实际退款USD" align="center" prop="actualRefundUsd" width="80" sortable/>
       <el-table-column label="直通车充值" align="center" prop="directCar" width="120" sortable/>
-      <el-table-column label="取消订单" align="center" prop="cancelOrderRmb" width="120" sortable/>
+      <el-table-column label="物流赔付" align="center" prop="cancelOrderRmb" width="120" sortable/>
       <el-table-column label="清仓成本补助" align="center" prop="clearanceCostSubsidy" width="120" sortable/>
       <el-table-column label="退款差值" align="center" prop="refundDifference" width="120" sortable/>
       <el-table-column label="直通车花费" align="center" prop="directCarCost" width="120" sortable/>
@@ -105,7 +138,7 @@
       <!--<el-table-column label="仓库发错损失" align="center" prop="warehouseErrorLoss" width="120" sortable/>-->
       <el-table-column label="实际花费毛利" align="center" prop="actualCostProfit" width="120" sortable>
         <template #default="scope">
-          <span>{{ scope.row.actualCostProfit.toFixed(2) }}</span>
+          <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="实际花费毛利率1" align="center" prop="actualCostProfitRate1" width="120" sortable>
@@ -135,8 +168,8 @@
       <el-table-column label="对比利润率" align="center" prop="compareProfitRate" width="120" sortable/>
     </el-table>
 
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="profitRef" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" v-model="open" width="700px" append-to-body>
+      <el-form ref="profitRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="店铺" prop="storeName">
           <el-input disabled v-model="form.storeName" placeholder="请输入店铺" />
         </el-form-item>
@@ -146,7 +179,7 @@
         <el-form-item label="直通车花费" prop="directCarCost">
           <el-input v-model="form.directCarCost" placeholder="请输入直通车花费" />
         </el-form-item>
-        <el-form-item label="取消订单" prop="cancelOrderRmb">
+        <el-form-item label="物流赔付" prop="cancelOrderRmb">
           <el-input v-model="form.cancelOrderRmb" placeholder="请输入取消订单" />
         </el-form-item>
         <el-form-item label="清仓成本补助" prop="clearanceCostSubsidy">
@@ -169,6 +202,7 @@
       <el-col :span="6"><strong>实际花费毛利合计:</strong> {{ totalActualCostProfit.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>利润合计:</strong> {{ totalProfit.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>退款金额合计:</strong> {{ totalRefundAmount.toFixed(2) }}</el-col>
+      <el-col :span="6"><strong>实际退款金额合计:</strong> {{ totalActualRefundUsdAmount.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>运费合计:</strong> {{ totalShippingFee.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>其他收入合计:</strong> {{ totalOtherIncome.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>补贴金额合计:</strong> {{ totalSubsidyAmount.toFixed(2) }}</el-col>
@@ -179,8 +213,9 @@
 </template>
 
 <script setup name="Profit">
-import {ref, reactive, toRefs} from 'vue';
+import {ref, reactive, toRefs, onMounted, getCurrentInstance} from 'vue';
 import {listProfit, getProfit, delProfit, addProfit, updateProfit, listStores} from "@/api/profit/profit";
+import {ElMessage} from 'element-plus';
 
 const {proxy} = getCurrentInstance();
 
@@ -200,6 +235,7 @@ const totalRefundAmount = ref(0);
 const totalShippingFee = ref(0);
 const totalOtherIncome = ref(0);
 const totalSubsidyAmount = ref(0);
+const totalActualRefundUsdAmount = ref(0);
 const totalDirectCarCost = ref(0);
 const totalActualCostProfit = ref(0);
 const totalSelfHalf托管Revenue = ref(0);
@@ -213,6 +249,8 @@ const data = reactive({
     pageSize: 10,
     storeName: null,
     storeManager: null,
+    category: null,
+    moneyType: null,
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -261,15 +299,36 @@ const {queryParams, form, rules} = toRefs(data);
 /** 查询店铺利润汇总列表 */
 function getList() {
   loading.value = true;
-  listProfit(queryParams.value).then(response => {
-    profitList.value = response.rows;
-    total.value = response.total;
-
-    // 计算汇总数据
-    calculateTotals(profitList.value);
-
+  try {
+    listProfit(queryParams.value).then(response => {
+      if (response.code === 200) {
+        // 确保数据是数组且进行数据预处理
+        profitList.value = Array.isArray(response.rows) ? response.rows.map(row => ({
+          ...row,
+          actualCostProfit: row.actualCostProfit ?? 0,
+          actualCostProfitRate1: row.actualCostProfitRate1 ?? 0,
+          profitRate: row.profitRate ?? 0,
+          orderActualProfitRate: row.orderActualProfitRate ?? 0
+        })) : [];
+        total.value = response.total || 0;
+        calculateTotals(profitList.value);
+      } else {
+        ElMessage.error(response.msg || '获取数据失败');
+        profitList.value = [];
+      }
+    }).catch(error => {
+      console.error('获取数据失败:', error);
+      ElMessage.error('获取数据失败，请稍后重试');
+      profitList.value = [];
+    }).finally(() => {
+      loading.value = false;
+    });
+  } catch (error) {
+    console.error('getList执行错误:', error);
     loading.value = false;
-  });
+    profitList.value = [];
+    ElMessage.error('系统错误，请稍后重试');
+  }
 }
 
 // 格式化店铺和负责人数据
@@ -294,24 +353,41 @@ function formatStores(stores) {
 
 // 在组件挂载时加载类别列表
 onMounted(() => {
-  getStoreManagerList();
+  try {
+    getStoreManagerList();
+    getList();
+  } catch (error) {
+    console.error('组件挂载时出错:', error);
+    ElMessage.error('初始化数据失败，请刷新页面重试');
+  }
 });
 
 function getStoreManagerList() {
   loading.value = true;
-  listStores()
+  try {
+    listStores()
       .then(response => {
-        const stores = response.rows; // response.rows 应该包含完整数据
-        const {storeNames, storeManagers} = formatStores(stores); // 获取店铺和负责人数据
-        storeNameOptions.value = storeNames; // 更新店铺数据
-        storeManagerOptions.value = storeManagers; // 更新负责人数据
-        loading.value = false;
+        if (response.code === 200) {
+          const stores = response.rows || [];
+          const {storeNames, storeManagers} = formatStores(stores);
+          storeNameOptions.value = storeNames;
+          storeManagerOptions.value = storeManagers;
+        } else {
+          ElMessage.error(response.msg || '获取店铺列表失败');
+        }
       })
       .catch(error => {
-        loading.value = false; // 在出现错误时也要停止加载状态
-        console.error('获取店铺列表失败:', error); // 记录错误
-        ElMessage.error('加载店铺列表时出错，请稍后重试。'); // 提示用户
+        console.error('获取店铺列表失败:', error);
+        ElMessage.error('获取店铺列表失败，请稍后重试');
+      })
+      .finally(() => {
+        loading.value = false;
       });
+  } catch (error) {
+    console.error('getStoreManagerList执行错误:', error);
+    loading.value = false;
+    ElMessage.error('系统错误，请稍后重试');
+  }
 }
 
 const storeNameOptions = ref([]); // 存储店铺选项
@@ -320,18 +396,36 @@ const storeManagerOptions = ref([]); // 存储负责人选项
 
 // 计算汇总数据
 function calculateTotals(data) {
-      totalProfit.value = data.reduce((sum, item) => sum + (item.grossProfit || 0), 0);
-      totalSum.value = data.reduce((sum, item) => sum + (item.total || 0), 0);
-      totalOrderQuantity.value = data.reduce((sum, item) => sum + (item.orderQuantity || 0), 0);
-      totalRefundAmount.value = data.reduce((sum, item) => sum + (item.refundAmount || 0), 0);
-      totalShippingFee.value = data.reduce((sum, item) => sum + (item.shippingFee || 0), 0);
-      totalOtherIncome.value = data.reduce((sum, item) => sum + (item.otherIncome || 0), 0);
-      totalSubsidyAmount.value = data.reduce((sum, item) => sum + (item.subsidyAmount || 0), 0);
-      totalDirectCarCost.value = data.reduce((sum, item) => sum + (item.directCarCost || 0), 0);
-      totalActualCostProfit.value = data.reduce((sum, item) => sum + (item.actualCostProfit || 0), 0);
-      totalSelfHalf托管Revenue.value = data.reduce((sum, item) => sum + (item.selfHalf托管Revenue || 0), 0);
-      totalSelfHalf托管Profit.value = data.reduce((sum, item) => sum + (item.selfHalf托管Profit || 0), 0);
+  try {
+    if (!Array.isArray(data)) {
+      console.error('计算汇总的数据不是数组格式');
+      return;
     }
+
+    const safeReduce = (array, key) => {
+      return array.reduce((sum, item) => {
+        const value = Number(item[key]);
+        return sum + (isNaN(value) ? 0 : value);
+      }, 0);
+    };
+
+    totalProfit.value = safeReduce(data, 'grossProfit');
+    totalSum.value = safeReduce(data, 'total');
+    totalOrderQuantity.value = safeReduce(data, 'orderQuantity');
+    totalRefundAmount.value = safeReduce(data, 'refundAmount');
+    totalShippingFee.value = safeReduce(data, 'shippingFee');
+    totalOtherIncome.value = safeReduce(data, 'otherIncome');
+    totalSubsidyAmount.value = safeReduce(data, 'subsidyAmount');
+    totalActualRefundUsdAmount.value = safeReduce(data, 'actualRefundUsd');
+    totalDirectCarCost.value = safeReduce(data, 'directCarCost');
+    totalActualCostProfit.value = safeReduce(data, 'actualCostProfit');
+    totalSelfHalf托管Revenue.value = safeReduce(data, 'selfHalf托管Revenue');
+    totalSelfHalf托管Profit.value = safeReduce(data, 'selfHalf托管Profit');
+  } catch (error) {
+    console.error('计算汇总数据时出错:', error);
+    ElMessage.error('计算汇总数据出错');
+  }
+}
 
 // 取消按钮
 function cancel() {
@@ -345,6 +439,7 @@ function reset() {
     id: null,
     storeName: null,
     storeManager: null,
+    category: null,
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -473,12 +568,32 @@ function handleSortChange({prop, order}) {
   getList();  // 重新获取列表数据
 }
 
-getList();
+// 添加表格行样式处理函数
+function getTableRowClass({ row }) {
+  try {
+    if (!row) return '';
+    return row.grossProfit < 0 ? 'negative-profit' : '';
+  } catch (error) {
+    console.error('行样式处理错误:', error);
+    return '';
+  }
+}
+
 </script>
 
 <style>
 .summary {
   margin-top: 20px;
   font-weight: bold;
+}
+
+.negative-profit {
+  color: #F56C6C;
+}
+
+/* 添加错误状态样式 */
+.error-text {
+  color: #F56C6C;
+  font-size: 12px;
 }
 </style>
