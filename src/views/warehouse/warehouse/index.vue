@@ -536,7 +536,7 @@ function resetQuery() {
 
 // 多选框选中数据
 function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.sku);
+  ids.value = selection.map(item => item.sId);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -551,8 +551,8 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _sku = row.sku || ids.value
-  getWarehouse(_sku).then(response => {
+  const sId = row.sId || ids.value
+  getWarehouse(sId).then(response => {
     form.value = response.data;
     open.value = true;
     title.value = "修改warehouse";
