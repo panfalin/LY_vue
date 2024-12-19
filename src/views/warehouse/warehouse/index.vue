@@ -222,6 +222,14 @@
           @change="handleFileChange"
         />
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Document"
+          @click="openMabangDialog"
+        >马帮订单</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -339,6 +347,23 @@
         <el-button type="primary" @click="confirmPrepareWarehouse">确认</el-button>
       </div>
     </el-dialog>
+
+    <!-- 马帮订单弹窗 -->
+    <el-dialog
+      title="马帮订单"
+      v-model="mabangDialogVisible"
+      width="400px"
+    >
+      <el-form :model="mabangForm">
+        <el-form-item label="订单号" prop="orderNo">
+          <el-input v-model="mabangForm.orderNo" placeholder="请输入订单号" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="closeMabangDialog">取消</el-button>
+        <el-button type="primary" @click="confirmMabangOrder">确认</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -362,6 +387,12 @@ const title = ref("");
 const prepareWarehouseDialogVisible = ref(false);
 const prepareWarehouseForm = reactive({
   shopName: ''
+});
+
+// 初始化马帮订单弹窗的可见性
+const mabangDialogVisible = ref(false);
+const mabangForm = reactive({
+  orderNo: ''
 });
 
 const data = reactive({
@@ -613,6 +644,53 @@ function handleFileChange(event) {
     // 清空文件输入框
     event.target.value = ''
   })
+}
+
+// 打开马帮订单弹窗
+function openMabangDialog() {
+  mabangDialogVisible.value = true;
+}
+
+// 关闭马帮订单弹窗
+function closeMabangDialog() {
+  mabangDialogVisible.value = false;
+  mabangForm.orderNo = ''; // 清空输入
+}
+
+// 确认马帮订单操作
+function confirmMabangOrder() {
+  if (!mabangForm.orderNo) {
+    proxy.$modal.msgError("请输入订单号");
+    return;
+  }
+
+  proxy.$modal.loading("正在生成马帮订单...");
+
+  axios.post('http://192.168.1.122:5012/warehouse', 
+    {
+      stock_id: mabangForm.orderNo
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  ).then(response => {
+    console.log('马帮响应数据:', response);
+    if (response.data && response.status === 200) {
+      proxy.$modal.msgSuccess("马帮订单生成成功");
+      closeMabangDialog();
+      getList();
+    } else {
+      proxy.$modal.msgError(response.data.msg || "生成订单失败");
+    }
+  }).catch(error => {
+    console.error('马帮订单生成失败:', error);
+    const errorMsg = error.response?.data?.message || "马帮订单生成失败，请重试";
+    proxy.$modal.msgError(errorMsg);
+  }).finally(() => {
+    proxy.$modal.closeLoading();
+  });
 }
 
 getList();
