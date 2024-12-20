@@ -237,10 +237,19 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="sku" align="center" prop="sku" width="120" />
       <el-table-column label="备货单号" align="center" prop="stockId" width="180" show-overflow-tooltip />
-      <el-table-column label="备货仓" align="center" prop="stockWarehouse" width="120" />
-      <el-table-column label="货品编号" align="center" prop="goodsId" width="180" show-overflow-tooltip />
-      <el-table-column label="货品数量" align="center" prop="goodsNumber" width="100" />
+      <el-table-column label="备货仓" align="center" prop="stockWarehouse" width="180" />
+      <el-table-column label="货品数量" align="center" prop="goodsNumber" width="80" />
       <el-table-column label="店铺名" align="center" prop="shopId" width="180" show-overflow-tooltip />
+      <el-table-column label="预约时间" align="center" prop="appointmentTime" width="160">
+        <template #default="scope">
+          {{ scope.row.appointmentTime || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="仓位" align="center" prop="warehousePosition" width="100">
+        <template #default="scope">
+          {{ scope.row.warehousePosition || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="箱号1" align="center" prop="box1" width="100" />
       <el-table-column label="箱号2" align="center" prop="box2" width="100" />
       <el-table-column label="箱号3" align="center" prop="box3" width="100" />
@@ -249,10 +258,6 @@
       <el-table-column label="箱号6" align="center" prop="box6" width="100" />
       <el-table-column label="箱号7" align="center" prop="box7" width="100" />
       <el-table-column label="箱号8" align="center" prop="box8" width="100" />
-      <el-table-column label="箱号9" align="center" prop="box9" width="100" />
-      <el-table-column label="箱号10" align="center" prop="box10" width="100" />
-      <el-table-column label="外箱尺寸" align="center" prop="boxSize" width="120" />
-      <el-table-column label="重量" align="center" prop="weight" width="100" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="120" />
     </el-table>
     
@@ -285,6 +290,16 @@
         <el-form-item label="店铺名" prop="shopId">
           <el-input v-model="form.shopId" placeholder="请输入店铺名" />
         </el-form-item>
+        <!-- 新增预约时间字段 -->
+        <el-form-item label="预约时间" prop="appointmentTime">
+          <el-date-picker
+            v-model="form.appointmentTime"
+            type="datetime"
+            placeholder="选择预约时间"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+        />
+      </el-form-item>
         <el-form-item label="箱号1" prop="box1">
           <el-input v-model="form.box1" placeholder="请输入箱号1" />
         </el-form-item>
@@ -308,18 +323,6 @@
         </el-form-item>
         <el-form-item label="箱号8" prop="box8">
           <el-input v-model="form.box8" placeholder="请输入箱号8" />
-        </el-form-item>
-        <el-form-item label="箱号9" prop="box9">
-          <el-input v-model="form.box9" placeholder="请输入箱号9" />
-        </el-form-item>
-        <el-form-item label="箱号10" prop="box10">
-          <el-input v-model="form.box10" placeholder="请输入箱号10" />
-        </el-form-item>
-        <el-form-item label="外箱尺寸" prop="boxSize">
-          <el-input v-model="form.boxSize" placeholder="请输入外箱尺寸" />
-        </el-form-item>
-        <el-form-item label="重量" prop="weight">
-          <el-input v-model="form.weight" placeholder="请输入重量" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -405,6 +408,7 @@ const data = reactive({
     stockWarehouse: null,
     goodsId: null,
     goodsNumber: null,
+    appointmentTime: null, 
     shopId: null,
     box1: null,
     box2: null,
@@ -413,11 +417,7 @@ const data = reactive({
     box5: null,
     box6: null,
     box7: null,
-    box8: null,
-    box9: null,
-    box10: null,
-    boxSize: null,
-    weight: null
+    box8: null
   },
   rules: {
   }
@@ -558,6 +558,12 @@ function handleUpdate(row) {
     title.value = "修改warehouse";
   });
 }
+
+
+
+
+
+
 
 /** 提交按钮 */
 function submitForm() {
