@@ -38,7 +38,7 @@
         >
           <el-option label="POP" value="POP"></el-option>
           <el-option label="半托管" value="半托管"></el-option>
-          <el-option label="全托管" value="全托管"></el-option>
+          <!--<el-option label="全托管" value="全托管"></el-option>-->
         </el-select>
       </el-form-item>
       <el-form-item label="货币类型" prop="category">
@@ -136,18 +136,18 @@
       <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable/>
       <!--<el-table-column label="供应商补发成本" align="center" prop="supplierReshipCost" width="120" sortable/>-->
       <!--<el-table-column label="仓库发错损失" align="center" prop="warehouseErrorLoss" width="120" sortable/>-->
-      <el-table-column label="实际花费毛利" align="center" prop="actualCostProfit" width="120" sortable>
+      <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
         <template #default="scope">
           <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="实际花费毛利率1" align="center" prop="actualCostProfitRate1" width="120" sortable>
+      <el-table-column label="运营利润率" align="center" prop="actualCostProfitRate1" width="120" sortable>
         <template #default="scope">
           <span>{{ (scope.row.actualCostProfitRate1 * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单实际毛利" align="center" prop="orderActualProfit" width="120" sortable/>
-      <el-table-column label="订单实际毛利率" align="center" prop="orderActualProfitRate" width="120" sortable>
+      <el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable/>
+      <el-table-column label="财务利润率" align="center" prop="orderActualProfitRate" width="120" sortable>
         <template #default="scope">
           <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>
         </template>
@@ -199,8 +199,8 @@
       <el-col :span="6"><strong>营业额合计:</strong> {{ totalSum.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>总订单量:</strong> {{ totalOrderQuantity }}</el-col>
       <el-col :span="6"><strong>直通车花费合计:</strong> {{ totalDirectCarCost.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>实际花费毛利合计:</strong> {{ totalActualCostProfit.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>利润合计:</strong> {{ totalProfit.toFixed(2) }}</el-col>
+      <el-col :span="6"><strong>运营利润合计:</strong> {{ totalActualCostProfit.toFixed(2) }}</el-col>
+      <el-col :span="6"><strong>财务利润合计:</strong> {{ totalOrderActualProfit.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>退款金额合计:</strong> {{ totalRefundAmount.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>实际退款金额合计:</strong> {{ totalActualRefundUsdAmount.toFixed(2) }}</el-col>
       <el-col :span="6"><strong>运费合计:</strong> {{ totalShippingFee.toFixed(2) }}</el-col>
@@ -229,6 +229,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const totalProfit = ref(0);
+const totalOrderActualProfit = ref(0);
 const totalSum = ref(0);
 const totalOrderQuantity = ref(0);
 const totalRefundAmount = ref(0);
@@ -410,6 +411,7 @@ function calculateTotals(data) {
     };
 
     totalProfit.value = safeReduce(data, 'grossProfit');
+    totalOrderActualProfit.value = safeReduce(data, 'orderActualProfit');
     totalSum.value = safeReduce(data, 'total');
     totalOrderQuantity.value = safeReduce(data, 'orderQuantity');
     totalRefundAmount.value = safeReduce(data, 'refundAmount');
