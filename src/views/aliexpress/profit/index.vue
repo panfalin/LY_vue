@@ -195,20 +195,61 @@
     </el-dialog>
 
     <!-- 添加汇总信息 -->
-    <el-row class="summary" :gutter="10" style="margin-top: 20px;">
-      <el-col :span="6"><strong>营业额合计:</strong> {{ totalSum.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>总订单量:</strong> {{ totalOrderQuantity }}</el-col>
-      <el-col :span="6"><strong>直通车花费合计:</strong> {{ totalDirectCarCost.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>运营利润合计:</strong> {{ totalActualCostProfit.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>财务利润合计:</strong> {{ totalOrderActualProfit.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>退款金额合计:</strong> {{ totalRefundAmount.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>实际退款金额合计:</strong> {{ totalActualRefundUsdAmount.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>运费合计:</strong> {{ totalShippingFee.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>其他收入合计:</strong> {{ totalOtherIncome.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>补贴金额合计:</strong> {{ totalSubsidyAmount.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>自营+半托管营业额合计:</strong> {{ totalSelfHalf托管Revenue.toFixed(2) }}</el-col>
-      <el-col :span="6"><strong>自营+半托管利润合计:</strong> {{ totalSelfHalf托管Profit.toFixed(2) }}</el-col>
-    </el-row>
+    <el-card class="summary-card">
+      <el-row :gutter="24" class="summary-row">
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">总营业额合计:</span>
+            <span class="value" :class="{'negative': totalSum < 0}">
+              {{ formatMoney(totalSum) }}
+            </span>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">直通车花费合计:</span>
+            <span class="value" :class="{'negative': totalDirectCarCost < 0}">
+              {{ formatMoney(totalDirectCarCost) }}
+            </span>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">直通车充值合计:</span>
+            <span class="value" :class="{'negative': totalDirectCar < 0}">
+              {{ formatMoney(totalDirectCar) }}
+            </span>
+          </div>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="24" class="summary-row">
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">财务-pop利润合计:</span>
+            <span class="value" :class="{'negative': totalOrderActualProfit < 0}">
+              {{ formatMoney(totalOrderActualProfit) }}
+            </span>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">财务-半托管合计:</span>
+            <span class="value" :class="{'negative': totalHalf托管Profit < 0}">
+              {{ formatMoney(totalHalf托管Profit) }}
+            </span>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="summary-item">
+            <span class="label">财务-pop+半托管利润合计:</span>
+            <span class="value" :class="{'negative': totalSelfHalf托管Profit < 0}">
+              {{ formatMoney(totalSelfHalf托管Profit) }}
+            </span>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
   </div>
 </template>
 
@@ -238,9 +279,11 @@ const totalOtherIncome = ref(0);
 const totalSubsidyAmount = ref(0);
 const totalActualRefundUsdAmount = ref(0);
 const totalDirectCarCost = ref(0);
+const totalDirectCar = ref(0);
 const totalActualCostProfit = ref(0);
 const totalSelfHalf托管Revenue = ref(0);
 const totalSelfHalf托管Profit = ref(0);
+const totalHalf托管Profit = ref(0);
 const storeOptions = ref([]);
 
 const data = reactive({
@@ -403,6 +446,10 @@ function calculateTotals(data) {
       return;
     }
 
+    // 按category分类数据
+    const popData = data.filter(item => item.category === 'POP');
+    const halfData = data.filter(item => item.category === '半托管');
+
     const safeReduce = (array, key) => {
       return array.reduce((sum, item) => {
         const value = Number(item[key]);
@@ -410,19 +457,58 @@ function calculateTotals(data) {
       }, 0);
     };
 
-    totalProfit.value = safeReduce(data, 'grossProfit');
-    totalOrderActualProfit.value = safeReduce(data, 'orderActualProfit');
+    // POP类型数据汇总
+    const popTotals = {
+      orderActualProfit: safeReduce(popData, 'orderActualProfit'),
+      sum: safeReduce(popData, 'total'),
+      orderQuantity: safeReduce(popData, 'orderQuantity'),
+      refundAmount: safeReduce(popData, 'refundAmount'),
+      shippingFee: safeReduce(popData, 'shippingFee'),
+      otherIncome: safeReduce(popData, 'otherIncome'),
+      subsidyAmount: safeReduce(popData, 'subsidyAmount'),
+      actualRefundUsd: safeReduce(popData, 'actualRefundUsd'),
+      directCarCost: safeReduce(popData, 'directCarCost'),
+      directCar: safeReduce(popData, 'directCar')
+    };
+
+    // 半托管类型数据汇总  
+    const halfTotals = {
+      sum: safeReduce(halfData, 'total'),
+      orderActualProfit: safeReduce(halfData, 'orderActualProfit')
+    };
+
+    // 根据当前筛选的类别设置合计值
+    if (queryParams.value.category === 'POP') {
+      // 如果筛选的是POP,显示POP的财务利润
+      totalOrderActualProfit.value = popTotals.orderActualProfit;
+      totalHalf托管Profit.value = 0;
+      totalSelfHalf托管Profit.value = popTotals.orderActualProfit;
+    } else if (queryParams.value.category === '半托管') {
+      // 如果筛选的是半托管,显示半托管的利润
+      totalOrderActualProfit.value = 0;
+      totalHalf托管Profit.value = halfTotals.orderActualProfit;
+      totalSelfHalf托管Profit.value = halfTotals.orderActualProfit;
+    } else {
+      // 如果没有筛选类别,显示所有
+      totalOrderActualProfit.value = popTotals.orderActualProfit;
+      totalHalf托管Profit.value = halfTotals.orderActualProfit;
+      totalSelfHalf托管Profit.value = popTotals.orderActualProfit + halfTotals.orderActualProfit;
+    }
+
+    // 其他汇总数据
     totalSum.value = safeReduce(data, 'total');
-    totalOrderQuantity.value = safeReduce(data, 'orderQuantity');
-    totalRefundAmount.value = safeReduce(data, 'refundAmount');
-    totalShippingFee.value = safeReduce(data, 'shippingFee');
-    totalOtherIncome.value = safeReduce(data, 'otherIncome');
-    totalSubsidyAmount.value = safeReduce(data, 'subsidyAmount');
-    totalActualRefundUsdAmount.value = safeReduce(data, 'actualRefundUsd');
-    totalDirectCarCost.value = safeReduce(data, 'directCarCost');
-    totalActualCostProfit.value = safeReduce(data, 'actualCostProfit');
-    totalSelfHalf托管Revenue.value = safeReduce(data, 'selfHalf托管Revenue');
-    totalSelfHalf托管Profit.value = safeReduce(data, 'selfHalf托管Profit');
+    totalOrderQuantity.value = popTotals.orderQuantity;
+    totalRefundAmount.value = popTotals.refundAmount;
+    totalShippingFee.value = popTotals.shippingFee;
+    totalOtherIncome.value = popTotals.otherIncome;
+    totalSubsidyAmount.value = popTotals.subsidyAmount;
+    totalActualRefundUsdAmount.value = popTotals.actualRefundUsd;
+    totalDirectCarCost.value = popTotals.directCarCost;
+    totalDirectCar.value = popTotals.directCar;
+    
+    // 营业额合计
+    totalSelfHalf托管Revenue.value = popTotals.sum + halfTotals.revenue;
+
   } catch (error) {
     console.error('计算汇总数据时出错:', error);
     ElMessage.error('计算汇总数据出错');
@@ -581,6 +667,11 @@ function getTableRowClass({ row }) {
   }
 }
 
+// 添加金额格式化函数
+const formatMoney = (num) => {
+  return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 </script>
 
 <style>
@@ -593,9 +684,41 @@ function getTableRowClass({ row }) {
   color: #F56C6C;
 }
 
-/* 添加错误状态样式 */
 .error-text {
   color: #F56C6C;
   font-size: 12px;
+}
+
+.summary-card {
+  margin-top: 20px;
+}
+
+.summary-row {
+  margin-bottom: 16px;
+}
+
+.summary-item {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-item .label {
+  color: #606266;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-item .value {
+  color: #303133;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.summary-item .value.negative {
+  color: #f56c6c;
 }
 </style>
