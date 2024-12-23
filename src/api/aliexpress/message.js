@@ -54,6 +54,16 @@ export function updateMessageRead(data) {
   })
 }
 
+
+export function updateMessageSendNew(data) {
+  return request({
+    url: '/aliexpress/message/sendnew',
+    method: 'put',
+    data: data
+  })
+}
+
+
 export function updateMessageStatus(data) {
   return request({
     url: '/aliexpress/message/status',

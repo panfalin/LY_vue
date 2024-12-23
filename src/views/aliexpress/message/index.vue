@@ -12,9 +12,13 @@
         />
       </div>
 
-      <!-- 在搜索框上方添加更新时间显示 -->
+      <!-- 修改更新时间显示区域 -->
       <div class="last-update-time">
-        最近更新时间: {{ lastUpdateTimeDate }}
+        <div>最近更新时间: {{ lastUpdateTimeDate }}</div>
+        <div class="countdown">剩余: {{ countdownTime }}秒</div>
+      </div>
+      <div class="update-count" >
+        本次更新: {{ updateCount}} 条新消息
       </div>
 
       <!-- 在搜索框下方添加筛选选项 -->
@@ -73,14 +77,25 @@
                 <div class="customer-info">
                   <span class="customer-name">{{ msg.customerName }}</span>
                   <span class="customer-number">#{{ msg.clientNumber }}</span>
+                  <el-tag 
+                    v-if="msg.orderStatus" 
+                    size="small" 
+                    :type="getOrderStatusType(msg.orderStatus)"
+                  >
+                    {{ msg.orderStatus }}
+                  </el-tag>
+                 
                 </div>
                 <span class="message-time">{{ formatTime(msg.lastTime) }}</span>
               </div>
               <div class="store-info">
-                <el-tag size="small" type="info">{{ msg.storeName }}</el-tag>
-                <span class="message-count" v-if="msg.messageCount">
-                  {{ msg.messageCount }}条消息
-                </span>
+                <div class="store-info-left">
+                  <el-tag size="small" type="info">{{ msg.storeName }}</el-tag>
+                  <span class="message-count" v-if="msg.messageCount">
+                    {{ msg.messageCount }}条消息
+                  </span>
+                </div>
+                <span v-if="msg.ifSendNewUs === '是'" class="new-message-dot"></span>
               </div>
               <div class="message-preview">{{ msg.lastMessage }}</div>
             </div>
@@ -266,7 +281,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
-import { listMessage, updateMessageRead,updateMessageStatus, getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
+import { listMessage, updateMessageRead,updateMessageStatus, updateMessageSendNew,getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
 import { listStores } from "@/api/products/products.js"
 import request from '@/utils/request'
 import { ElImageViewer, ElMessage } from 'element-plus'
@@ -302,6 +317,13 @@ const currentProcessing = ref({
 // 添加上次更新时间的响应式变量
 const lastUpdateTimeDate = ref('--')
 
+// 添加倒计时相关的响应式变量
+const countdownTime = ref(0)
+const countdownTimer = ref(null)
+
+// 添加更新数量的响应式变量
+const updateCount = ref(0)
+
 // 格式化店铺数据方法
 const formatStoresname = (stores) => {
   return stores.map(store => ({
@@ -316,24 +338,62 @@ const getStoreList = async () => {
     const res = await listStores()
     if (res.rows) {
       storeOptionNames.value = formatStoresname(res.rows)
-      console.log("storeOptionNames.value====>", storeOptionNames.value)
     }
   } catch (error) {
     console.error('获取店铺列表失败:', error)
   }
 }
 
-// 获取最后更新时间
+// 获取更新数量
+const getUpdateCount = async () => {
+  try {
+    const response = await fetch('http://192.168.1.122:5001/get_insert_count')
+    const res = await response.json()
+    if (res.total_insert_count||res.total_insert_count==0) {
+      updateCount.value = res.total_insert_count
+    }
+  } catch (error) {
+    console.error('获取更新数量失败:', error)
+  }
+}
+
+
+// 修改获取最后更新时间的方
 const getLastUpdateTimeFromServer = async () => {
   try {
     const response = await fetch('http://192.168.1.122:5001/get_last_update_time')
     const res = await response.json()
     if (res.last_update_time) {
-      lastUpdateTimeDate.value = formatTimeData(res.last_update_time)
+      const updateTime = res.last_update_time
+      lastUpdateTimeDate.value = formatTimeData(updateTime)
+      startCountdown(updateTime) // 传入更新时间开始倒计时
     }
   } catch (error) {
     console.error('获取最后更新时间失败:', error)
   }
+}
+
+
+// 修改倒计时方法，在倒计时结束时获取更新数量
+const startCountdown = (updateTime) => {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value)
+  }
+  
+  const targetTime = new Date(updateTime).getTime() + 30000
+  
+  countdownTimer.value = setInterval(async () => {
+    const now = new Date().getTime()
+    const timeLeft = Math.max(0, Math.ceil((targetTime - now) / 1000))
+    
+    if (timeLeft <= 0) {
+      clearInterval(countdownTimer.value)
+      await getMessageList() // 重新获取数据
+      await getUpdateCount() // 获取更新数量
+    } else {
+      countdownTime.value = timeLeft
+    }
+  }, 1000)
 }
 
 // 修改获取消息列表的方法
@@ -346,12 +406,10 @@ const getMessageList = async (storeId = '', readStatus = '',messageStatus = '') 
       isRead: readStatus,
       messageStatus: messageStatus
     }
-    console.log("params====>", params)
     const [res, resUnread] = await Promise.all([
       listClient(params),
       listMessageUnread(params)
     ])
-    console.log("res====>", res)
     if (res.code === 200) {
       const newList = res.rows.map(msg => {
         const unreadInfo = resUnread.rows?.find(
@@ -373,14 +431,15 @@ const getMessageList = async (storeId = '', readStatus = '',messageStatus = '') 
           lastTime:  msg.createdTime,
           avatarUrl: msg.avatarUrl,
           isRead: msg.isRead,
-          messageStatus: msg.messageStatus
+          messageStatus: msg.messageStatus,
+          orderStatus: msg.orderStatus || '',
+          ifSendNewUs: msg.ifSendNewUs || '否'
         }
       })
-      console.log("newList====>", newList)
       // 直接更新消息列表
       messageList.value = newList
       
-      // 获取服务器端的最后更新时间
+      // 获取服务器端的最后更新间
       await getLastUpdateTimeFromServer()
     }
   } catch (error) {
@@ -426,14 +485,14 @@ const handleStoreChange = (value) => {
       break
   }
 
-  // 重新获取消息列表，同时传入消息状态
+  // 重新获取消息列表，同传入消息状态
   getMessageList(value, readStatus)
 }
 
 // 修改初始化加载
 onMounted(() => {
   getStoreList() // 先获取店铺列表
-  getMessageList() // 再获取消息列表
+  getMessageList() // 再获消息列表
   getLastUpdateTimeFromServer()
 })
 
@@ -491,15 +550,28 @@ const selectMessage = async (message) => {
         break
     }
 
+
     // 更新消息状态
     if(message.lastMessage !== '暂无消息') {
       await updateMessageRead({
         senderId: message.clientId,
         shopId: message.storeName,
-        isRead: '已读'
+        isRead: '已读',
+
       })
     }
+    console.log(message)
 
+    const conversationId = generateMessageId("客服",message.clientId)
+ // 更新消息状态
+   if(message.lastMessage !== '暂无消息') {
+      await updateMessageSendNew({
+        conversationId: conversationId,
+       
+        shopId: message.storeName,
+        ifSendNewUs: '否'
+      })
+    }
     // 获取订单数据
     try {
       const res = await getOrder(message.clientId, message.storeName)
@@ -570,7 +642,7 @@ const handleImageClick = (event) => {
 
 // 可选：添加切换图片的处理方法
 const handleSwitch = (index) => {
-  console.log('切换到图片:', index)
+
 }
 
 // 添加可编辑div的引用
@@ -749,7 +821,6 @@ const sendMessage = async () => {
           messageContent: messageContent,
           shopId: currentMessage.value.storeName
         })
-        console.log("resultmesssssss====>", result)
         // 处理返回结果
         if (result.data) {
           // 成功提示
@@ -769,7 +840,7 @@ const sendMessage = async () => {
       }
     }
 
-    console.log('send_id发送成功:', send_id)
+
 
     // 发送成功后，将消息添加到聊天记录中
     chatMessages.value.push({
@@ -786,7 +857,7 @@ const sendMessage = async () => {
     // 清空输入框和可编辑div的内容
     messageInput.value = ''
     editableDiv.value.innerHTML = ''
-    console.log("generateMessageId====>", generateMessageId(senderId, receiverId))
+
 
     await updateMessageStatus({
       receiverId: receiverId,  // 用户ID
@@ -831,7 +902,7 @@ const startPolling = () => {
           break
       }
 
-      // 保持当前筛选状态进行更新
+      // 保持前筛选状态进行更新
       await getMessageList(filterShop.value, readStatus, messageStatus)
     }
   }, POLLING_INTERVAL)
@@ -1004,15 +1075,72 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString()
 }
 
+// 修改状态标签的颜色映射
 const getOrderStatusType = (status) => {
+  // 添加调试日志
+  console.log('订单状态:', status)
+  
+  // 统一状态名称（处理可能的大小写和空格差异）
+  const normalizedStatus = String(status).trim().toLowerCase()
+  
   const statusMap = {
+    // 纠纷相关
+    '纠纷中的订单': 'danger',
+    '纠纷中': 'danger',
+    '纠纷': 'danger',
+    'dispute': 'danger',
+    
+    // 发货相关
+    '等待您发货': 'warning',
     '待发货': 'warning',
-    '已发货': 'info',
+    'waiting for shipment': 'warning',
+    
+    // 付款相关
+    '等待买家付款': 'info',
+    '待付款': 'info',
+    'waiting for payment': 'info',
+    '付款处中': 'primary',
+    'payment processing': 'primary',
+    
+    // 收货相关
+    '等待买家收货': 'primary',
+    '待收货': 'primary',
+    'waiting for receipt': 'primary',
+    
+    // 完成相关
+    '交易完成': 'success',
     '已完成': 'success',
-    '已取消': 'danger',
-    '退款中': 'danger'
+    'finished': 'success',
+    'completed': 'success',
+    
+    // 关闭相关
+    '订单关闭': 'info',
+    '已关闭': 'info',
+    'closed': 'info',
+    
+    // 退款相关
+    '退款中': 'danger',
+    '退款处理中': 'danger',
+    'refunding': 'danger',
+    '已退款': 'info',
+    'refunded': 'info',
+    
+    // 消息状态
+    '未回复': 'danger',
+    '已回复': 'success',
+    
+    // 其他状态
+    '异常订单': 'danger',
+    '问题订单': 'danger'
   }
-  return statusMap[status] || 'info'
+
+  // 查找匹配的状态
+  const matchedStatus = Object.entries(statusMap).find(([key]) => 
+    normalizedStatus.includes(key.toLowerCase())
+  )
+
+  // 返回匹配的类型，如果没有匹配则返回 info
+  return matchedStatus ? matchedStatus[1] : 'info'
 }
 
 const scrollToBottom = () => {
@@ -1181,9 +1309,31 @@ const formatMessageTime = (time) => {
   // 其他日期显示完整日期
   return `${msgDate.toLocaleDateString('zh-CN')} ${timeStr}`
 }
+
+
 </script>
 
 <style scoped>
+
+/* 新消息蓝点样式 */
+.new-message-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #409EFF;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+/* 调整客户息布局，确保蓝点对齐 */
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  
+}
 .chat-container {
   display: flex;
   height: calc(100vh - 50px);
@@ -1192,7 +1342,7 @@ const formatMessageTime = (time) => {
 
 /* 左侧消息列表样式 */
 .message-sidebar {
-  width: 300px;
+  width: 380px;
   border-right: 1px solid #dcdfe6;
   display: flex;
   flex-direction: column;
@@ -1215,6 +1365,7 @@ const formatMessageTime = (time) => {
   cursor: pointer;
   transition: all 0.3s;
   border-bottom: 1px solid #ebeef5;
+  align-items: flex-start;
 }
 
 .message-item:hover {
@@ -1678,10 +1829,11 @@ const formatMessageTime = (time) => {
 /* 添加更新时间的样式 */
 .last-update-time {
   padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: #909399;
   font-size: 12px;
-  display: flex;
-  align-items: center;
   border-bottom: 1px solid #ebeef5;
 }
 
@@ -1758,8 +1910,89 @@ const formatMessageTime = (time) => {
 /* 最近更新时间样式 */
 .last-update-time {
   padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: #909399;
   font-size: 12px;
   border-bottom: 1px solid #ebeef5;
 }
+
+.countdown {
+  color: #409EFF;
+  font-weight: 500;
+}
+
+.update-count {
+  padding: 8px 16px;
+  color: #67C23A;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #f0f9eb;
+  border-bottom: 1px solid #ebeef5;
+}
+
+/* 添加订单状态标签样式 */
+.customer-info .el-tag {
+  margin-left: 8px;
+  height: 20px;
+  line-height: 18px;
+  font-size: 11px;
+  border-radius: 10px;  /* 圆角效果 */
+  padding: 0 8px;
+}
+
+/* 自定义标签颜色 */
+:deep(.el-tag--danger) {
+  --el-tag-bg-color: #fef0f0;
+  --el-tag-border-color: #fde2e2;
+  --el-tag-text-color: #f56c6c;
+}
+
+:deep(.el-tag--warning) {
+  --el-tag-bg-color: #fdf6ec;
+  --el-tag-border-color: #faecd8;
+  --el-tag-text-color: #e6a23c;
+}
+
+:deep(.el-tag--success) {
+  --el-tag-bg-color: #f0f9eb;
+  --el-tag-border-color: #e1f3d8;
+  --el-tag-text-color: #67c23a;
+}
+
+:deep(.el-tag--info) {
+  --el-tag-bg-color: #f4f4f5;
+  --el-tag-border-color: #e9e9eb;
+  --el-tag-text-color: #909399;
+}
+
+:deep(.el-tag--primary) {
+  --el-tag-bg-color: #ecf5ff;
+  --el-tag-border-color: #d9ecff;
+  --el-tag-text-color: #409eff;
+}
+
+/* 调整客户信息布局 */
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 修改店铺信息样式 */
+.store-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.store-info-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 </style>

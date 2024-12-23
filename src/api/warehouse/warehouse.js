@@ -10,9 +10,16 @@ export function listWarehouse(query) {
 }
 
 // 查询warehouse详细
-export function getWarehouse(sku) {
+export function getWarehouse(sId) {
   return request({
-    url: '/warehouse/warehouse/' + sku,
+    url: '/warehouse/warehouse/' + sId,
+    method: 'get'
+  })
+}
+
+export function getWarehouse2(sku,stockId) {
+  return request({
+    url: '/warehouse/warehouse/' + sku + '/' + stockId,
     method: 'get'
   })
 }
@@ -40,5 +47,17 @@ export function delWarehouse(sku) {
   return request({
     url: '/warehouse/warehouse/' + sku,
     method: 'delete'
+  })
+}
+
+// 添加导入Excel方法
+export function importExcel(data) {
+  return request({
+    url: '/warehouse/warehouse/import',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
