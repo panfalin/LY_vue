@@ -32,16 +32,13 @@
       </el-form-item>
       <el-form-item label="类别" prop="category">
         <el-select
-            v-model="selectedCategories"
+            v-model="queryParams.category"
             placeholder="请选择类别"
             clearable
-            multiple
-            collapse-tags
-            collapse-tags-tooltip
-            @change="handleCategoryChange"
         >
-          <el-option label="半托管" value="半托管"></el-option>
           <el-option label="POP" value="POP"></el-option>
+          <el-option label="半托管" value="半托管"></el-option>
+          <!--<el-option label="全托管" value="全托管"></el-option>-->
         </el-select>
       </el-form-item>
       <el-form-item label="货币类型" prop="category">
@@ -118,11 +115,7 @@
       <el-table-column label="运费" align="center" prop="shippingFee" width="80" sortable/>
       <el-table-column label="其他收入" align="center" prop="otherIncome" width="100" sortable/>
       <el-table-column label="补贴金额" align="center" prop="subsidyAmount" width="100" sortable/>
-      <el-table-column label="退货成本" align="center" prop="returnCost" width="80" sortable>
-        <template #default="scope">
-          <span>{{ scope.row?.returnCost?.toFixed(2) || '0.00' }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="退货成本" align="center" prop="returnCost" width="80" sortable/>
       <el-table-column label="运费退回" align="center" prop="shippingReturn" width="100" sortable/>
       <el-table-column label="其他店铺收入" align="center" prop="otherStoreIncome" width="120" sortable/>
       <el-table-column label="合计" align="center" prop="total" width="80" sortable/>
@@ -140,11 +133,7 @@
       <el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>
       <!--<el-table-column label="海外仓尾程运费" align="center" prop="overseasLastShipping" width="120" sortable/>-->
       <!--<el-table-column label="操作费" align="center" prop="operationFee" width="120" sortable/>-->
-      <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable>
-        <template #default="scope">
-          <span>{{ scope.row?.returnCost2?.toFixed(2) || '0.00' }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable/>
       <!--<el-table-column label="供应商补发成本" align="center" prop="supplierReshipCost" width="120" sortable/>-->
       <!--<el-table-column label="仓库发错损失" align="center" prop="warehouseErrorLoss" width="120" sortable/>-->
       <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
@@ -172,11 +161,12 @@
           <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <!--<el-table-column label="9月营业额" align="center" prop="septemberRevenue" width="120" sortable/>-->
-      <!--<el-table-column label="9月利润" align="center" prop="septemberProfit" width="120" sortable/>-->
-      <!--<el-table-column label="9月利润率" align="center" prop="septemberProfitRate" width="120" sortable/>-->
-      <!--<el-table-column label="对比营业额" align="center" prop="compareRevenue" width="120" sortable/>-->
-      <!--<el-table-column label="对比利润率" align="center" prop="compareProfitRate" width="120" sortable/>-->
+      <el-table-column label="备仓利润" align="center" prop="septemberRevenue" width="120" sortable/>
+      <el-table-column label="jit利润" align="center" prop="septemberProfit" width="120" sortable/>
+      <el-table-column label="当月揽收费用" align="center" prop="septemberProfitRate" width="120" sortable/>
+      <el-table-column label="上月活动差价" align="center" prop="compareRevenue" width="120" sortable/>
+      <el-table-column label="当月产生罚款" align="center" prop="compareProfitRate" width="120" sortable/>
+      <el-table-column label="利润汇总" align="center" prop="compareProfitRate" width="120" sortable/>
     </el-table>
 
     <el-dialog :title="title" v-model="open" width="700px" append-to-body>
@@ -304,9 +294,9 @@ const data = reactive({
     pageSize: 10,
     storeName: null,
     storeManager: null,
-    category: '半托管,POP',
-    moneyType: null,
+    category: '全托管',
     mouth: '2024-11',
+    moneyType: null,
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -353,7 +343,7 @@ const data = reactive({
 const {queryParams, form, rules} = toRefs(data);
 
 // 添加新的响应式变量用于多选
-const selectedCategories = ref(['半托管', 'POP']);
+const selectedCategories = ref(['全托管']);
 
 // 添加 category change 处理函数
 function handleCategoryChange(values) {
@@ -600,8 +590,8 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef");
-  selectedCategories.value = ['半托管', 'POP'];
-  queryParams.value.category = '半托管,POP';
+  selectedCategories.value = ['全托管'];
+  queryParams.value.category = '全托管';
   queryParams.value.mouth = '2024-11';
   handleQuery();
 }
