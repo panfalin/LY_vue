@@ -240,6 +240,11 @@
       <el-table-column label="备货仓" align="center" prop="stockWarehouse" width="180" />
       <el-table-column label="货品数量" align="center" prop="goodsNumber" width="80" />
       <el-table-column label="店铺名" align="center" prop="shopId" width="180" show-overflow-tooltip />
+      <el-table-column label="最晚发货时间" align="center" prop="sendTime" width="120">
+        <template #default="{ row }">
+          {{ formatSendTime(row.sendTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="预约时间" align="center" prop="appointmentTime" width="160">
         <template #default="scope">
           {{ scope.row.appointmentTime || '-' }}
@@ -335,20 +340,35 @@
 
     <!-- 备仓弹窗 -->
     <el-dialog
-      title="备仓操作"
       v-model="prepareWarehouseDialogVisible"
-      width="400px"
+      title="备仓操作"
+      width="500px"
+      append-to-body
     >
-      <el-form :model="prepareWarehouseForm">
-        <el-form-item label="店铺名" prop="shopName">
-          <el-input v-model="prepareWarehouseForm.shopName" placeholder="请输入店铺名" />
+      <el-form :model="prepareWarehouseForm" label-width="100px">
+        <el-form-item label="选择店铺">
+          <el-select
+            v-model="prepareWarehouseForm.shopName"
+            filterable
+            placeholder="请选择店铺"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in shopNameList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="prepareAllShops">一键全部店铺备仓</el-button>
-        <el-button @click="closePrepareWarehouseDialog">取消</el-button>
-        <el-button type="primary" @click="confirmPrepareWarehouse">确认</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closePrepareWarehouseDialog">取消</el-button>
+          <el-button type="primary" @click="confirmPrepareWarehouse">确定</el-button>
+
+        </div>
+      </template>
     </el-dialog>
 
     <!-- 马帮订单弹窗 -->
@@ -371,7 +391,7 @@
 </template>
 
 <script setup name="Warehouse">
-import { listWarehouse, getWarehouse, delWarehouse, addWarehouse, updateWarehouse, importExcel } from "@/api/warehouse/warehouse";
+import { listWarehouse, getWarehouse, delWarehouse, addWarehouse, updateWarehouse, importExcel, getShopNameList } from "@/api/warehouse/warehouse";
 import axios from 'axios';
 
 const { proxy } = getCurrentInstance();
@@ -388,7 +408,7 @@ const title = ref("");
 
 // 初始化备仓弹窗的可见性
 const prepareWarehouseDialogVisible = ref(false);
-const prepareWarehouseForm = reactive({
+const prepareWarehouseForm = ref({
   shopName: ''
 });
 
@@ -425,6 +445,25 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
+// 在 setup 中添加
+const shopNameList = ref([]) // 店铺名称列表
+
+// 获取店铺名称列表
+const getShopNames = async () => {
+  try {
+    const res = await getShopNameList()
+    console.log("店铺列表",res)
+    if (res.code === 200) {
+      shopNameList.value = res.rows.map(item => ({
+        value: item.store_name,
+        label: item.store_name
+      }))
+    }
+  } catch (error) {
+    console.error('获取店铺列表失败:', error)
+  }
+}
+
 /** 查询warehouse列表 */
 function getList() {
   loading.value = true;
@@ -438,17 +477,19 @@ function getList() {
 // 打开备仓弹窗
 function openPrepareWarehouseDialog() {
   prepareWarehouseDialogVisible.value = true;
+  getShopNames() // 获取店铺列表
 }
 
 // 关闭备仓弹窗
 function closePrepareWarehouseDialog() {
   prepareWarehouseDialogVisible.value = false;
+  prepareWarehouseForm.value.shopName = ''; // 重置表单
 }
 
 // 确认备仓操作
 function confirmPrepareWarehouse() {
-  if (!prepareWarehouseForm.shopName) {
-    proxy.$modal.msgError("请输入店铺名");
+  if (!prepareWarehouseForm.value.shopName) {
+    proxy.$modal.msgError("请选择店铺");
     return;
   }
 
@@ -457,7 +498,7 @@ function confirmPrepareWarehouse() {
   // 发送备仓请求
   axios.post('http://192.168.1.122:5002/warehouse', 
     {
-      username: prepareWarehouseForm.shopName
+      username: prepareWarehouseForm.value.shopName
     },
     {
       headers: {
@@ -465,27 +506,24 @@ function confirmPrepareWarehouse() {
       }
     }
   ).then(response => {
-    console.log('响应数据:', response);
     if (response.data && response.status === 200) {
       proxy.$modal.msgSuccess("备仓操作成功");
       closePrepareWarehouseDialog();
-      // 刷新列表
       getList();
     } else {
       proxy.$modal.msgError(response.data.msg || "操作失败");
     }
   }).catch(error => {
     console.error('备仓操作失败:', error);
-    const errorMsg = error.response?.data?.message || "备仓操作失败，请重试";
-    proxy.$modal.msgError(errorMsg);
+    proxy.$modal.msgError(error.response?.data?.message || "备仓操作失败，请重试");
   }).finally(() => {
     proxy.$modal.closeLoading();
   });
 }
 
-// 一键全部店铺备仓
+// 一键全店铺备仓
 function prepareAllShops() {
-  console.log('一键备仓所有店铺');
+  console.log('一键备仓所有店��');
   // 在这里添加一键备仓逻辑
   closePrepareWarehouseDialog();
   proxy.$modal.msgSuccess("所有店铺备仓成功");
@@ -697,6 +735,21 @@ function confirmMabangOrder() {
   }).finally(() => {
     proxy.$modal.closeLoading();
   });
+}
+
+// 添加日期格式化函数
+function formatSendTime(sendTime) {
+  if (!sendTime) return '';
+  
+  // 从字符串中提取月/日
+  const match = sendTime.match(/(\d{1,2})\/(\d{1,2})/);
+  if (!match) return sendTime;
+  
+  const currentYear = new Date().getFullYear();
+  const [, month, day] = match;
+  
+  // 格式化为 YYYY/MM/DD
+  return `${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
 }
 
 getList();

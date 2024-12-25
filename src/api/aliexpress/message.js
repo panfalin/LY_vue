@@ -53,7 +53,13 @@ export function updateMessageRead(data) {
     data: data
   })
 }
-
+export function listStores(query) {
+  return request({
+    url: '/aliexpress/message/list/store',
+    method: 'get',
+    params: query
+  })
+}
 
 export function updateMessageSendNew(data) {
   return request({

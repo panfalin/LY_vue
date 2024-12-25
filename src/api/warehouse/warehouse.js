@@ -61,3 +61,11 @@ export function importExcel(data) {
     }
   })
 }
+
+// 获取店铺名称列表
+export function getShopNameList() {
+  return request({
+    url: '/warehouse/warehouse/list/shopname',
+    method: 'get'
+  })
+}

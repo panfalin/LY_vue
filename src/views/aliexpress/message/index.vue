@@ -39,17 +39,34 @@
             v-model="filterShop"
             placeholder="请选择店铺"
             clearable
-            style="width: 100%"
+            style="width: 100%; margin-bottom: 1px"
             filterable
             size="small"
             @change="handleStoreChange"
         >
-
           <el-option
               v-for="storeName in storeOptionNames"
               :key="storeName.value"
               :label="storeName.label"
               :value="storeName.label"
+          />
+        </el-select>
+
+        <!-- 负责人筛选 -->
+        <el-select
+            v-model="filterManager"
+            placeholder="请选择负责人"
+            clearable
+            style="width: 100%; margin-bottom: 1px"
+            filterable
+            size="small"
+            @change="handleManagerChange"
+        >
+          <el-option
+              v-for="manager in managerOptions"
+              :key="manager.value"
+              :label="manager.label"
+              :value="manager.value"
           />
         </el-select>
       </div>
@@ -281,8 +298,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import axios from 'axios'
 import { listClient, getClient } from '@/api/aliexpress/client'
-import { listMessage, updateMessageRead,updateMessageStatus, updateMessageSendNew,getMessage,addMessage,listMessageUnread } from '@/api/aliexpress/message'
-import { listStores } from "@/api/products/products.js"
+import { listMessage, updateMessageRead,updateMessageStatus, updateMessageSendNew,getMessage,addMessage,listMessageUnread,listStores } from '@/api/aliexpress/message'
 import request from '@/utils/request'
 import { ElImageViewer, ElMessage } from 'element-plus'
 import { getOrder } from '@/api/aliexpress/order'
@@ -301,6 +317,7 @@ const messageList = ref([])
 // 筛选状态
 const filterStatus = ref('all')
 const filterShop = ref('')
+const filterManager = ref('')
 
 // 店铺列表
 const shopList = ref([])
@@ -388,8 +405,14 @@ const startCountdown = (updateTime) => {
     
     if (timeLeft <= 0) {
       clearInterval(countdownTimer.value)
-      await getMessageList() // 重新获取数据
-      await getUpdateCount() // 获取更新数量
+      // 重新获取数据时保持筛选条件
+      await getMessageList(
+        filterShop.value,
+        filterStatus.value === 'unread' ? '未读' : '',
+        filterStatus.value === 'unrespond' ? '未回复' : '',
+        filterManager.value
+      )
+      await getUpdateCount()
     } else {
       countdownTime.value = timeLeft
     }
@@ -397,14 +420,15 @@ const startCountdown = (updateTime) => {
 }
 
 // 修改获取消息列表的方法
-const getMessageList = async (storeId = '', readStatus = '',messageStatus = '') => {
+const getMessageList = async (storeId = '', readStatus = '',messageStatus = '', manager = '') => {
   try {
     const params = {
       pageNum: 1,
       pageSize: 9999,
       storeName: storeId,
       isRead: readStatus,
-      messageStatus: messageStatus
+      messageStatus: messageStatus,
+      storeManagerName: manager // 添加负责人参数
     }
     const [res, resUnread] = await Promise.all([
       listClient(params),
@@ -466,33 +490,65 @@ const handleStatusChange = (value) => {
       messageStatus=''
   }
 
-  // 重新获取消息列表
-  getMessageList(filterShop.value, readStatus,messageStatus)
+  // 重新获取消息列表，同时传入当前选中的负责人
+  getMessageList(filterShop.value, readStatus, messageStatus, filterManager.value)
 }
 
-// 修改店铺选择变更处理方法
+// 修改店铺选择变更处理方法，添加负责人参数
 const handleStoreChange = (value) => {
   filterShop.value = value
 
   // 获取当前消息状态
   let readStatus = ''
+  let messageStatus = ''
+  
   switch(filterStatus.value) {
     case 'unread':
-      readStatus = '0'
+      readStatus = '未读'
       break
-    case 'read':
-      readStatus = '1'
+    case 'unrespond':
+      messageStatus = '未回复'
       break
   }
 
-  // 重新获取消息列表，同传入消息状态
-  getMessageList(value, readStatus)
+  // 重新获取消息列表，同时传入当前选中的负责人
+  getMessageList(value, readStatus, messageStatus, filterManager.value)
+}
+
+// 修改负责人筛选处理方法
+const handleManagerChange = (value) => {
+  filterManager.value = value
+
+  // 获取当前消息状态
+  let readStatus = ''
+  let messageStatus = ''
+  
+  // 根据当前筛选状态设置参数
+  switch(filterStatus.value) {
+    case 'unread':
+      readStatus = '未读'
+      break
+    case 'unrespond':
+      messageStatus = '未回复'
+      break
+  }
+
+  // 重新获取消息列表，传入负责人参数
+  getMessageList(filterShop.value, readStatus, messageStatus, value)
 }
 
 // 修改初始化加载
 onMounted(() => {
   getStoreList() // 先获取店铺列表
-  getMessageList() // 再获消息列表
+  
+  // 初始化时使用默认筛选条件获取消息列表
+  getMessageList(
+    filterShop.value,
+    filterStatus.value === 'unread' ? '未读' : '',
+    filterStatus.value === 'unrespond' ? '未回复' : '',
+    filterManager.value
+  )
+  
   getLastUpdateTimeFromServer()
 })
 
@@ -595,7 +651,7 @@ const selectMessage = async (message) => {
     startPolling()
 
     // 使用当前的筛选状态重新获取消息列表
-    await getMessageList(filterShop.value, readStatus, messageStatus)
+    await getMessageList(filterShop.value, readStatus, messageStatus, filterManager.value)
 
   } catch (error) {
     console.error('获取用户信息失败:', error)
@@ -885,6 +941,7 @@ const lastUpdateTime = ref(null)
 
 // 修改轮询方法
 const startPolling = () => {
+  // 先清除已有的轮询
   stopPolling()
 
   pollingTimer.value = setInterval(async () => {
@@ -893,6 +950,7 @@ const startPolling = () => {
       let readStatus = ''
       let messageStatus = ''
       
+      // 保持当前的筛选状态
       switch(filterStatus.value) {
         case 'unread':
           readStatus = '未读'
@@ -902,8 +960,16 @@ const startPolling = () => {
           break
       }
 
-      // 保持前筛选状态进行更新
-      await getMessageList(filterShop.value, readStatus, messageStatus)
+      // 加载聊天记录
+      await loadChatHistory(currentMessage.value.id)
+
+      // 保持所有筛选条件进行更新
+      await getMessageList(
+        filterShop.value,  // 保持店铺筛选
+        readStatus,        // 保持状态筛选
+        messageStatus,     
+        filterManager.value // 保持负责人筛选
+      )
     }
   }, POLLING_INTERVAL)
 }
@@ -1310,6 +1376,16 @@ const formatMessageTime = (time) => {
   return `${msgDate.toLocaleDateString('zh-CN')} ${timeStr}`
 }
 
+
+
+// 添加负责人选项数据
+const managerOptions = ref([
+  { value: '陈雪芳', label: '陈雪芳' },
+  { value: 'voice', label: 'voice' },
+  { value: '夏慧颖', label: '夏慧颖' },
+  { value: '赵世杰', label: '赵世杰' },
+  { value: '沈娟', label: '沈娟' }
+])
 
 </script>
 
