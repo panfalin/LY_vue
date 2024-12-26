@@ -961,7 +961,7 @@ const startPolling = () => {
       }
 
       // 加载聊天记录
-      await loadChatHistory(currentMessage.value.id)
+      // await loadChatHistory(currentMessage.value.id)
 
       // 保持所有筛选条件进行更新
       await getMessageList(

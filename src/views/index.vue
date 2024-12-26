@@ -102,6 +102,7 @@
           <el-button-group>
             <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
             <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button type="success" :icon="Plus" @click="generateTasks">生成任务</el-button>
           </el-button-group>
         </el-form-item>
       </el-form>
@@ -398,8 +399,8 @@
 <script setup name="Index">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Document, Picture, Download, Refresh, Loading } from '@element-plus/icons-vue'
-import { listTODO, listStores, listTask, updateTask } from "@/api/products/products.js"
+import { Search, Document, Picture, Download, Refresh, Loading, Plus } from '@element-plus/icons-vue'
+import { listTODO, listStores, listTask, updateTask,getTaskDistribution } from "@/api/products/products.js"
 import axios from 'axios';
 
 const {proxy} = getCurrentInstance();
@@ -785,7 +786,7 @@ const handleComplete = async (row) => {
 
     // 准备更新数据
     const taskData = {
-      id: row.id,
+      sId: row.sId,
       logs: new Date().toLocaleString()
     }
 
@@ -1033,6 +1034,26 @@ const copyStore = async (store) => {
     document.body.removeChild(textarea);
   }
 };
+
+
+
+// 添加生成任务方法
+const generateTasks = () => {
+  proxy.$modal.confirm('确认要生成新的任务吗？').then(() => {
+    proxy.$modal.loading("正在生成任务，请稍候...");
+    getTaskDistribution().then(() => {
+      proxy.$modal.closeLoading();
+      proxy.$modal.msgSuccess("任务生成成功");
+      getList()
+    }).catch(error => {
+      proxy.$modal.closeLoading();
+      proxy.$modal.msgError(error.message || "任务生成失败，请稍后重试");
+    });
+  }).catch(() => {
+    // 用户取消操作，不做处理
+  });
+};
+
 
 getList();
 </script>

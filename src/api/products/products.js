@@ -121,3 +121,11 @@ export function delTask(id) {
     method: 'delete'
   })
 }
+
+export function getTaskDistribution(id) {
+    return request({
+      url: '/task/task/updateDailyTasks',
+      method: 'get'
+    })
+}
+
