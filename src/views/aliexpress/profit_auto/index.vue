@@ -30,17 +30,17 @@
           ></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="类别" prop="category">
-        <el-select
-            v-model="queryParams.category"
-            placeholder="请选择类别"
-            clearable
-        >
-          <el-option label="POP" value="POP"></el-option>
-          <el-option label="半托管" value="半托管"></el-option>
-          <!--<el-option label="全托管" value="全托管"></el-option>-->
-        </el-select>
-      </el-form-item>
+      <!--<el-form-item label="类别" prop="category">-->
+      <!--  <el-  select-->
+      <!--      v-model="queryParams.category"-->
+      <!--      placeholder="请选择类别"-->
+      <!--      clearable-->
+      <!--  >-->
+      <!--    <el-option label="POP" value="POP"></el-option>-->
+      <!--    <el-option label="半托管" value="半托管"></el-option>-->
+      <!--    &lt;!&ndash;<el-option label="全托管" value="全托管"></el-option>&ndash;&gt;-->
+      <!--  </el-select>-->
+      <!--</el-form-item>-->
       <el-form-item label="货币类型" prop="category">
         <el-select
             v-model="queryParams.moneyType"
@@ -124,13 +124,13 @@
       <el-table-column label="退款金额" align="center" prop="refundAmount" width="80" sortable/>
       <el-table-column label="客单价" align="center" prop="customerUnitPrice" width="80" sortable/>
       <el-table-column label="毛利" align="center" prop="grossProfit" width="80" sortable/>
-      <el-table-column label="实际退款USD" align="center" prop="actualRefundUsd" width="80" sortable/>
-      <el-table-column label="直通车充值" align="center" prop="directCar" width="120" sortable/>
-      <el-table-column label="物流赔付" align="center" prop="cancelOrderRmb" width="120" sortable/>
-      <el-table-column label="清仓成本补助" align="center" prop="clearanceCostSubsidy" width="120" sortable/>
-      <el-table-column label="退款差值" align="center" prop="refundDifference" width="120" sortable/>
-      <el-table-column label="直通车花费" align="center" prop="directCarCost" width="120" sortable/>
-      <el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>
+      <!--<el-table-column label="实际退款USD" align="center" prop="actualRefundUsd" width="80" sortable/>-->
+      <!--<el-table-column label="直通车充值" align="center" prop="directCar" width="120" sortable/>-->
+      <!--<el-table-column label="物流赔付" align="center" prop="cancelOrderRmb" width="120" sortable/>-->
+      <!--<el-table-column label="清仓成本补助" align="center" prop="clearanceCostSubsidy" width="120" sortable/>-->
+      <!--<el-table-column label="退款差值" align="center" prop="refundDifference" width="120" sortable/>-->
+      <!--<el-table-column label="直通车花费" align="center" prop="directCarCost" width="120" sortable/>-->
+      <!--<el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>-->
       <!--<el-table-column label="海外仓尾程运费" align="center" prop="overseasLastShipping" width="120" sortable/>-->
       <!--<el-table-column label="操作费" align="center" prop="operationFee" width="120" sortable/>-->
       <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable/>
@@ -152,21 +152,25 @@
           <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>
-      <el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>
-      <el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>
-      <el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>
+      <!--<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>-->
+      <!--<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>-->
+      <!--<el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>-->
+      <!--<el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>-->
       <el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>
         <template #default="scope">
           <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备仓利润" align="center" prop="septemberRevenue" width="120" sortable/>
-      <el-table-column label="jit利润" align="center" prop="septemberProfit" width="120" sortable/>
-      <el-table-column label="当月揽收费用" align="center" prop="septemberProfitRate" width="120" sortable/>
+      <el-table-column label="备仓利润" align="center" prop="septemberProfit" width="120" sortable/>
+      <el-table-column label="jit利润" align="center" prop="septemberProfitRate" width="120" sortable/>
+      <el-table-column label="当月揽收费用" align="center" prop="septemberRevenue" width="120" sortable/>
       <el-table-column label="上月活动差价" align="center" prop="compareRevenue" width="120" sortable/>
       <el-table-column label="当月产生罚款" align="center" prop="compareProfitRate" width="120" sortable/>
-      <el-table-column label="利润汇总" align="center" prop="compareProfitRate" width="120" sortable/>
+      <el-table-column fixed = "right" label="利润汇总" align="center" prop="totalProfit" width="120" sortable>
+        <template #default="scope">
+          <span>{{ (scope.row.septemberProfit + scope.row.septemberProfitRate + scope.row.septemberRevenue + scope.row.compareRevenue - scope.row.compareProfitRate).toFixed(2) }}</span>
+        </template>
+      </el-table-column>
     </el-table>
 
     <el-dialog :title="title" v-model="open" width="700px" append-to-body>
@@ -181,10 +185,13 @@
           <el-input v-model="form.directCarCost" placeholder="请输入直通车花费" />
         </el-form-item>
         <el-form-item label="物流赔付" prop="cancelOrderRmb">
-          <el-input v-model="form.cancelOrderRmb" placeholder="请输入取消订单" />
+          <el-input v-model="form.cancelOrderRmb" placeholder="请输入物流赔付" />
         </el-form-item>
         <el-form-item label="清仓成本补助" prop="clearanceCostSubsidy">
           <el-input v-model="form.clearanceCostSubsidy" placeholder="请输入清仓成本补助" />
+        </el-form-item>
+        <el-form-item label="当月产生罚款" prop="compareProfitRate">
+          <el-input v-model="form.compareProfitRate" placeholder="请输入当月产生罚款" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -206,9 +213,9 @@
             </span>
           </div>
         </el-col>
-        <el-col :span="8">
+         <el-col :span="8">
           <div class="summary-item">
-            <span class="label">直通车花费合计:</span>
+            <span class="label">备仓利润合计:</span>
             <span class="value" :class="{'negative': totalDirectCarCost < 0}">
               {{ formatMoney(totalDirectCarCost) }}
             </span>
@@ -216,7 +223,7 @@
         </el-col>
         <el-col :span="8">
           <div class="summary-item">
-            <span class="label">直通车充值合计:</span>
+            <span class="label">JIT利润合计:</span>
             <span class="value" :class="{'negative': totalDirectCar < 0}">
               {{ formatMoney(totalDirectCar) }}
             </span>
@@ -225,9 +232,9 @@
       </el-row>
 
       <el-row :gutter="24" class="summary-row">
-        <el-col :span="8">
+         <el-col :span="8">
           <div class="summary-item">
-            <span class="label">财务-pop利润合计:</span>
+            <span class="label">当月揽收费用合计:</span>
             <span class="value" :class="{'negative': totalOrderActualProfit < 0}">
               {{ formatMoney(totalOrderActualProfit) }}
             </span>
@@ -235,7 +242,7 @@
         </el-col>
         <el-col :span="8">
           <div class="summary-item">
-            <span class="label">财务-半托管合计:</span>
+            <span class="label">当月产生罚款合计:</span>
             <span class="value" :class="{'negative': totalHalf托管Profit < 0}">
               {{ formatMoney(totalHalf托管Profit) }}
             </span>
@@ -243,7 +250,7 @@
         </el-col>
         <el-col :span="8">
           <div class="summary-item">
-            <span class="label">财务-pop+半托管利润合计:</span>
+            <span class="label">利润合计:</span>
             <span class="value" :class="{'negative': totalSelfHalf托管Profit < 0}">
               {{ formatMoney(totalSelfHalf托管Profit) }}
             </span>
@@ -456,10 +463,6 @@ function calculateTotals(data) {
       return;
     }
 
-    // 按category分类数据
-    const popData = data.filter(item => item.category === 'POP');
-    const halfData = data.filter(item => item.category === '半托管');
-
     const safeReduce = (array, key) => {
       return array.reduce((sum, item) => {
         const value = Number(item[key]);
@@ -467,57 +470,14 @@ function calculateTotals(data) {
       }, 0);
     };
 
-    // POP类型数据汇总
-    const popTotals = {
-      orderActualProfit: safeReduce(popData, 'orderActualProfit'),
-      sum: safeReduce(popData, 'total'),
-      orderQuantity: safeReduce(popData, 'orderQuantity'),
-      refundAmount: safeReduce(popData, 'refundAmount'),
-      shippingFee: safeReduce(popData, 'shippingFee'),
-      otherIncome: safeReduce(popData, 'otherIncome'),
-      subsidyAmount: safeReduce(popData, 'subsidyAmount'),
-      actualRefundUsd: safeReduce(popData, 'actualRefundUsd'),
-      directCarCost: safeReduce(popData, 'directCarCost'),
-      directCar: safeReduce(popData, 'directCar')
-    };
-
-    // 半托管类型数据汇总  
-    const halfTotals = {
-      sum: safeReduce(halfData, 'total'),
-      orderActualProfit: safeReduce(halfData, 'orderActualProfit')
-    };
-
-    // 根据当前筛选的类别设置合计值
-    if (queryParams.value.category === 'POP') {
-      // 如果筛选的是POP,显示POP的财务利润
-      totalOrderActualProfit.value = popTotals.orderActualProfit;
-      totalHalf托管Profit.value = 0;
-      totalSelfHalf托管Profit.value = popTotals.orderActualProfit;
-    } else if (queryParams.value.category === '半托管') {
-      // 如果筛选的是半托管,显示半托管的利润
-      totalOrderActualProfit.value = 0;
-      totalHalf托管Profit.value = halfTotals.orderActualProfit;
-      totalSelfHalf托管Profit.value = halfTotals.orderActualProfit;
-    } else {
-      // 如果没有筛选类别,显示所有
-      totalOrderActualProfit.value = popTotals.orderActualProfit;
-      totalHalf托管Profit.value = halfTotals.orderActualProfit;
-      totalSelfHalf托管Profit.value = popTotals.orderActualProfit + halfTotals.orderActualProfit;
-    }
-
     // 其他汇总数据
     totalSum.value = safeReduce(data, 'total');
-    totalOrderQuantity.value = popTotals.orderQuantity;
-    totalRefundAmount.value = popTotals.refundAmount;
-    totalShippingFee.value = popTotals.shippingFee;
-    totalOtherIncome.value = popTotals.otherIncome;
-    totalSubsidyAmount.value = popTotals.subsidyAmount;
-    totalActualRefundUsdAmount.value = popTotals.actualRefundUsd;
-    totalDirectCarCost.value = popTotals.directCarCost;
-    totalDirectCar.value = popTotals.directCar;
-    
-    // 营业额合计
-    totalSelfHalf托管Revenue.value = popTotals.sum + halfTotals.revenue;
+    totalDirectCarCost.value = safeReduce(data, 'septemberProfit');
+    totalDirectCar.value = safeReduce(data, 'septemberProfitRate');
+    totalOrderActualProfit.value = safeReduce(data, 'septemberRevenue');
+    totalHalf托管Profit.value = safeReduce(data, 'compareProfitRate');
+    totalSelfHalf托管Profit.value = totalDirectCarCost.value + totalDirectCar.value + totalOrderActualProfit.value - totalHalf托管Profit.value;
+
 
   } catch (error) {
     console.error('计算汇总数据时出错:', error);

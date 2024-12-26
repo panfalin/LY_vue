@@ -138,15 +138,22 @@
       <el-table-column label="退款差值" align="center" prop="refundDifference" width="120" sortable/>
       <el-table-column label="直通车花费" align="center" prop="directCarCost" width="120" sortable/>
       <el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>
-      <!--<el-table-column label="海外仓尾程运费" align="center" prop="overseasLastShipping" width="120" sortable/>-->
-      <!--<el-table-column label="操作费" align="center" prop="operationFee" width="120" sortable/>-->
+      <el-table-column label="备仓利润" align="center" prop="warehouseProfit" width="120" sortable/>
+      <el-table-column label="JIT利润" align="center" prop="jitProfit" width="120" sortable/>
+      <el-table-column label="当月揽收费用" align="center" prop="monthlyCollectionFee" width="120" sortable/>
+      <el-table-column label="当月产生罚款" align="center" prop="monthlyPenalty" width="120" sortable/>
+      <el-table-column label="利润汇总" align="center" prop="totalProfit" width="120" sortable>
+        <template #default="scope">
+          <span :class="{ 'negative-profit': calculateTotalProfit(scope.row) < 0 }">
+            {{ calculateTotalProfit(scope.row) }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable>
         <template #default="scope">
           <span>{{ scope.row?.returnCost2?.toFixed(2) || '0.00' }}</span>
         </template>
       </el-table-column>
-      <!--<el-table-column label="供应商补发成本" align="center" prop="supplierReshipCost" width="120" sortable/>-->
-      <!--<el-table-column label="仓库发错损失" align="center" prop="warehouseErrorLoss" width="120" sortable/>-->
       <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
         <template #default="scope">
           <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>
@@ -172,11 +179,6 @@
           <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <!--<el-table-column label="9月营业额" align="center" prop="septemberRevenue" width="120" sortable/>-->
-      <!--<el-table-column label="9月利润" align="center" prop="septemberProfit" width="120" sortable/>-->
-      <!--<el-table-column label="9月利润率" align="center" prop="septemberProfitRate" width="120" sortable/>-->
-      <!--<el-table-column label="对比营业额" align="center" prop="compareRevenue" width="120" sortable/>-->
-      <!--<el-table-column label="对比利润率" align="center" prop="compareProfitRate" width="120" sortable/>-->
     </el-table>
 
     <el-dialog :title="title" v-model="open" width="700px" append-to-body>
@@ -369,6 +371,10 @@ function getList() {
         // 确保数据是数组且进行数据预处理
         profitList.value = Array.isArray(response.rows) ? response.rows.map(row => ({
           ...row,
+          warehouseProfit: row.warehouseProfit ?? 0,
+          jitProfit: row.jitProfit ?? 0,
+          monthlyCollectionFee: row.monthlyCollectionFee ?? 0,
+          monthlyPenalty: row.monthlyPenalty ?? 0,
           actualCostProfit: row.actualCostProfit ?? 0,
           actualCostProfitRate1: row.actualCostProfitRate1 ?? 0,
           profitRate: row.profitRate ?? 0,
@@ -695,6 +701,22 @@ const formatMoney = (num) => {
   return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// 添加计算利润汇总的方法
+function calculateTotalProfit(row) {
+  try {
+    const warehouseProfit = Number(row.warehouseProfit) || 0;
+    const jitProfit = Number(row.jitProfit) || 0;
+    const monthlyCollectionFee = Number(row.monthlyCollectionFee) || 0;
+    const monthlyPenalty = Number(row.monthlyPenalty) || 0;
+
+    const total = warehouseProfit + jitProfit + monthlyCollectionFee - monthlyPenalty;
+    return total.toFixed(2);
+  } catch (error) {
+    console.error('计算利润汇总出错:', error);
+    return '0.00';
+  }
+}
+
 </script>
 
 <style>
@@ -743,5 +765,15 @@ const formatMoney = (num) => {
 
 .summary-item .value.negative {
   color: #f56c6c;
+}
+
+/* 修改负数显示样式 */
+.negative-profit {
+  color: #F56C6C;  /* 红色 */
+}
+
+/* 如果需要正数显示特殊颜色，可以添加 */
+.positive-profit {
+  color: #67C23A;  /* 绿色 */
 }
 </style>
