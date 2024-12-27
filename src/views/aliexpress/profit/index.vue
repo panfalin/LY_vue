@@ -114,6 +114,7 @@
       <el-table-column fixed label="店铺" align="center" prop="storeName" width="200" sortable/>
       <el-table-column fixed label="负责人" align="center" prop="storeManager" width="80" sortable/>
       <el-table-column fixed label="月份" align="center" prop="mouth" width="80" sortable/>
+      <el-table-column label="货币类型" align="center" prop="moneyType" width="100" sortable/>
       <el-table-column label="订单金额" align="center" prop="orderAmount" width="100" sortable/>
       <el-table-column label="运费" align="center" prop="shippingFee" width="80" sortable/>
       <el-table-column label="其他收入" align="center" prop="otherIncome" width="100" sortable/>
@@ -131,24 +132,24 @@
       <el-table-column label="退款金额" align="center" prop="refundAmount" width="80" sortable/>
       <el-table-column label="客单价" align="center" prop="customerUnitPrice" width="80" sortable/>
       <el-table-column label="毛利" align="center" prop="grossProfit" width="80" sortable/>
-      <el-table-column label="实际退款USD" align="center" prop="actualRefundUsd" width="80" sortable/>
+      <el-table-column label="实际退款（以店铺币种为准)" align="center" prop="actualRefundUsd" width="80" sortable/>
       <el-table-column label="直通车充值" align="center" prop="directCar" width="120" sortable/>
       <el-table-column label="物流赔付" align="center" prop="cancelOrderRmb" width="120" sortable/>
       <el-table-column label="清仓成本补助" align="center" prop="clearanceCostSubsidy" width="120" sortable/>
       <el-table-column label="退款差值" align="center" prop="refundDifference" width="120" sortable/>
       <el-table-column label="直通车花费" align="center" prop="directCarCost" width="120" sortable/>
       <el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>
-      <el-table-column label="备仓利润" align="center" prop="warehouseProfit" width="120" sortable/>
-      <el-table-column label="JIT利润" align="center" prop="jitProfit" width="120" sortable/>
-      <el-table-column label="当月揽收费用" align="center" prop="monthlyCollectionFee" width="120" sortable/>
-      <el-table-column label="当月产生罚款" align="center" prop="monthlyPenalty" width="120" sortable/>
-      <el-table-column label="利润汇总" align="center" prop="totalProfit" width="120" sortable>
-        <template #default="scope">
-          <span :class="{ 'negative-profit': calculateTotalProfit(scope.row) < 0 }">
-            {{ calculateTotalProfit(scope.row) }}
-          </span>
-        </template>
-      </el-table-column>
+      <!--<el-table-column label="备仓利润" align="center" prop="warehouseProfit" width="120" sortable/>-->
+      <!--<el-table-column label="JIT利润" align="center" prop="jitProfit" width="120" sortable/>-->
+      <!--<el-table-column label="当月揽收费用" align="center" prop="monthlyCollectionFee" width="120" sortable/>-->
+      <!--<el-table-column label="当月产生罚款" align="center" prop="monthlyPenalty" width="120" sortable/>-->
+      <!--<el-table-column label="利润汇总" align="center" prop="totalProfit" width="120" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span :class="{ 'negative-profit': calculateTotalProfit(scope.row) < 0 }">-->
+      <!--      {{ calculateTotalProfit(scope.row) }}-->
+      <!--    </span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
       <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable>
         <template #default="scope">
           <span>{{ scope.row?.returnCost2?.toFixed(2) || '0.00' }}</span>
@@ -170,10 +171,10 @@
           <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>
-      <el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>
-      <el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>
-      <el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>
+      <!--<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>-->
+      <!--<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>-->
+      <!--<el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>-->
+      <!--<el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>-->
       <el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>
         <template #default="scope">
           <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>

@@ -90,7 +90,10 @@
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;"></right-toolbar>
     </el-row>
-
+    <div class="left-area">
+      <span class="card-title">店铺列表</span>
+      <el-tag type="info" effect="plain">共 {{ total }} 条</el-tag>
+    </div>
     <el-table
         v-loading="loading"
         :data="profitList"
@@ -107,6 +110,7 @@
       <template #empty>
         <el-empty description="暂无数据"></el-empty>
       </template>
+
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column fixed label="店铺" align="center" prop="storeName" width="200" sortable/>
       <el-table-column fixed label="负责人" align="center" prop="storeManager" width="80" sortable/>
@@ -133,34 +137,34 @@
       <!--<el-table-column label="半托管赔付" align="center" prop="overseasFirstShipping" width="120" sortable/>-->
       <!--<el-table-column label="海外仓尾程运费" align="center" prop="overseasLastShipping" width="120" sortable/>-->
       <!--<el-table-column label="操作费" align="center" prop="operationFee" width="120" sortable/>-->
-      <el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable/>
+      <!--<el-table-column label="退货成本" align="center" prop="returnCost2" width="120" sortable/>-->
       <!--<el-table-column label="供应商补发成本" align="center" prop="supplierReshipCost" width="120" sortable/>-->
       <!--<el-table-column label="仓库发错损失" align="center" prop="warehouseErrorLoss" width="120" sortable/>-->
-      <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
-        <template #default="scope">
-          <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="运营利润率" align="center" prop="actualCostProfitRate1" width="120" sortable>
-        <template #default="scope">
-          <span>{{ (scope.row.actualCostProfitRate1 * 100).toFixed(1) + '%' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable/>
-      <el-table-column label="财务利润率" align="center" prop="orderActualProfitRate" width="120" sortable>
-        <template #default="scope">
-          <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>
-        </template>
-      </el-table-column>
-      <!--<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>-->
-      <!--<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>-->
-      <!--<el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>-->
-      <!--<el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>-->
-      <el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>
-        <template #default="scope">
-          <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>
-        </template>
-      </el-table-column>
+      <!--<el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
+      <!--<el-table-column label="运营利润率" align="center" prop="actualCostProfitRate1" width="120" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span>{{ (scope.row.actualCostProfitRate1 * 100).toFixed(1) + '%' }}</span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
+      <!--<el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable/>-->
+      <!--<el-table-column label="财务利润率" align="center" prop="orderActualProfitRate" width="120" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
+      <!--&lt;!&ndash;<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>&ndash;&gt;-->
+      <!--&lt;!&ndash;<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>&ndash;&gt;-->
+      <!--&lt;!&ndash;<el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>&ndash;&gt;-->
+      <!--&lt;!&ndash;<el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>&ndash;&gt;-->
+      <!--<el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
       <el-table-column label="备仓利润" align="center" prop="septemberProfit" width="120" sortable/>
       <el-table-column label="jit利润" align="center" prop="septemberProfitRate" width="120" sortable/>
       <el-table-column label="当月揽收费用" align="center" prop="septemberRevenue" width="120" sortable/>
@@ -693,5 +697,17 @@ const formatMoney = (num) => {
 
 .summary-item .value.negative {
   color: #f56c6c;
+}
+
+.left-area {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-right: 12px;
 }
 </style>
