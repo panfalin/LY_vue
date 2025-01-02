@@ -49,102 +49,23 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="箱号1" prop="box1">
+      <el-form-item label="LBX单号" prop="lbxOrder">
         <el-input
-          v-model="queryParams.box1"
-          placeholder="请输入箱号1"
+          v-model="queryParams.lbxOrder"
+          placeholder="请输入LBX单号"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="箱号2" prop="box2">
+      <el-form-item label="揽收单号" prop="externalOrder">
         <el-input
-          v-model="queryParams.box2"
-          placeholder="请输入箱号2"
+          v-model="queryParams.externalOrder"
+          placeholder="请输入外部揽收单号"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="箱号3" prop="box3">
-        <el-input
-          v-model="queryParams.box3"
-          placeholder="请输入箱号3"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号4" prop="box4">
-        <el-input
-          v-model="queryParams.box4"
-          placeholder="请输入箱号4"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号5" prop="box5">
-        <el-input
-          v-model="queryParams.box5"
-          placeholder="请输入箱号5"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号6" prop="box6">
-        <el-input
-          v-model="queryParams.box6"
-          placeholder="请输入箱号6"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号7" prop="box7">
-        <el-input
-          v-model="queryParams.box7"
-          placeholder="请输入箱号7"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号8" prop="box8">
-        <el-input
-          v-model="queryParams.box8"
-          placeholder="请输入箱号8"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号9" prop="box9">
-        <el-input
-          v-model="queryParams.box9"
-          placeholder="请输入箱号9"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="箱号10" prop="box10">
-        <el-input
-          v-model="queryParams.box10"
-          placeholder="请输入箱号10"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="外箱尺寸" prop="boxSize">
-        <el-input
-          v-model="queryParams.boxSize"
-          placeholder="请输入外箱尺寸"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="重量" prop="weight">
-        <el-input
-          v-model="queryParams.weight"
-          placeholder="请输入重量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -263,6 +184,28 @@
       <el-table-column label="箱号6" align="center" prop="box6" width="100" />
       <el-table-column label="箱号7" align="center" prop="box7" width="100" />
       <el-table-column label="箱号8" align="center" prop="box8" width="100" />
+      <el-table-column label="LBX单号" align="center" prop="lbxOrder" min-width="150" show-overflow-tooltip>
+        <template #default="{ row }">
+          <el-button 
+            link 
+            type="primary" 
+            @click="copyText(row.lbxOrder)"
+          >
+            {{ row.lbxOrder }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="揽收单号" align="center" prop="externalOrder" min-width="150" show-overflow-tooltip>
+        <template #default="{ row }">
+          <el-button 
+            link 
+            type="primary" 
+            @click="copyText(row.externalOrder)"
+          >
+            {{ row.externalOrder }}
+          </el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="120" />
     </el-table>
     
@@ -437,7 +380,9 @@ const data = reactive({
     box5: null,
     box6: null,
     box7: null,
-    box8: null
+    box8: null,
+    lbxOrder: undefined,
+    externalOrder: undefined
   },
   rules: {
   }
@@ -523,7 +468,7 @@ function confirmPrepareWarehouse() {
 
 // 一键全店铺备仓
 function prepareAllShops() {
-  console.log('一键备仓所有店��');
+  console.log('一键备仓所有店铺');
   // 在这里添加一键备仓逻辑
   closePrepareWarehouseDialog();
   proxy.$modal.msgSuccess("所有店铺备仓成功");
@@ -750,6 +695,37 @@ function formatSendTime(sendTime) {
   
   // 格式化为 YYYY/MM/DD
   return `${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
+}
+
+// 添加复制文本的方法
+const copyText = async (text) => {
+  if (!text) return
+  
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage({
+      message: '复制成功',
+      type: 'success',
+      duration: 1500
+    })
+  } catch (err) {
+    // 降级处理方案
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      ElMessage({
+        message: '复制成功',
+        type: 'success',
+        duration: 1500
+      })
+    } catch (err) {
+      ElMessage.error('复制失败，请手动复制')
+    }
+    document.body.removeChild(textarea)
+  }
 }
 
 getList();
