@@ -93,7 +93,10 @@
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;"></right-toolbar>
     </el-row>
-
+    <div class="left-area">
+      <span class="card-title">店铺列表</span>
+      <el-tag type="info" effect="plain">共 {{ total }} 条</el-tag>
+    </div>
     <el-table
         v-loading="loading"
         :data="profitList"
@@ -157,29 +160,39 @@
       </el-table-column>
       <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
         <template #default="scope">
-          <span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>
+          <!--<span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>-->
+          <span>{{
+              (scope.row?.grossProfit - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb).toFixed(2) || '0.00'
+            }}</span>
         </template>
       </el-table-column>
       <el-table-column label="运营利润率" align="center" prop="actualCostProfitRate1" width="120" sortable>
         <template #default="scope">
-          <span>{{ (scope.row.actualCostProfitRate1 * 100).toFixed(1) + '%' }}</span>
+          <span>{{ ((scope.row?.grossProfit - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable/>
+      <el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable>
+        <template #default="scope">
+          <!--<span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>-->
+          <span>{{
+              (scope.row?.grossProfit - scope.row?.directCar + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb).toFixed(2) || '0.00'
+            }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="财务利润率" align="center" prop="orderActualProfitRate" width="120" sortable>
         <template #default="scope">
-          <span>{{ (scope.row.orderActualProfitRate * 100).toFixed(1) + '%' }}</span>
+          <span>{{ ((scope.row?.grossProfit - scope.row?.directCar + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>
         </template>
       </el-table-column>
       <!--<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>-->
       <!--<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>-->
       <!--<el-table-column label="自营+半托管营业额" align="center" prop="selfHalf托管Revenue" width="120" sortable/>-->
       <!--<el-table-column label="自营+半托管利润" align="center" prop="selfHalf托管Profit" width="120" sortable/>-->
-      <el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>
-        <template #default="scope">
-          <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>
-        </template>
-      </el-table-column>
+      <!--<el-table-column fixed = "right" label="利润率" align="center" prop="profitRate" width="80" sortable>-->
+      <!--  <template #default="scope">-->
+      <!--    <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>-->
+      <!--  </template>-->
+      <!--</el-table-column>-->
     </el-table>
 
     <el-dialog :title="title" v-model="open" width="700px" append-to-body>
@@ -294,7 +307,6 @@ const totalSubsidyAmount = ref(0);
 const totalActualRefundUsdAmount = ref(0);
 const totalDirectCarCost = ref(0);
 const totalDirectCar = ref(0);
-const totalActualCostProfit = ref(0);
 const totalSelfHalf托管Revenue = ref(0);
 const totalSelfHalf托管Profit = ref(0);
 const totalHalf托管Profit = ref(0);

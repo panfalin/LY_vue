@@ -59,8 +59,26 @@
         >
           <el-option label="2024-11" value="2024-11"></el-option>
           <el-option label="2024-10" value="2024-10"></el-option>
+          <el-option label="2024-09" value="2024-09"></el-option>
+          <el-option label="2024-08" value="2024-08"></el-option>
+          <el-option label="2024-07" value="2024-07"></el-option>
+          <el-option label="2024-06" value="2024-06"></el-option>
+          <el-option label="2024-05" value="2024-05"></el-option>
         </el-select>
       </el-form-item>
+      <!--<el-form-item label="月份（测试中）" prop="dateRange">-->
+      <!--  <el-date-picker-->
+      <!--    v-model="queryParams.dateRange"-->
+      <!--    type="monthrange"-->
+      <!--    range-separator="至"-->
+      <!--    start-placeholder="开始月份"-->
+      <!--    end-placeholder="结束月份"-->
+      <!--    format="YYYY-MM"-->
+      <!--    value-format="YYYY-MM"-->
+      <!--    :clearable="true"-->
+      <!--    @change="handleDateRangeChange"-->
+      <!--  />-->
+      <!--</el-form-item>-->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -306,7 +324,6 @@ const data = reactive({
     storeName: null,
     storeManager: null,
     category: '全托管',
-    mouth: '2024-11',
     moneyType: null,
     orderAmount: null,
     shippingFee: null,
@@ -346,7 +363,10 @@ const data = reactive({
     septemberProfit: null,
     septemberProfitRate: null,
     compareRevenue: null,
-    compareProfitRate: null
+    compareProfitRate: null,
+    dateRange: null,
+    beginTime: null,
+    endTime: null
   },
   rules: {}
 });
@@ -548,6 +568,16 @@ function reset() {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
+
+  // 将日期范围转换为开始和结束时间
+  if (queryParams.value.dateRange && queryParams.value.dateRange.length === 2) {
+    queryParams.value.beginTime = queryParams.value.dateRange[0];
+    queryParams.value.endTime = queryParams.value.dateRange[1];
+  } else {
+    queryParams.value.beginTime = null;
+    queryParams.value.endTime = null;
+  }
+
   getList();
 }
 
@@ -647,6 +677,17 @@ function getTableRowClass({ row }) {
 // 添加金额格式化函数
 const formatMoney = (num) => {
   return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// 日期范围变化处理函数
+function handleDateRangeChange(val) {
+  if (val && val.length === 2) {
+    queryParams.value.beginTime = val[0];
+    queryParams.value.endTime = val[1];
+  } else {
+    queryParams.value.beginTime = null;
+    queryParams.value.endTime = null;
+  }
 }
 
 </script>
