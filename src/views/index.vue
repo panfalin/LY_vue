@@ -96,6 +96,24 @@
         </el-form-item>
 
 
+        <el-form-item label="完成状态" prop="ifComplete">
+          <el-select
+              v-model="queryParams.ifComplete"
+              placeholder="请选择完成状态"
+              clearable
+              style="width: 200px"
+          >
+            <el-option
+                label="已完成"
+                value="已完成"
+            />
+            <el-option
+                label="未完成"
+                value="未完成"
+            />
+          </el-select>
+        </el-form-item>
+
 
 
         <el-form-item>
@@ -579,6 +597,7 @@ function reset() {
     status: null,
     totalInventory: null,
     latestPurchasePrice: null,
+    ifComplete:null,
     imageUrl: null
   };
   proxy.resetForm("productsRef");
@@ -787,7 +806,9 @@ const handleComplete = async (row) => {
     // 准备更新数据
     const taskData = {
       sId: row.sId,
-      logs: new Date().toLocaleString()
+      ifComplete:"已完成",
+      logs: new Date().toLocaleString(),
+      
     }
 
     console.log('准备发送的数据：', taskData) // 调试日志
@@ -803,11 +824,11 @@ const handleComplete = async (row) => {
       // 刷新列表
       getList()
     } else {
-      ElMessage.error(res.msg || '操作失败')
+
     }
   } catch (error) {
     console.log('发生错误：', error) // 调试日志
-    ElMessage.error('操作失败')
+
   }
 }
 

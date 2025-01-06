@@ -184,6 +184,7 @@
       <el-table-column label="箱号6" align="center" prop="box6" width="100" />
       <el-table-column label="箱号7" align="center" prop="box7" width="100" />
       <el-table-column label="箱号8" align="center" prop="box8" width="100" />
+      <el-table-column label="箱号9" align="center" prop="box9" width="100" />
       <el-table-column label="LBX单号" align="center" prop="lbxOrder" min-width="150" show-overflow-tooltip>
         <template #default="{ row }">
           <el-button 
@@ -271,6 +272,9 @@
         </el-form-item>
         <el-form-item label="箱号8" prop="box8">
           <el-input v-model="form.box8" placeholder="请输入箱号8" />
+        </el-form-item>
+        <el-form-item label="箱号9" prop="box9">
+          <el-input v-model="form.box9" placeholder="请输入箱号9" />
         </el-form-item>
       </el-form>
       <template #footer>
