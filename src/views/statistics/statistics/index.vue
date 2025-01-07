@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="98px">
       <el-form-item label="年份" prop="year">
         <el-input
           v-model="queryParams.year"
@@ -41,30 +41,25 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="在途数量" prop="transitQuantity">
+
+
+      <el-form-item label="可售天数大于" prop="saleDays">
         <el-input
-          v-model="queryParams.transitQuantity"
-          placeholder="请输入在途数量"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.saleDays"
+            placeholder="请输入可售天数大于"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="库存数量" prop="stockQuantity">
+      <el-form-item label="订单类型" prop="category">
         <el-input
-          v-model="queryParams.stockQuantity"
-          placeholder="请输入库存数量"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.category"
+            placeholder="请输入订单类型"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="未发货数" prop="unshippedQuantity">
-        <el-input
-          v-model="queryParams.unshippedQuantity"
-          placeholder="请输入未发货数"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -116,24 +111,44 @@
     <el-table v-loading="loading" :data="statisticsList" @selection-change="handleSelectionChange "@sort-change="handleSortChange" >
       <el-table-column type="selection" width="55" align="center" />
       <!-- <el-table-column label="主键ID" align="center" prop="sId" /> -->
-      <el-table-column label="年份" align="center" prop="year" sortable />
-      <el-table-column label="月份" align="center" prop="moon" sortable />
-      <el-table-column label="SKU" align="center" prop="sku" sortable/>
-      <el-table-column label="商品数量" align="center" prop="quantity"sortable />
-      <el-table-column label="实际利润" align="center" prop="actualProfit" sortable/>
-      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable/>
-      <el-table-column label="库存数量" align="center" prop="stockQuantity" sortable/>
-      <el-table-column label="未发货数" align="center" prop="unshippedQuantity"sortable />
-      <el-table-column label="成本价格" align="center" prop="costPrice" sortable/>
-      <el-table-column label="库存金额" align="center" prop="inventoryCost" sortable/>
-      <el-table-column label="销售金额" align="center" prop="loanAmount"sortable />
+      <el-table-column label="年份" align="center" prop="year" sortable width="60" />
+      <el-table-column label="月份" align="center" prop="moon" sortable width="60" />
+      <el-table-column label="SKU" align="center" prop="sku" sortable width="120"/>
+      <el-table-column label="SKU状态" align="center" prop="skuState" sortable/>
+      <el-table-column label="订单类型" align="center" prop="category" sortable/>
+      <el-table-column label="销售数量" align="center" prop="quantity"sortable />
       <el-table-column label="日均销量" align="center" prop="dailyAvgSales"sortable />
+      <el-table-column label="市场容量" align="center" prop="marketCapacity"sortable />
+      <el-table-column label="销售金额" align="center" prop="loanAmount"sortable />
+      <el-table-column label="实际利润" align="center" prop="actualProfit" sortable/>
       <el-table-column label="利润率%" align="center" prop="profitMargin" sortable>
+        <template #default="{ row }">
+          {{ row.profitMargin ? `${row.profitMargin}%` : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="成本价格" align="center" prop="costPrice" sortable />
+      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable />
+      <!-- <el-table-column label="库存数量" align="center" prop="stockQuantity" sortable/> -->
+      <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>
+      <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>
+      <el-table-column label="未发货数" align="center" prop="unshippedQuantity"sortable  />
+      <el-table-column label="总库存数量" align="center" prop="stockQuantity" sortable width="100"/>
+      <el-table-column label="库存金额" align="center" prop="inventoryCost" sortable/>
+      <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">
       <template #default="{ row }">
-        {{ row.profitMargin ? `${row.profitMargin}%` : '-' }}
+        {{ row.monthlyReturn === null || row.monthlyReturn === undefined ? '-' : (row.monthlyReturn === 0 ? '0%' : `${row.monthlyReturn}%`) }}
       </template>
-
-</el-table-column>
+      </el-table-column>
+      <el-table-column label="周转率%" align="center" prop="inventoryTurns" sortable >
+        <template #default="{ row }">
+          {{ row.inventoryTurns === null || row.inventoryTurns === undefined ? '-' : (row.inventoryTurns === 0 ? '0%' : `${row.inventoryTurns}%`) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="回报率%" align="center" prop="returnRate" sortable >
+        <template #default="{ row }">
+          {{ row.returnRate === null || row.returnRate === undefined ? '-' : (row.returnRate === 0 ? '0%' : `${row.returnRate}%`) }}
+        </template>
+      </el-table-column>
       <el-table-column label="可售天数" align="center" prop="saleDays" sortable/>
     
     </el-table>
@@ -257,7 +272,9 @@ function reset() {
     actualProfit: null,
     transitQuantity: null,
     stockQuantity: null,
-    unshippedQuantity: null
+    unshippedQuantity: null,
+    saleDays: null,
+    category: null,
   };
   proxy.resetForm("statisticsRef");
 }
