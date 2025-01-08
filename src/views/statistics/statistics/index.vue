@@ -127,29 +127,29 @@
         </template>
       </el-table-column>
       <el-table-column label="成本价格" align="center" prop="costPrice" sortable />
-      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable />
-      <!-- <el-table-column label="库存数量" align="center" prop="stockQuantity" sortable/> -->
-      <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>
-      <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>
-      <el-table-column label="未发货数" align="center" prop="unshippedQuantity"sortable  />
-      <el-table-column label="总库存数量" align="center" prop="stockQuantity" sortable width="100"/>
-      <el-table-column label="库存金额" align="center" prop="inventoryCost" sortable/>
-      <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">
-      <template #default="{ row }">
-        {{ row.monthlyReturn === null || row.monthlyReturn === undefined ? '-' : (row.monthlyReturn === 0 ? '0%' : `${row.monthlyReturn}%`) }}
-      </template>
-      </el-table-column>
-      <el-table-column label="周转率%" align="center" prop="inventoryTurns" sortable >
-        <template #default="{ row }">
-          {{ row.inventoryTurns === null || row.inventoryTurns === undefined ? '-' : (row.inventoryTurns === 0 ? '0%' : `${row.inventoryTurns}%`) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="回报率%" align="center" prop="returnRate" sortable >
-        <template #default="{ row }">
-          {{ row.returnRate === null || row.returnRate === undefined ? '-' : (row.returnRate === 0 ? '0%' : `${row.returnRate}%`) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="可售天数" align="center" prop="saleDays" sortable/>
+<!--      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable />-->
+<!--&lt;!&ndash;       <el-table-column label="库存数量" align="center" prop="stockQuantity" sortable/> &ndash;&gt;-->
+<!--      <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>-->
+<!--      <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>-->
+<!--      <el-table-column label="未发货数" align="center" prop="unshippedQuantity"sortable  />-->
+<!--      <el-table-column label="总库存数量" align="center" prop="stockQuantity" sortable width="100"/>-->
+<!--      <el-table-column label="库存金额" align="center" prop="inventoryCost" sortable/>-->
+<!--      <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">-->
+<!--      <template #default="{ row }">-->
+<!--        {{ row.monthlyReturn === null || row.monthlyReturn === undefined ? '-' : (row.monthlyReturn === 0 ? '0%' : `${row.monthlyReturn}%`) }}-->
+<!--      </template>-->
+<!--      </el-table-column>-->
+<!--      <el-table-column label="周转率%" align="center" prop="inventoryTurns" sortable >-->
+<!--        <template #default="{ row }">-->
+<!--          {{ row.inventoryTurns === null || row.inventoryTurns === undefined ? '-' : (row.inventoryTurns === 0 ? '0%' : `${row.inventoryTurns}%`) }}-->
+<!--        </template>-->
+<!--      </el-table-column>-->
+<!--      <el-table-column label="回报率%" align="center" prop="returnRate" sortable >-->
+<!--        <template #default="{ row }">-->
+<!--          {{ row.returnRate === null || row.returnRate === undefined ? '-' : (row.returnRate === 0 ? '0%' : `${row.returnRate}%`) }}-->
+<!--        </template>-->
+<!--      </el-table-column>-->
+<!--      <el-table-column label="可售天数" align="center" prop="saleDays" sortable/>-->
     
     </el-table>
     
