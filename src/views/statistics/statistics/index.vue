@@ -2,20 +2,34 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="98px">
       <el-form-item label="年份" prop="year">
-        <el-input
-          v-model="queryParams.year"
-          placeholder="请输入年份"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.year"
+            placeholder="请选择年份"
+            clearable
+            style="width: 193px"
+        >
+          <el-option
+              v-for="year in yearOptions"
+              :key="year"
+              :label="year"
+              :value="year"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="月份" prop="moon">
-        <el-input
-          v-model="queryParams.moon"
-          placeholder="请输入月份"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.moon"
+            placeholder="请选择月份"
+            clearable
+            style="width: 193px"
+        >
+          <el-option
+              v-for="month in monthOptions"
+              :key="month"
+              :label="`${month}月`"
+              :value="month"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="SKU" prop="sku">
         <el-input
@@ -51,13 +65,35 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
+<!--       新增的订单类型下拉框-->
       <el-form-item label="订单类型" prop="category">
-        <el-input
+        <el-select
             v-model="queryParams.category"
-            placeholder="请输入订单类型"
+            placeholder="请选择订单类型"
             clearable
-            @keyup.enter="handleQuery"
-        />
+            style="width: 200px"
+        >
+          <el-option
+              label="全托管-仓发"
+              value="全托管-仓发"
+          />
+          <el-option
+              label="全托管-JIT"
+              value="全托管-JIT"
+          />
+          <el-option
+              label="半托管-JIT"
+              value="半托管-JIT"
+          />
+          <el-option
+              label="半托管-仓发"
+              value="半托管-仓发"
+          />
+          <el-option
+              label="POP-自发"
+              value="POP-自发"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item>
@@ -67,35 +103,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <!-- <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['statistics:statistics:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['statistics:statistics:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['statistics:statistics:remove']"
-        >删除</el-button>
-      </el-col> -->
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -110,10 +117,10 @@
 
     <el-table v-loading="loading" :data="statisticsList" @selection-change="handleSelectionChange "@sort-change="handleSortChange" >
       <el-table-column type="selection" width="55" align="center" />
-      <!-- <el-table-column label="主键ID" align="center" prop="sId" /> -->
       <el-table-column label="年份" align="center" prop="year" sortable width="60" />
       <el-table-column label="月份" align="center" prop="moon" sortable width="60" />
       <el-table-column label="SKU" align="center" prop="sku" sortable width="120"/>
+      <el-table-column label="SKU负责人" align="center" prop="personCharge" sortable/>
       <el-table-column label="SKU状态" align="center" prop="skuState" sortable/>
       <el-table-column label="订单类型" align="center" prop="category" sortable/>
       <el-table-column label="销售数量" align="center" prop="quantity"sortable />
@@ -127,30 +134,6 @@
         </template>
       </el-table-column>
       <el-table-column label="成本价格" align="center" prop="costPrice" sortable />
-<!--      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable />-->
-<!--&lt;!&ndash;       <el-table-column label="库存数量" align="center" prop="stockQuantity" sortable/> &ndash;&gt;-->
-<!--      <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>-->
-<!--      <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>-->
-<!--      <el-table-column label="未发货数" align="center" prop="unshippedQuantity"sortable  />-->
-<!--      <el-table-column label="总库存数量" align="center" prop="stockQuantity" sortable width="100"/>-->
-<!--      <el-table-column label="库存金额" align="center" prop="inventoryCost" sortable/>-->
-<!--      <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">-->
-<!--      <template #default="{ row }">-->
-<!--        {{ row.monthlyReturn === null || row.monthlyReturn === undefined ? '-' : (row.monthlyReturn === 0 ? '0%' : `${row.monthlyReturn}%`) }}-->
-<!--      </template>-->
-<!--      </el-table-column>-->
-<!--      <el-table-column label="周转率%" align="center" prop="inventoryTurns" sortable >-->
-<!--        <template #default="{ row }">-->
-<!--          {{ row.inventoryTurns === null || row.inventoryTurns === undefined ? '-' : (row.inventoryTurns === 0 ? '0%' : `${row.inventoryTurns}%`) }}-->
-<!--        </template>-->
-<!--      </el-table-column>-->
-<!--      <el-table-column label="回报率%" align="center" prop="returnRate" sortable >-->
-<!--        <template #default="{ row }">-->
-<!--          {{ row.returnRate === null || row.returnRate === undefined ? '-' : (row.returnRate === 0 ? '0%' : `${row.returnRate}%`) }}-->
-<!--        </template>-->
-<!--      </el-table-column>-->
-<!--      <el-table-column label="可售天数" align="center" prop="saleDays" sortable/>-->
-    
     </el-table>
     
     <pagination
@@ -354,6 +337,18 @@ function handleExport() {
     ...queryParams.value
   }, `statistics_${new Date().getTime()}.xlsx`)
 }
+// 添加年份选项（前后5年）
+const yearOptions = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const years = []
+  for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+    years.push(i)
+  }
+  return years
+})
+
+// 添加月份选项（1-12月）
+const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 
 getList();
 </script>

@@ -2,20 +2,34 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="98px">
       <el-form-item label="年份" prop="year">
-        <el-input
-          v-model="queryParams.year"
-          placeholder="请输入年份"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.year"
+            placeholder="请选择年份"
+            clearable
+            style="width: 180px"
+        >
+          <el-option
+              v-for="year in yearOptions"
+              :key="year"
+              :label="year"
+              :value="year"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="月份" prop="moon">
-        <el-input
-          v-model="queryParams.moon"
-          placeholder="请输入月份"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.moon"
+            placeholder="请选择月份"
+            clearable
+            style="width: 180px"
+        >
+          <el-option
+              v-for="month in monthOptions"
+              :key="month"
+              :label="`${month}月`"
+              :value="month"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="店铺名称" prop="storeName">
         <el-input
@@ -25,32 +39,28 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="SKU" prop="sku">
-        <el-input
-          v-model="queryParams.sku"
-          placeholder="请输入SKU"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="SKU状态" prop="skuState">
-        <el-input
-          v-model="queryParams.skuState"
-          placeholder="请输入SKU状态"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-
-      <el-form-item label="可售天数" prop="saleDays">
-        <el-input
-          v-model="queryParams.saleDays"
-          placeholder="请输入可售天数"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-
+      <!-- 新增的筛选建议事项下拉框 -->
+              <el-form-item label="店铺类型" prop="storeType">
+                <el-select
+                    v-model="queryParams.storeType"
+                    placeholder="请选择店铺类型"
+                    clearable
+                    style="width: 200px"
+                >
+                  <el-option
+                      label="全托管"
+                      value="全托管"
+                  />
+                  <el-option
+                      label="半托管"
+                      value="半托管"
+                  />
+                  <el-option
+                      label="POP"
+                      value="POP"
+                  />
+                </el-select>
+              </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -82,11 +92,11 @@
       <el-table-column label="店铺名称" align="center" prop="storeName" sortable  width="260"/>
 
       <!-- POP-自发 -->
-      <el-table-column label="POP-自发" align="center">
-        <el-table-column label="销量" align="center" prop="quantityPop" sortable />
+      <el-table-column label="POP-自发" align="center" class-name="group-parent">
+        <el-table-column label="销量" align="center" prop="quantityPop" sortable   class-name="first-column"/>
         <el-table-column label="利润" align="center" prop="actualProfitPop" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountPop" sortable width="90"/>
-        <el-table-column label="利润率%" align="center" prop="profitMarginPop" sortable width="90">
+        <el-table-column label="利润率%" align="center" prop="profitMarginPop" sortable width="90"  class-name="last-column">
           <template #default="{ row }">
             {{ row.profitMarginPop ? `${row.profitMarginPop}%` : '-' }}
           </template>
@@ -95,11 +105,11 @@
       </el-table-column>
 
       <!-- 半托管-JIT -->
-      <el-table-column label="半托管-JIT" align="center">
+      <el-table-column label="半托管-JIT" align="center" class-name="group-parent">
         <el-table-column label="销量" align="center" prop="quantityJitHalf" sortable  />
         <el-table-column label="利润" align="center" prop="actualProfitJitHalf" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountJitHalf" sortable  width="90"/>
-        <el-table-column label="利润率%" align="center" prop="profitMarginJitHalf" sortable width="90">
+        <el-table-column label="利润率%" align="center" prop="profitMarginJitHalf" sortable width="90"  class-name="last-column">
           <template #default="{ row }">
             {{ row.profitMarginJitHalf ? `${row.profitMarginJitHalf}%` : '-' }}
           </template>
@@ -107,11 +117,11 @@
       </el-table-column>
 
       <!-- 半托管-仓发 -->
-      <el-table-column label="半托管-仓发" align="center">
+      <el-table-column label="半托管-仓发" align="center" class-name="group-parent">
         <el-table-column label="销量" align="center" prop="quantityWarehouseHalf" sortable  />
         <el-table-column label="利润" align="center" prop="actualProfitWarehouseHalf" sortable  />
         <el-table-column label="销售金额" align="center" prop="loanAmountWarehouseHalf" sortable width="90" />
-        <el-table-column label="利润率%" align="center" prop="profitMarginWarehouseHalf" sortable width="90">
+        <el-table-column label="利润率%" align="center" prop="profitMarginWarehouseHalf" sortable width="90" class-name="last-column">
           <template #default="{ row }">
             {{ row.profitMarginWarehouseHalf ? `${row.profitMarginWarehouseHalf}%` : '-' }}
           </template>
@@ -119,11 +129,11 @@
       </el-table-column>
 
       <!-- 全托管-JIT -->
-      <el-table-column label="全托管-JIT" align="center">
+      <el-table-column label="全托管-JIT" align="center"class-name="group-parent">
         <el-table-column label="销量" align="center" prop="quantityAllJit" sortable />
         <el-table-column label="利润" align="center" prop="actualProfitAllJit" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountAllJit" sortable width="90"/>
-        <el-table-column label="利润率%" align="center" prop="profitMarginAllJit" sortable width="90">
+        <el-table-column label="利润率%" align="center" prop="profitMarginAllJit" sortable width="90"class-name="last-column">
           <template #default="{ row }">
             {{ row.profitMarginAllJit ? `${row.profitMarginAllJit}%` : '-' }}
           </template>
@@ -131,11 +141,11 @@
       </el-table-column>
 
       <!-- 全托管-仓发 -->
-      <el-table-column label="全托管-仓发" align="center">
+      <el-table-column label="全托管-仓发" align="center"class-name="group-parent">
         <el-table-column label="销量" align="center" prop="quantityAllWarehouse" sortable />
         <el-table-column label="利润" align="center" prop="actualProfitAllWarehouse" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountAllWarehouse" sortable width="90"/>
-        <el-table-column label="利润率%" align="center" prop="profitMarginAllWarehouse" sortable width="90">
+        <el-table-column label="利润率%" align="center" prop="profitMarginAllWarehouse" sortable width="90"class-name="last-column">
           <template #default="{ row }">
             {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse}%` : '-' }}
           </template>
@@ -415,5 +425,95 @@ function handleExport() {
   }, `statistics_shops_${new Date().getTime()}.xlsx`)
 }
 
+// 添加年份选项（前后5年）
+const yearOptions = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const years = []
+  for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+    years.push(i)
+  }
+  return years
+})
+
+// 添加月份选项（1-12月）
+const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+
 getList();
 </script>
+
+<style>
+/* 大类的左右边框 */
+.el-table .pop-column > .el-table__header-wrapper th.is-leaf,
+.el-table .pop-column > .el-table__body-wrapper td {
+  position: relative;
+}
+
+/* 大类的左边框 */
+.el-table .pop-column > .el-table__header-wrapper th.is-leaf:first-child::before,
+.el-table .pop-column > .el-table__body-wrapper td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #000;
+}
+
+/* 大类的右边框 */
+.el-table .pop-column > .el-table__header-wrapper th.is-leaf:last-child::after,
+.el-table .pop-column > .el-table__body-wrapper td:last-child::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #000;
+}
+
+/* 小类中销量列的左边框 */
+.el-table .pop-column .el-table-column--sales th:first-child,
+.el-table .pop-column .el-table-column--sales td:first-child {
+  border-left: 3px solid #000 !important;
+}
+
+/* 小类中利润率列的右边框 */
+.el-table .pop-column .el-table-column--profit-rate th:last-child,
+.el-table .pop-column .el-table-column--profit-rate td:last-child {
+  border-right: 3px solid #000 !important;
+}
+
+/* 分组父列的左右边框 */
+.el-table .group-parent {
+  border-left: 3px solid #DCDFE6;
+  border-right: 3px solid #DCDFE6;
+}
+
+/* 第一个子列的左边框 */
+.el-table .first-column {
+  border-left: 3px solid #DCDFE6 !important;
+}
+
+/* 最后一个子列的右边框 */
+.el-table .last-column {
+  border-right: 3px solid #DCDFE6 !important;
+}
+
+/* 确保边框显示 */
+.el-table__body td.first-column,
+.el-table__header th.first-column {
+  border-left: 3px solid #DCDFE6 !important;
+}
+
+.el-table__body td.last-column,
+.el-table__header th.last-column {
+  border-right: 3px solid #DCDFE6 !important;
+}
+
+/* 处理边框重叠 */
+.el-table .group-parent + .group-parent {
+  border-left: none;
+}
+</style>
+
