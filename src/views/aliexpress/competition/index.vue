@@ -132,21 +132,195 @@
 
     <el-table v-loading="loading" :data="competitionList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-<!--      <el-table-column label="${comment}" align="center" prop="sId" />-->
-      <el-table-column label="sku" align="center" prop="sku"  width="180" />
+      <el-table-column label="sku" align="center" prop="sku" width="180" />
       <el-table-column label="负责人" align="center" prop="skuPerson" />
-      <!-- <el-table-column label="竞对类型" align="center" prop="orderType" /> -->
-      <el-table-column label="POP竞对" align="center" prop="publicationIdPop" />
-      <el-table-column label="全托管竞对" align="center" prop="publicationIdAll" />
-      <el-table-column label="半托管竞对" align="center" prop="publicationIdHalf" />
-      <!-- <el-table-column label="下载链接" align="center" prop="link" /> -->
-      <!-- <el-table-column label="爬取状态" align="center" prop="crawlStatus" /> -->
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="POP竞对" align="center" prop="publicationIdPop">
+        <template #default="scope">
+          <div v-if="scope.row.isEditingPop" class="competition-inputs">
+            <div class="competition-inputs-container">
+              <div v-for="(id, index) in scope.row.tempPopIds" :key="index" class="competition-input-item">
+                <el-input
+                  v-model="scope.row.tempPopIds[index]"
+                  placeholder="请输入竞对ID"
+                >
+                  <template #prefix>
+                    <el-icon><Document /></el-icon>
+                  </template>
+                </el-input>
+                <el-icon 
+                  class="delete-icon" 
+                  @click="removeId(scope.row, 'pop', index)" 
+                  v-if="scope.row.tempPopIds.length > 1"
+                >
+                  <Delete />
+                </el-icon>
+              </div>
+              <div class="competition-buttons">
+                <el-button 
+                  v-if="scope.row.tempPopIds.length < 5"
+                  type="primary" 
+                  link 
+                  @click="addNewId(scope.row, 'pop')"
+                >
+                  <el-icon><Plus /></el-icon> 添加竞对
+                </el-button>
+                <el-button 
+                  type="primary"
+                  size="small"
+                  @click="handleSaveIds(scope.row, 'pop')"
+                >
+                  <el-icon><Check /></el-icon> 保存
+                </el-button>
+              </div>
+            </div>
+          </div>
+          <div v-else @click="handleEditIds(scope.row, 'pop')" class="competition-cell">
+            <template v-if="scope.row.publicationIdPop">
+              <div class="competition-tags-vertical">
+                <div
+                  v-for="(id, index) in scope.row.publicationIdPop.split(',')"
+                  :key="index"
+                  class="competition-tag-item"
+                >
+                  {{ id }}
+                </div>
+              </div>
+            </template>
+            <div v-else class="add-competition-placeholder">
+              <el-icon><Plus /></el-icon>
+              <span>点击添加竞对</span>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="全托管竞对" align="center" prop="publicationIdAll">
+        <template #default="scope">
+          <div v-if="scope.row.isEditingAll" class="competition-inputs">
+            <div class="competition-inputs-container">
+              <div v-for="(id, index) in scope.row.tempAllIds" :key="index" class="competition-input-item">
+                <el-input
+                  v-model="scope.row.tempAllIds[index]"
+                  placeholder="请输入竞对ID"
+                >
+                  <template #prefix>
+                    <el-icon><Document /></el-icon>
+                  </template>
+                </el-input>
+                <el-icon 
+                  class="delete-icon" 
+                  @click="removeId(scope.row, 'all', index)" 
+                  v-if="scope.row.tempAllIds.length > 1"
+                >
+                  <Delete />
+                </el-icon>
+              </div>
+              <div class="competition-buttons">
+                <el-button 
+                  v-if="scope.row.tempAllIds.length < 5"
+                  type="primary" 
+                  link 
+                  @click="addNewId(scope.row, 'all')"
+                >
+                  <el-icon><Plus /></el-icon> 添加竞对
+                </el-button>
+                <el-button 
+                  type="primary"
+                  size="small"
+                  @click="handleSaveIds(scope.row, 'all')"
+                >
+                  <el-icon><Check /></el-icon> 保存
+                </el-button>
+              </div>
+            </div>
+          </div>
+          <div v-else @click="handleEditIds(scope.row, 'all')" class="competition-cell">
+            <template v-if="scope.row.publicationIdAll">
+              <div class="competition-tags">
+                <el-tag
+                  v-for="(id, index) in scope.row.publicationIdAll.split(',')"
+                  :key="index"
+                  class="competition-tag"
+                  type="info"
+                  effect="plain"
+                >
+                  {{ id }}
+                </el-tag>
+              </div>
+            </template>
+            <div v-else class="add-competition-placeholder">
+              <el-icon><Plus /></el-icon>
+              <span>点击添加竞对</span>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="半托管竞对" align="center" prop="publicationIdHalf">
+        <template #default="scope">
+          <div v-if="scope.row.isEditingHalf" class="competition-inputs">
+            <div class="competition-inputs-container">
+              <div v-for="(id, index) in scope.row.tempHalfIds" :key="index" class="competition-input-item">
+                <el-input
+                  v-model="scope.row.tempHalfIds[index]"
+                  placeholder="请输入竞对ID"
+                >
+                  <template #prefix>
+                    <el-icon><Document /></el-icon>
+                  </template>
+                </el-input>
+                <el-icon 
+                  class="delete-icon" 
+                  @click="removeId(scope.row, 'half', index)" 
+                  v-if="scope.row.tempHalfIds.length > 1"
+                >
+                  <Delete />
+                </el-icon>
+              </div>
+              <div class="competition-buttons">
+                <el-button 
+                  v-if="scope.row.tempHalfIds.length < 5"
+                  type="primary" 
+                  link 
+                  @click="addNewId(scope.row, 'half')"
+                >
+                  <el-icon><Plus /></el-icon> 添加竞对
+                </el-button>
+                <el-button 
+                  type="primary"
+                  size="small"
+                  @click="handleSaveIds(scope.row, 'half')"
+                >
+                  <el-icon><Check /></el-icon> 保存
+                </el-button>
+              </div>
+            </div>
+          </div>
+          <div v-else @click="handleEditIds(scope.row, 'half')" class="competition-cell">
+            <template v-if="scope.row.publicationIdHalf">
+              <div class="competition-tags">
+                <el-tag
+                  v-for="(id, index) in scope.row.publicationIdHalf.split(',')"
+                  :key="index"
+                  class="competition-tag"
+                  type="info"
+                  effect="plain"
+                >
+                  {{ id }}
+                </el-tag>
+              </div>
+            </template>
+            <div v-else class="add-competition-placeholder">
+              <el-icon><Plus /></el-icon>
+              <span>点击添加竞对</span>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['aliexpress:competition:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['aliexpress:competition:remove']">删除</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
     </el-table>
     
     <pagination
@@ -229,6 +403,7 @@
 
 <script setup name="Competition">
 import { listCompetition, getCompetition, delCompetition, addCompetition, updateCompetition } from "@/api/aliexpress/competition";
+import { Plus, Delete, Document, Check } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance();
 
@@ -284,7 +459,15 @@ const removeInput = (type, index) => {
 function getList() {
   loading.value = true;
   listCompetition(queryParams.value).then(response => {
-    competitionList.value = response.rows;
+    competitionList.value = response.rows.map(row => ({
+      ...row,
+      isEditingPop: false,
+      isEditingAll: false,
+      isEditingHalf: false,
+      tempPopIds: row.publicationIdPop ? row.publicationIdPop.split(',') : [''],
+      tempAllIds: row.publicationIdAll ? row.publicationIdAll.split(',') : [''],
+      tempHalfIds: row.publicationIdHalf ? row.publicationIdHalf.split(',') : ['']
+    }));
     total.value = response.total;
     loading.value = false;
   });
@@ -401,6 +584,73 @@ function handleExport() {
   }, `competition_${new Date().getTime()}.xlsx`)
 }
 
+// 添加处理竞对ID变化的函数
+function handleCompetitorChange(val, row, type) {
+  const typeMap = {
+    'pop': 'publicationIdPop',
+    'all': 'publicationIdAll',
+    'half': 'publicationIdHalf'
+  };
+  
+  const updatedData = {
+    sId: row.sId,
+    [typeMap[type]]: val.join(',')
+  };
+  
+  updateCompetition(updatedData).then(response => {
+    proxy.$modal.msgSuccess("修改成功");
+    getList();
+  }).catch(() => {
+    getList(); // 如果失败，重新加载数据
+  });
+}
+
+// 处理编辑状态
+function handleEditIds(row, type) {
+  row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = true;
+}
+
+// 添加新的ID输入框
+function addNewId(row, type) {
+  const tempField = `temp${type.charAt(0).toUpperCase() + type.slice(1)}Ids`;
+  if (row[tempField].length < 5) {
+    row[tempField].push('');
+  }
+}
+
+// 删除ID输入框
+function removeId(row, type, index) {
+  const tempField = `temp${type.charAt(0).toUpperCase() + type.slice(1)}Ids`;
+  row[tempField].splice(index, 1);
+}
+
+// 处理保存ID
+function handleSaveIds(row, type) {
+  const tempField = `temp${type.charAt(0).toUpperCase() + type.slice(1)}Ids`;
+  const actualField = `publicationId${type.charAt(0).toUpperCase() + type.slice(1)}`;
+  
+  // 过滤空值并验证数量
+  const ids = row[tempField].filter(id => id.trim());
+  if (ids.length > 5) {
+    proxy.$modal.msgError("竞对ID不能超过5个");
+    return;
+  }
+
+  const updatedData = {
+    sId: row.sId,
+    [actualField]: ids.join(',')
+  };
+
+  updateCompetition(updatedData).then(response => {
+    row[actualField] = ids.join(',');
+    row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
+    proxy.$modal.msgSuccess("修改成功");
+  }).catch(() => {
+    row[tempField] = row[actualField] ? row[actualField].split(',') : [''];
+    row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
+  });
+}
+
 getList();
 </script>
 
@@ -410,5 +660,204 @@ getList();
   margin-bottom: 5px;
   align-items: center;
   gap: 5px;
+}
+
+.competition-cell {
+  cursor: pointer;
+  padding: 8px;
+  min-height: 40px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.competition-cell:hover {
+  background-color: var(--el-fill-color-light);
+}
+
+.competition-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.competition-tag {
+  margin: 2px;
+  transition: all 0.3s;
+}
+
+.competition-tag:hover {
+  transform: translateY(-1px);
+}
+
+.add-competition-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  height: 32px;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.add-competition-placeholder:hover {
+  color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+}
+
+.competition-inputs-container {
+  background-color: var(--el-fill-color-blank);
+  border-radius: 4px;
+  padding: 12px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.competition-input-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.competition-input-item:last-child {
+  margin-bottom: 0;
+}
+
+.competition-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.delete-icon {
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--el-color-danger);
+  transition: all 0.3s;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--el-color-danger-light-9);
+}
+
+.delete-icon:hover {
+  background-color: var(--el-color-danger-light-7);
+  transform: scale(1.1);
+  color: var(--el-color-danger-dark-2);
+}
+
+/* 添加动画效果 */
+.competition-inputs-container {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 表格hover效果 */
+:deep(.el-table__row) {
+  transition: all 0.3s;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: var(--el-fill-color-lighter) !important;
+}
+
+/* 输入框样式优化 */
+:deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
+  transition: all 0.3s;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+}
+
+.competition-tags-horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+}
+
+.competition-tag {
+  margin: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.competition-tag:hover {
+  transform: translateY(-1px);
+}
+
+.competition-cell {
+  cursor: pointer;
+  padding: 4px 8px;
+  min-height: 40px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.competition-tags-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.competition-tag-item {
+  padding: 8px 12px;
+  background-color: var(--el-fill-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  text-align: center;
+  transition: all 0.3s;
+  margin: 2px 0;
+  font-size: 14px;
+  color: var(--el-text-color-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.competition-tag-item:hover {
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.competition-cell {
+  cursor: pointer;
+  padding: 4px;
+  min-height: 40px;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 </style>
