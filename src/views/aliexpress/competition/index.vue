@@ -133,7 +133,23 @@
     <el-table v-loading="loading" :data="competitionList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="sku" align="center" prop="sku" width="180" />
-      <el-table-column label="负责人" align="center" prop="skuPerson" />
+      <el-table-column label="负责人" align="center" prop="skuPerson">
+        <template #default="scope">
+          <el-select
+            v-model="scope.row.skuPerson"
+            placeholder="请选择负责人"
+            @change="handlePersonChange(scope.row)"
+            style="width: 120px"
+          >
+            <el-option
+              v-for="item in personOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="POP竞对" align="center" prop="publicationIdPop">
         <template #default="scope">
           <div v-if="scope.row.isEditingPop" class="competition-inputs">
@@ -651,6 +667,41 @@ function handleSaveIds(row, type) {
   });
 }
 
+// 修改负责人选项
+const personOptions = ref([
+  { label: '夏慧颖', value: '夏慧颖' },
+  { label: '赵世杰', value: '赵世杰' },
+  { label: '陈雪芳', value: '陈雪芳' },
+  { label: 'voice', value: 'voice' },
+  { label: '沈娟', value: '沈娟' }
+]);
+
+// 处理负责人变更
+function handlePersonChange(row) {
+  const updatedData = {
+    sId: row.sId,
+    sku: row.sku,
+    skuPerson: row.skuPerson,
+    publicationIdPop: row.publicationIdPop,
+    publicationIdAll: row.publicationIdAll,
+    publicationIdHalf: row.publicationIdHalf
+  };
+
+  updateCompetition(updatedData).then(response => {
+    if (response.code === 200) {
+      proxy.$modal.msgSuccess("修改成功");
+      getList(); // 重新加载列表以确保数据同步
+    } else {
+      proxy.$modal.msgError("修改失败");
+      getList(); // 如果失败，重新加载数据
+    }
+  }).catch(error => {
+    console.error('更新失败:', error);
+    proxy.$modal.msgError("更新失败，请重试");
+    getList(); // 如果失败，重新加载数据
+  });
+}
+
 getList();
 </script>
 
@@ -859,5 +910,17 @@ getList();
   min-height: 40px;
   border-radius: 4px;
   transition: all 0.3s;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  padding: 0 8px;
+}
+
+:deep(.el-select) {
+  width: 120px;
+}
+
+:deep(.el-select:hover .el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
 }
 </style>
