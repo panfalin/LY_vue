@@ -184,8 +184,71 @@
       <!--    <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>-->
       <!--  </template>-->
       <!--</el-table-column>-->
-      <el-table-column label="备仓利润" align="center" prop="septemberProfit" width="120" sortable/>
-      <el-table-column label="jit利润" align="center" prop="septemberProfitRate" width="120" sortable/>
+      <el-table-column label="总供货价金额" align="center" prop="null" width="120" sortable/>
+      <el-table-column label="全托管-JIT" align="center" class-name="group-parent" width="400">
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityAllJit"
+            sortable
+            width="100"
+            class-name="first-column"
+        />
+        <el-table-column
+            label="利润"
+            align="center"
+            prop="septemberProfitRate"
+            sortable
+            width="100"
+        />
+        <el-table-column
+            label="供货价金额"
+            align="center"
+            prop="loanAmountAllJit"
+            sortable
+            width="100"
+        />
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginAllJit"
+            sortable
+            width="100"
+            class-name="last-column"
+        >
+          <template #default="{ row }">
+            {{ row.profitMarginAllJit ? `${row.profitMarginAllJit}%` : '-' }}
+          </template>
+        </el-table-column>
+      </el-table-column>
+
+      <!-- 全托管-仓发 -->
+      <el-table-column label="全托管-仓发" align="center" class-name="group-parent" width="400">
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityAllWarehouse"
+            sortable
+            width="100"
+            class-name="first-column"
+        />
+        <el-table-column label="利润" align="center" prop="septemberProfit" sortable/>
+        <el-table-column label="供货价金额" align="center" prop="loanAmountAllWarehouse" sortable width="90"/>
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginAllWarehouse"
+            sortable
+            width="90"
+            class-name="last-column"
+        >
+          <template #default="{ row }">
+            {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse}%` : '-' }}
+          </template>
+        </el-table-column>
+      </el-table-column>
+      <!--<el-table-column label="备仓利润" align="center" prop="septemberProfit" width="120" sortable/>-->
+      <!--<el-table-column label="jit利润" align="center" prop="septemberProfitRate" width="120" sortable/>-->
       <el-table-column label="当月揽收费用" align="center" prop="septemberRevenue" width="120" sortable/>
       <el-table-column label="上月活动差价" align="center" prop="compareRevenue" width="120" sortable/>
       <el-table-column label="当月产生罚款" align="center" prop="compareProfitRate" width="120" sortable/>
@@ -326,6 +389,7 @@ const data = reactive({
     storeManager: null,
     category: '全托管',
     moneyType: null,
+    mouth: '2024-12',
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -751,5 +815,71 @@ function handleDateRangeChange(val) {
   font-size: 16px;
   font-weight: 500;
   margin-right: 12px;
+}
+
+/* 分组父列样式 */
+.group-parent {
+  background-color: #f5f7fa;
+}
+
+/* 表头分组列的边框样式 */
+.el-table__header .group-parent {
+  border-left: 2px solid #dcdfe6 !important;
+  border-right: 2px solid #dcdfe6 !important;
+}
+
+/* 表体分组列的边框样式 */
+.el-table__body .group-parent {
+  border-left: 2px solid #dcdfe6 !important;
+  border-right: 2px solid #dcdfe6 !important;
+}
+
+/* 分组内第一个子列的左边框 */
+.first-column {
+  border-left: 2px solid #dcdfe6 !important;
+}
+
+/* 分组内最后一个子列的右边框 */
+.last-column {
+  border-right: 2px solid #dcdfe6 !important;
+}
+
+/* 确保hover状态下边框仍然可见 */
+.el-table__body tr:hover td.first-column {
+  border-left: 2px solid #dcdfe6 !important;
+}
+
+.el-table__body tr:hover td.last-column {
+  border-right: 2px solid #dcdfe6 !important;
+}
+
+/* 分组标题样式 */
+.el-table .group-parent th {
+  background-color: #eef1f6;
+  font-weight: bold;
+}
+
+/* 分组列背景色 */
+.el-table .group-parent td,
+.el-table .group-parent th {
+  background-color: #f5f7fa;
+}
+
+/* 强制显示边框 */
+.el-table td.first-column,
+.el-table th.first-column {
+  border-left: 2px solid #dcdfe6 !important;
+}
+
+.el-table td.last-column,
+.el-table th.last-column {
+  border-right: 2px solid #dcdfe6 !important;
+}
+
+/* 确保边框在固定列情况下也可见 */
+.el-table__fixed-right .last-column,
+.el-table__fixed .first-column {
+  border-left: 2px solid #dcdfe6 !important;
+  border-right: 2px solid #dcdfe6 !important;
 }
 </style>
