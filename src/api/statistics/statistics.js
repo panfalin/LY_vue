@@ -9,6 +9,16 @@ export function listStatistics(query) {
   })
 }
 
+
+export function listStatisticsToal(query) {
+  return request({
+    url: '/statistics/statistics/listToal',
+    method: 'get',
+    params: query
+  })
+}
+
+
 // 查询马帮后台导出金额订单数据详细
 export function getStatistics(sId) {
   return request({

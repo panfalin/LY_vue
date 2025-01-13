@@ -179,11 +179,60 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 在最后添加浮动的汇总卡片 -->
+    <div class="floating-summary" v-if="summaryList">
+      <el-card class="summary-card">
+        <el-row :gutter="24" class="summary-content">
+          <el-col :span="3" v-for="(item, index) in summaryList" :key="index">
+            <div class="summary-item">
+              <div class="category-title">{{ item.category }}</div>
+              <div class="detail-item">
+                <span class="label">销量:</span>
+                <span class="value">
+                  {{ item.quantity }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">金额:</span>
+                <span class="value">
+                  ¥{{ item.loanAmount?.toFixed(2) }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">利润:</span>
+                <span class="value" :class="{'negative': item.actualProfit < 0}">
+                  ¥{{ item.actualProfit?.toFixed(2) }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">利润率:</span>
+                <span class="value" :class="{'negative': item.profitMargin < 0}">
+                  {{ item.profitMargin?.toFixed(2) }}%
+                </span>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </el-card>
+    </div>
   </div>
+
+
+  
 </template>
 
 <script setup name="Statistics">
-import { listStatistics, getStatistics, delStatistics, addStatistics, updateStatistics } from "@/api/statistics/statistics";
+import { listStatistics, getStatistics, delStatistics, addStatistics, updateStatistics,listStatisticsToal} from "@/api/statistics/statistics";
 
 const { proxy } = getCurrentInstance();
 
@@ -196,6 +245,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const summaryList = ref(null);
 
 const data = reactive({
   form: {},
@@ -225,6 +275,50 @@ function getList() {
     total.value = response.total;
     loading.value = false;
   });
+
+  // 获取汇总数据（不带分页参数）
+  const totalQueryParams = { ...queryParams.value };
+  delete totalQueryParams.pageNum;
+  delete totalQueryParams.pageSize;
+  
+  listStatisticsToal(totalQueryParams).then(response => {
+   // 定义期望的排序顺序
+   const orderMap = {
+      'POP-自发': 1,
+      '半托管-JIT': 2,
+      '半托管-仓发': 3,
+      '全托管-JIT': 4,
+      '全托管-仓发': 5,
+      null: 6
+    };
+
+    // 计算汇总数据
+    const totalData = {
+      category: '总计',
+      quantity: 0,
+      loanAmount: 0,
+      actualProfit: 0,
+      profitMargin: 0
+    };
+
+    // 累加所有数据
+    response.rows.forEach(item => {
+      totalData.quantity += item.quantity || 0;
+      totalData.loanAmount += item.loanAmount || 0;
+      totalData.actualProfit += item.actualProfit || 0;
+    });
+
+    // 计算总利润率
+    totalData.profitMargin = totalData.loanAmount ? 
+      (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
+
+    // 对数据进行排序,并将总计放在最前面
+    summaryList.value = [
+      totalData,
+      ...response.rows.sort((a, b) => orderMap[a.category] - orderMap[b.category])
+    ];
+  });
+
 }
 
 /** 排序变化处理函数 */
@@ -351,4 +445,136 @@ const yearOptions = computed(() => {
 const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 
 getList();
+
+// 添加滚动处理
+import { onMounted, onUnmounted } from 'vue';
+
+let scrollTimer = null;
+const handleScroll = () => {
+  const summary = document.querySelector('.floating-summary');
+  if (!summary) return;
+  
+  // 添加滚动时的类
+  summary.classList.add('scrolling');
+  
+  // 清除之前的定时器
+  if (scrollTimer) clearTimeout(scrollTimer);
+  
+  // 设置新的定时器
+  scrollTimer = setTimeout(() => {
+    summary.classList.remove('scrolling');
+  }, 150);
+};
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+  if (scrollTimer) clearTimeout(scrollTimer);
+});
 </script>
+
+<style scoped>
+/* 浮动汇总样式 */
+.floating-summary {
+  position: fixed;
+  bottom: 0;
+  left: 50px;
+  right: 0;
+  z-index: 1000;
+  padding: 0 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
+  pointer-events: none;
+}
+
+.summary-card {
+  margin-bottom: 20px;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background-color: #fff;
+  pointer-events: auto;
+}
+
+
+.summary-content {
+  padding: 16px;
+  display: flex;
+  justify-content: center; /* 让整行内容居中 */
+  gap: 20px; /* 卡片之间的间距 */
+}
+
+.summary-item {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 12px;
+  height: 100%;
+  transition: all 0.3s;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+}
+
+.category-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.label {
+  color: #909399;
+}
+
+.value {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.value.negative {
+  color: #f56c6c;
+}
+
+/* 为了防止内容被浮动卡片遮挡，给主容器添加底部间距 */
+.app-container {
+  padding-bottom: 500px; /* 增加底部空间，让滚动条可以继续下拉 */
+  min-height: 150vh; /* 确保有足够的滚动空间 */
+}
+
+/* 添加响应式布局 */
+@media screen and (max-width: 1400px) {
+  .floating-summary {
+    left: 80px; /* 收起的菜单宽度 */
+  }
+}
+
+/* 添加过渡动画 */
+/* .floating-summary {
+  transition: all 0.3s ease-in-out;
+} */
+
+/* 滚动时的样式 */
+/* .floating-summary.scrolling {
+  transform: translateY(100%);
+} */
+
+.percentage {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+</style>

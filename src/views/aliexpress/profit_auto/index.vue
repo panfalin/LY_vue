@@ -57,6 +57,7 @@
             placeholder="请选择月份"
             clearable
         >
+          <el-option label="2024-12" value="2024-12"></el-option>
           <el-option label="2024-11" value="2024-11"></el-option>
           <el-option label="2024-10" value="2024-10"></el-option>
           <el-option label="2024-09" value="2024-09"></el-option>
@@ -586,7 +587,7 @@ function resetQuery() {
   proxy.resetForm("queryRef");
   selectedCategories.value = ['全托管'];
   queryParams.value.category = '全托管';
-  queryParams.value.mouth = '2024-11';
+  queryParams.value.mouth = '2024-12';
   handleQuery();
 }
 

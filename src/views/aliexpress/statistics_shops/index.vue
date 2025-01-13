@@ -91,6 +91,16 @@
 <!--      <el-table-column label="SKU状态" align="center" prop="skuState" sortable width="90"/>-->
       <el-table-column label="店铺名称" align="center" prop="storeName" sortable  width="260"/>
 
+      <!-- 总销售数量、实际总利润和销售总金额 -->
+      <el-table-column label="总销售数量" align="center" prop="quantity" sortable width="100"/>
+      <!--      <el-table-column label="市场容量" align="center" prop="marketCapacity"sortable width="90" />-->
+      <el-table-column label="销售总金额" align="center" prop="loanAmount" sortable width="100"/>
+      <el-table-column label="实际总利润" align="center" prop="actualProfit" sortable width="100"/>
+      <el-table-column label="利润率%" align="center" prop="profitMargin" sortable width="90">
+        <template #default="{ row }">
+          {{ row.profitMargin ? `${row.profitMargin}%` : '-' }}
+        </template>
+      </el-table-column>
       <!-- POP-自发 -->
       <el-table-column label="POP-自发" align="center" class-name="group-parent">
         <el-table-column label="销量" align="center" prop="quantityPop" sortable   class-name="first-column"/>
@@ -152,40 +162,8 @@
         </el-table-column>
       </el-table-column>
 
-      <!-- 总销售数量、实际总利润和销售总金额 -->
-      <el-table-column label="总销售数量" align="center" prop="quantity" sortable width="100"/>
-<!--      <el-table-column label="市场容量" align="center" prop="marketCapacity"sortable width="90" />-->
-      <el-table-column label="销售总金额" align="center" prop="loanAmount" sortable width="100"/>
-      <el-table-column label="实际总利润" align="center" prop="actualProfit" sortable width="100"/>
-      <el-table-column label="利润率%" align="center" prop="profitMargin" sortable width="90">
-        <template #default="{ row }">
-          {{ row.profitMargin ? `${row.profitMargin}%` : '-' }}
-        </template>
-      </el-table-column>
-<!--      <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable width="90" />-->
-<!--      <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>-->
-<!--      <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>-->
-<!--      <el-table-column label="未发货数量" align="center" prop="unshippedQuantity"sortable width="100"/>-->
-<!--      <el-table-column label="库存总数量" align="center" prop="stockQuantity"sortable width="100"/>-->
-<!--      <el-table-column label="总库存成本金额" align="center" prop="inventoryCost"sortable width="125"/>-->
-<!--      <el-table-column label="日均销量" align="center" prop="dailyAvgSales"sortable width="100" />-->
-<!--      <el-table-column label="成本价格" align="center" prop="costPrice"sortable width="90"/>-->
-<!--      <el-table-column label="可售天数" align="center" prop="saleDays"sortable width="90"/>-->
-<!--      <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">-->
-<!--        <template #default="{ row }">-->
-<!--          {{ row.monthlyReturn ? `${row.monthlyReturn}%` : '-' }}-->
-<!--        </template>-->
-<!--      </el-table-column>-->
-<!--      <el-table-column label="库存周转率%" align="center" prop="inventoryTurns" sortable width="110">-->
-<!--        <template #default="{ row }">-->
-<!--          {{ row.inventoryTurns ? `${row.inventoryTurns}%` : '-' }}-->
-<!--        </template>-->
-<!--      </el-table-column>-->
-<!--      <el-table-column label="回报率%" align="center" prop="returnRate" sortable width="85">-->
-<!--        <template #default="{ row }">-->
-<!--          {{ row.returnRate ? `${row.returnRate}%` : '-' }}-->
-<!--        </template>-->
-<!--      </el-table-column>-->
+
+
     </el-table>
     
     <pagination
@@ -198,11 +176,59 @@
 
     <!-- 添加或修改马帮后台导出金额订单数据对话框 -->
 
+
+
+<!-- 在最后添加浮动的汇总卡片 -->
+  <div class="floating-summary" v-if="summaryList">
+      <el-card class="summary-card">
+        <el-row :gutter="24" class="summary-content">
+          <el-col :span="3" v-for="(item, index) in summaryList" :key="index">
+            <div class="summary-item">
+              <div class="category-title">{{ item.category }}</div>
+              <div class="detail-item">
+                <span class="label">销量:</span>
+                <span class="value">
+                  {{ item.quantity }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">金额:</span>
+                <span class="value">
+                  ¥{{ item.loanAmount?.toFixed(2) }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">利润:</span>
+                <span class="value" :class="{'negative': item.actualProfit < 0}">
+                  ¥{{ item.actualProfit?.toFixed(2) }}
+                  <span v-if="index !== 0" class="percentage">
+                    ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="label">利润率:</span>
+                <span class="value" :class="{'negative': item.profitMargin < 0}">
+                  {{ item.profitMargin?.toFixed(2) }}%
+                </span>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </el-card>
+    </div>
+
   </div>
 </template>
 
 <script setup name="Statistics_shops">
-import { listStatistics_shops, getStatistics_shops, delStatistics_shops, addStatistics_shops, updateStatistics_shops } from "@/api/aliexpress/statistics_shops";
+import { listStatistics_shops, getStatistics_shops, delStatistics_shops, addStatistics_shops, updateStatistics_shops,listStatistics_shopsToal } from "@/api/aliexpress/statistics_shops";
 
 const { proxy } = getCurrentInstance();
 
@@ -215,7 +241,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
-
+const summaryList = ref(null);
 const data = reactive({
   form: {},
   queryParams: {
@@ -279,6 +305,52 @@ function getList() {
     total.value = response.total;
     loading.value = false;
   });
+
+
+  // 获取汇总数据（不带分页参数）
+  const totalQueryParams = { ...queryParams.value };
+  delete totalQueryParams.pageNum;
+  delete totalQueryParams.pageSize;
+  
+  listStatistics_shopsToal(totalQueryParams).then(response => {
+    // 定义期望的排序顺序
+    const orderMap = {
+      'POP-自发': 1,
+      '半托管-JIT': 2,
+      '半托管-仓发': 3,
+      '全托管-JIT': 4,
+      '全托管-仓发': 5,
+      null: 6
+    };
+
+    // 计算汇总数据
+    const totalData = {
+      category: '总计',
+      quantity: 0,
+      loanAmount: 0,
+      actualProfit: 0,
+      profitMargin: 0
+    };
+
+    // 累加所有数据
+    response.rows.forEach(item => {
+      totalData.quantity += item.quantity || 0;
+      totalData.loanAmount += item.loanAmount || 0;
+      totalData.actualProfit += item.actualProfit || 0;
+    });
+
+    // 计算总利润率
+    totalData.profitMargin = totalData.loanAmount ? 
+      (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
+
+    // 对数据进行排序,并将总计放在最前面
+    summaryList.value = [
+      totalData,
+      ...response.rows.sort((a, b) => orderMap[a.category] - orderMap[b.category])
+    ];
+  });
+
+
 }
 
 // 取消按钮
@@ -514,6 +586,105 @@ getList();
 /* 处理边框重叠 */
 .el-table .group-parent + .group-parent {
   border-left: none;
+}
+
+.floating-summary {
+  position: fixed;
+  bottom: 0;
+  left: 50px;
+  right: 0;
+  z-index: 1000;
+  padding: 0 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
+  pointer-events: none; /* 允许滚动穿透 */
+}
+
+.summary-card {
+  margin-bottom: 20px;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background-color: #fff;
+  pointer-events: auto; /* 恢复卡片的交互性 */
+}
+.summary-content {
+  padding: 16px;
+  display: flex;
+  justify-content: center; /* 让整行内容居中 */
+  gap: 20px; /* 卡片之间的间距 */
+}
+
+
+.summary-item {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 12px;
+  height: 100%;
+  transition: all 0.3s;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+}
+
+.category-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.label {
+  color: #909399;
+}
+
+.value {
+  color: #67c23a;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.value.negative {
+  color: #f56c6c;
+}
+
+/* 为了防止内容被浮动卡片遮挡，给主容器添加底部间距 */
+.app-container {
+  padding-bottom: 500px; /* 增加底部空间，让滚动条可以继续下拉 */
+  min-height: 150vh; /* 确保有足够的滚动空间 */
+}
+
+/* 添加响应式布局 */
+@media screen and (max-width: 1400px) {
+  .floating-summary {
+    left: 80px; /* 收起的菜单宽度 */
+  }
+}
+
+/* 添加过渡动画 */
+/* .floating-summary {
+  transition: all 0.3s ease-in-out;
+} */
+
+/* 滚动时的样式 */
+/* .floating-summary.scrolling {
+  transform: translateY(100%);
+} */
+
+.percentage {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
 }
 </style>
 

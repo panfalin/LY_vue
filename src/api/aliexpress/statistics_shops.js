@@ -9,6 +9,17 @@ export function listStatistics_shops(query) {
   })
 }
 
+export function listStatistics_shopsToal(query) {
+  return request({
+    url: '/aliexpress/statistics_shops/listTotal',
+    method: 'get',
+    params: query
+  })
+}
+
+
+
+
 // 查询马帮后台导出金额订单数据详细
 export function getStatistics_shops(sId) {
   return request({
