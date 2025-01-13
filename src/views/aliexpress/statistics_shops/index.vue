@@ -179,50 +179,61 @@
 
 
 <!-- 在最后添加浮动的汇总卡片 -->
-  <div class="floating-summary" v-if="summaryList">
-      <el-card class="summary-card">
-        <el-row :gutter="24" class="summary-content">
-          <el-col :span="3" v-for="(item, index) in summaryList" :key="index">
-            <div class="summary-item">
-              <div class="category-title">{{ item.category }}</div>
-              <div class="detail-item">
-                <span class="label">销量:</span>
-                <span class="value">
-                  {{ item.quantity }}
-                  <span v-if="index !== 0" class="percentage">
-                    ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
-                  </span>
-                </span>
-              </div>
-              <div class="detail-item">
-                <span class="label">金额:</span>
-                <span class="value">
-                  ¥{{ item.loanAmount?.toFixed(2) }}
-                  <span v-if="index !== 0" class="percentage">
-                    ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
-                  </span>
-                </span>
-              </div>
-              <div class="detail-item">
-                <span class="label">利润:</span>
-                <span class="value" :class="{'negative': item.actualProfit < 0}">
-                  ¥{{ item.actualProfit?.toFixed(2) }}
-                  <span v-if="index !== 0" class="percentage">
-                    ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
-                  </span>
-                </span>
-              </div>
-              <div class="detail-item">
-                <span class="label">利润率:</span>
-                <span class="value" :class="{'negative': item.profitMargin < 0}">
-                  {{ item.profitMargin?.toFixed(2) }}%
-                </span>
-              </div>
-            </div>
-          </el-col>
-        </el-row>
-      </el-card>
-    </div>
+  <div class="floating-summary" v-show="summaryList">
+    <el-card class="summary-card">
+      <el-table 
+        :data="transformedSummaryData" 
+        :show-header="true" 
+        size="small" 
+        style="width: 100%"
+        :border="true"
+        class="summary-table"
+      >
+        <el-table-column 
+          prop="label" 
+          label="" 
+          width="120" 
+          align="center"
+          fixed="left"
+        />
+        <el-table-column 
+          v-for="(item, index) in summaryList" 
+          :key="index"
+          :label="item.category"
+          align="center"
+          :class-name="index === 0 ? 'total-column' : ''"
+        >
+          <template #default="{ row }">
+            <template v-if="row.type === 'quantity'">
+              <span>{{ item.quantity }}</span>
+              <span v-if="index !== 0" class="percentage">
+                ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
+              </span>
+            </template>
+            <template v-else-if="row.type === 'amount'">
+              <span>¥{{ item.loanAmount?.toFixed(2) }}</span>
+              <span v-if="index !== 0" class="percentage">
+                ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
+              </span>
+            </template>
+            <template v-else-if="row.type === 'profit'">
+              <span :class="{'negative': item.actualProfit < 0}">
+                ¥{{ item.actualProfit?.toFixed(2) }}
+              </span>
+              <span v-if="index !== 0" class="percentage">
+                ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
+              </span>
+            </template>
+            <template v-else-if="row.type === 'profitMargin'">
+              <span :class="{'negative': item.profitMargin < 0}">
+                {{ item.profitMargin?.toFixed(2) }}%
+              </span>
+            </template>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+  </div>
 
   </div>
 </template>
@@ -241,7 +252,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
-const summaryList = ref(null);
+const summaryList = ref([]);
 const data = reactive({
   form: {},
   queryParams: {
@@ -300,30 +311,16 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询马帮后台导出金额订单数据列表 */
 function getList() {
   loading.value = true;
-  listStatistics_shops(queryParams.value).then(response => {
-    statistics_shopsList.value = response.rows;
-    total.value = response.total;
-    loading.value = false;
-  });
-
-
-  // 获取汇总数据（不带分页参数）
-  const totalQueryParams = { ...queryParams.value };
-  delete totalQueryParams.pageNum;
-  delete totalQueryParams.pageSize;
   
-  listStatistics_shopsToal(totalQueryParams).then(response => {
-    // 定义期望的排序顺序
-    const orderMap = {
-      'POP-自发': 1,
-      '半托管-JIT': 2,
-      '半托管-仓发': 3,
-      '全托管-JIT': 4,
-      '全托管-仓发': 5,
-      null: 6
-    };
-
-    // 计算汇总数据
+  // 使用 Promise.all 同时发起两个请求
+  Promise.all([
+    listStatistics_shops(queryParams.value),
+    listStatistics_shopsToal({ ...queryParams.value, pageNum: undefined, pageSize: undefined })
+  ]).then(([listResponse, totalResponse]) => {
+    statistics_shopsList.value = listResponse.rows;
+    total.value = listResponse.total;
+    
+    // 处理汇总数据
     const totalData = {
       category: '总计',
       quantity: 0,
@@ -333,7 +330,7 @@ function getList() {
     };
 
     // 累加所有数据
-    response.rows.forEach(item => {
+    totalResponse.rows.forEach(item => {
       totalData.quantity += item.quantity || 0;
       totalData.loanAmount += item.loanAmount || 0;
       totalData.actualProfit += item.actualProfit || 0;
@@ -343,14 +340,26 @@ function getList() {
     totalData.profitMargin = totalData.loanAmount ? 
       (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
 
-    // 对数据进行排序,并将总计放在最前面
+    // 定义排序顺序
+    const orderMap = {
+      'POP-自发': 1,
+      '半托管-JIT': 2,
+      '半托管-仓发': 3,
+      '全托管-JIT': 4,
+      '全托管-仓发': 5,
+      null: 6
+    };
+
+    // 更新 summaryList
     summaryList.value = [
       totalData,
-      ...response.rows.sort((a, b) => orderMap[a.category] - orderMap[b.category])
+      ...totalResponse.rows.sort((a, b) => orderMap[a.category] - orderMap[b.category])
     ];
+    
+    loading.value = false;
+  }).catch(() => {
+    loading.value = false;
   });
-
-
 }
 
 // 取消按钮
@@ -510,6 +519,13 @@ const yearOptions = computed(() => {
 // 添加月份选项（1-12月）
 const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 
+const transformedSummaryData = computed(() => [
+  { label: '单量', type: 'quantity' },
+  { label: '销售额', type: 'amount' },
+  { label: '利润', type: 'profit' },
+  { label: '利润率', type: 'profitMargin' }
+]);
+
 getList();
 </script>
 
@@ -596,7 +612,13 @@ getList();
   z-index: 1000;
   padding: 0 10px;
   background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
-  pointer-events: none; /* 允许滚动穿透 */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.floating-summary:not(:empty) {
+  opacity: 1;
 }
 
 .summary-card {
@@ -604,87 +626,67 @@ getList();
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   background-color: #fff;
-  pointer-events: auto; /* 恢复卡片的交互性 */
-}
-.summary-content {
-  padding: 16px;
-  display: flex;
-  justify-content: center; /* 让整行内容居中 */
-  gap: 20px; /* 卡片之间的间距 */
+  pointer-events: auto;
+  transition: all 0.3s ease-in-out;
 }
 
-
-.summary-item {
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  padding: 12px;
-  height: 100%;
-  transition: all 0.3s;
+.summary-table {
+  margin: 0;
+  background-color: transparent;
 }
 
-.summary-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
-}
-
-.category-title {
-  font-size: 14px;
+/* 总计列样式 */
+.summary-table .total-column {
+  background-color: #f0f9eb;
   font-weight: bold;
-  color: #303133;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #EBEEF5;
 }
 
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
-  font-size: 13px;
-}
-
-.label {
+.summary-table .percentage {
   color: #909399;
+  font-size: 12px;
+  margin-left: 4px;
 }
 
-.value {
-  color: #67c23a;
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.value.negative {
+/* .summary-table .negative {
   color: #f56c6c;
+} */
+
+/* 确保表格内容垂直居中 */
+.summary-table .el-table__cell {
+  vertical-align: middle;
+}
+
+/* 自定义表格边框和分割线颜色 */
+.summary-table.el-table--border, 
+.summary-table.el-table--group {
+  border-color: #EBEEF5;
+}
+
+.summary-table .el-table__cell {
+  border-color: #EBEEF5;
+}
+
+/* 调整总计列的样式 */
+.summary-table .el-table__cell.total-column {
+  background-color: #f0f9eb;
+}
+
+.summary-table .el-table__header th.total-column {
+  background-color: #f0f9eb;
+  font-weight: bold;
 }
 
 /* 为了防止内容被浮动卡片遮挡，给主容器添加底部间距 */
 .app-container {
-  padding-bottom: 500px; /* 增加底部空间，让滚动条可以继续下拉 */
-  min-height: 150vh; /* 确保有足够的滚动空间 */
+  padding-bottom: 200px;
+  min-height: 100vh;
 }
 
 /* 添加响应式布局 */
 @media screen and (max-width: 1400px) {
   .floating-summary {
-    left: 80px; /* 收起的菜单宽度 */
+    left: 80px;
   }
-}
-
-/* 添加过渡动画 */
-/* .floating-summary {
-  transition: all 0.3s ease-in-out;
-} */
-
-/* 滚动时的样式 */
-/* .floating-summary.scrolling {
-  transform: translateY(100%);
-} */
-
-.percentage {
-  font-size: 12px;
-  color: #909399;
-  margin-left: 4px;
 }
 </style>
 

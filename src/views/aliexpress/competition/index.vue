@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="98px">
       <el-form-item label="sku" prop="sku">
         <el-input
           v-model="queryParams.sku"
@@ -9,22 +9,79 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="刊登ID" prop="publicationId">
+      <!-- <el-form-item label="刊登ID" prop="publicationId">
         <el-input
           v-model="queryParams.publicationId"
           placeholder="请输入刊登ID"
           clearable
           @keyup.enter="handleQuery"
         />
+      </el-form-item> -->
+
+
+      <!-- <el-form-item label="竞对订单类型" prop="orderType">
+        <el-select
+            v-model="queryParams.orderType"
+            placeholder="请选择竞对订单类型"
+            clearable
+            style="width: 200px"
+        >
+          <el-option
+              label="POP"
+              value="POP"
+          />
+          <el-option
+              label="半托管"
+              value="半托管"
+          />
+          <el-option
+              label="全托管"
+              value="全托管"
+          />
+        </el-select>
+      </el-form-item> -->
+
+
+      <el-form-item label="sku负责人" prop="skuPerson">
+        <el-input
+          v-model="queryParams.skuPerson"
+          placeholder="sku负责人"
+          clearable
+          @keyup.enter="handleQuery"
+        />
       </el-form-item>
-<!--      <el-form-item label="下载链接" prop="link">-->
-<!--        <el-input-->
-<!--          v-model="queryParams.link"-->
-<!--          placeholder="请输入下载链接"-->
-<!--          clearable-->
-<!--          @keyup.enter="handleQuery"-->
-<!--        />-->
-<!--      </el-form-item>-->
+
+      <el-form-item label="sku负责人" prop="skuPerson">
+        <el-select
+            v-model="queryParams.skuPerson"
+            placeholder="请选择负责人"
+            clearable
+            style="width: 200px"
+        >
+          <el-option
+              label="夏慧颖"
+              value="夏慧颖"
+          />
+          <el-option
+              label="赵世杰"
+              value="赵世杰"
+          />
+          <el-option
+              label="陈雪芳"
+              value="陈雪芳"
+          />
+          <el-option
+              label="voice"
+              value="voice"
+          />
+          <el-option
+              label="沈娟"
+              value="沈娟"
+          />
+        </el-select>
+      </el-form-item>
+
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -76,10 +133,14 @@
     <el-table v-loading="loading" :data="competitionList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="${comment}" align="center" prop="sId" />-->
-      <el-table-column label="sku" align="center" prop="sku" />
-      <el-table-column label="刊登ID" align="center" prop="publicationId" />
-      <el-table-column label="下载链接" align="center" prop="link" />
-      <el-table-column label="爬取状态" align="center" prop="crawlStatus" />
+      <el-table-column label="sku" align="center" prop="sku"  width="180" />
+      <el-table-column label="负责人" align="center" prop="skuPerson" />
+      <!-- <el-table-column label="竞对类型" align="center" prop="orderType" /> -->
+      <el-table-column label="POP竞对" align="center" prop="publicationIdPop" />
+      <el-table-column label="全托管竞对" align="center" prop="publicationIdAll" />
+      <el-table-column label="半托管竞对" align="center" prop="publicationIdHalf" />
+      <!-- <el-table-column label="下载链接" align="center" prop="link" /> -->
+      <!-- <el-table-column label="爬取状态" align="center" prop="crawlStatus" /> -->
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['aliexpress:competition:edit']">修改</el-button>
@@ -97,17 +158,64 @@
     />
 
     <!-- 添加或修改竞对SKU对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="competitionRef" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
+      <el-form ref="competitionRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="sku" prop="sku">
           <el-input v-model="form.sku" placeholder="请输入sku" />
         </el-form-item>
-        <el-form-item label="刊登ID" prop="publicationId">
-          <el-input v-model="form.publicationId" placeholder="请输入刊登ID" />
+
+        <!-- <el-form-item label="sku负责人" prop="skuPerson">
+          <el-input v-model="form.skuPerson" placeholder="sku负责人" />
+        </el-form-item> -->
+
+        <el-form-item label="POP竞对" prop="publicationIdPop">
+          <div v-for="(item, index) in popInputs" :key="index" class="input-with-button">
+            <el-input v-model="item.value" placeholder="请输入刊登ID" />
+            <el-button type="danger" icon="Delete" @click="removeInput('pop', index)" v-if="popInputs.length > 1"></el-button>
+          </div>
+          <el-button type="primary" icon="Plus" @click="addInput('pop')">添加POP竞对</el-button>
         </el-form-item>
-        <el-form-item label="下载链接" prop="link">
-          <el-input v-model="form.link" placeholder="请输入下载链接" />
+
+        <el-form-item label="全托管竞对" prop="publicationIdAll">
+          <div v-for="(item, index) in allInputs" :key="index" class="input-with-button">
+            <el-input v-model="item.value" placeholder="请输入刊登ID" />
+            <el-button type="danger" icon="Delete" @click="removeInput('all', index)" v-if="allInputs.length > 1"></el-button>
+          </div>
+          <el-button type="primary" icon="Plus" @click="addInput('all')">添加全托管竞对</el-button>
         </el-form-item>
+
+        <el-form-item label="半托管竞对" prop="publicationIdHalf">
+          <div v-for="(item, index) in halfInputs" :key="index" class="input-with-button">
+            <el-input v-model="item.value" placeholder="请输入刊登ID" />
+            <el-button type="danger" icon="Delete" @click="removeInput('half', index)" v-if="halfInputs.length > 1"></el-button>
+          </div>
+          <el-button type="primary" icon="Plus" @click="addInput('half')">添加半托管竞对</el-button>
+        </el-form-item>
+
+
+
+        <!-- <el-form-item label="竞对订单类型" prop="orderType">
+        <el-select
+            v-model="form.orderType"
+            placeholder="请选择竞对订单类型"
+            clearable
+            style="width: 200px"
+        >
+          <el-option
+              label="POP"
+              value="POP"
+          />
+          <el-option
+              label="半托管"
+              value="半托管"
+          />
+          <el-option
+              label="全托管"
+              value="全托管"
+          />
+        </el-select>
+      </el-form-item> -->
+
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -150,6 +258,28 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
+const popInputs = ref([{ value: '' }]);
+const allInputs = ref([{ value: '' }]);
+const halfInputs = ref([{ value: '' }]);
+
+const addInput = (type) => {
+  const inputsMap = {
+    'pop': popInputs,
+    'all': allInputs,
+    'half': halfInputs
+  };
+  inputsMap[type].value.push({ value: '' });
+};
+
+const removeInput = (type, index) => {
+  const inputsMap = {
+    'pop': popInputs,
+    'all': allInputs,
+    'half': halfInputs
+  };
+  inputsMap[type].value.splice(index, 1);
+};
+
 /** 查询竞对SKU列表 */
 function getList() {
   loading.value = true;
@@ -176,6 +306,9 @@ function reset() {
     crawlStatus: null,
     createTime: null
   };
+  popInputs.value = [{ value: '' }];
+  allInputs.value = [{ value: '' }];
+  halfInputs.value = [{ value: '' }];
   proxy.resetForm("competitionRef");
 }
 
@@ -211,6 +344,15 @@ function handleUpdate(row) {
   const _sId = row.sId || ids.value
   getCompetition(_sId).then(response => {
     form.value = response.data;
+    if (form.value.publicationIdPop) {
+      popInputs.value = form.value.publicationIdPop.split(',').map(value => ({ value }));
+    }
+    if (form.value.publicationIdAll) {
+      allInputs.value = form.value.publicationIdAll.split(',').map(value => ({ value }));
+    }
+    if (form.value.publicationIdHalf) {
+      halfInputs.value = form.value.publicationIdHalf.split(',').map(value => ({ value }));
+    }
     open.value = true;
     title.value = "修改竞对SKU";
   });
@@ -220,6 +362,10 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["competitionRef"].validate(valid => {
     if (valid) {
+      form.value.publicationIdPop = popInputs.value.map(item => item.value).filter(Boolean).join(',');
+      form.value.publicationIdAll = allInputs.value.map(item => item.value).filter(Boolean).join(',');
+      form.value.publicationIdHalf = halfInputs.value.map(item => item.value).filter(Boolean).join(',');
+
       if (form.value.sId != null) {
         updateCompetition(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -240,7 +386,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _sIds = row.sId || ids.value;
-  proxy.$modal.confirm('是否确认删除竞对SKU编号为"' + _sIds + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除数据项？').then(function() {
     return delCompetition(_sIds);
   }).then(() => {
     getList();
@@ -257,3 +403,12 @@ function handleExport() {
 
 getList();
 </script>
+
+<style scoped>
+.input-with-button {
+  display: flex;
+  margin-bottom: 5px;
+  align-items: center;
+  gap: 5px;
+}
+</style>
