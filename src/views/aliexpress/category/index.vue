@@ -125,14 +125,14 @@
     <el-table v-loading="loading" :data="categoryList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="主键ID" align="center" prop="sId" />-->
-      <el-table-column label="年份" align="center" prop="year"sortable />
+      <el-table-column label="年份" align="center" prop="year" sortable />
       <el-table-column label="月份" align="center" prop="moon" sortable/>
       <el-table-column label="SKU" align="center" prop="sku" sortable  width="150"/>
       <el-table-column label="SKU负责人" align="center" prop="personCharge" sortable  width="120"/>
       <el-table-column label="SKU状态" align="center" prop="skuState" sortable width="90"/>
       <!-- 总销售数量、实际总利润和销售总金额 -->
       <el-table-column label="总销售数量" align="center" prop="quantity" sortable width="100"/>
-      <el-table-column label="市场容量" align="center" prop="marketCapacity"sortable width="90" />
+      <el-table-column label="市场容量" align="center" prop="marketCapacity" sortable width="90" />
       <el-table-column label="销售总金额" align="center" prop="loanAmount" sortable width="100"/>
       <el-table-column label="实际总利润" align="center" prop="actualProfit" sortable width="100"/>
       <el-table-column label="利润率%" align="center" prop="profitMargin" sortable width="90">
@@ -269,12 +269,12 @@
       <el-table-column label="在途数量" align="center" prop="transitQuantity" sortable width="90" />
       <el-table-column label="本地库存数量" align="center" prop="bdStockQuantity" sortable width="110"/>
       <el-table-column label="备仓库存数量" align="center" prop="bcStockQuantity" sortable width="110"/>
-      <el-table-column label="未发货数量" align="center" prop="unshippedQuantity"sortable width="100"/>
-      <el-table-column label="库存总数量" align="center" prop="stockQuantity"sortable width="100"/>
-      <el-table-column label="总库存成本金额" align="center" prop="inventoryCost"sortable width="125"/>
-      <el-table-column label="日均销量" align="center" prop="dailyAvgSales"sortable width="100" />
-      <el-table-column label="成本价格" align="center" prop="costPrice"sortable width="90"/>
-      <el-table-column label="可售天数" align="center" prop="saleDays"sortable width="90"/>
+      <el-table-column label="未发货数量" align="center" prop="unshippedQuantity" sortable width="100"/>
+      <el-table-column label="库存总数量" align="center" prop="stockQuantity" sortable width="100"/>
+      <el-table-column label="总库存成本金额" align="center" prop="inventoryCost" sortable width="125"/>
+      <el-table-column label="日均销量" align="center" prop="dailyAvgSales" sortable width="100" />
+      <el-table-column label="成本价格" align="center" prop="costPrice" sortable width="90"/>
+      <el-table-column label="可售天数" align="center" prop="saleDays" sortable width="90"/>
       <el-table-column label="月库存资金使用率%" align="center" prop="monthlyReturn" sortable width="150">
         <template #default="{ row }">
           {{ row.monthlyReturn ? `${row.monthlyReturn}%` : '-' }}
@@ -378,62 +378,62 @@
       </template>
     </el-dialog>
 
-<!-- 将原来的浮动卡片改为表格形式 -->
-<div class="floating-summary" v-if="summaryList">
-  <el-card class="summary-card">
-    <el-table 
-      :data="transformedSummaryData" 
-      :show-header="true" 
-      size="small" 
-      style="width: 100%"
-      :border="true"
-      class="summary-table"
-    >
-      <el-table-column 
-        prop="label" 
-        label="" 
-        width="120" 
-        align="center"
-        fixed="left"
-      />
-      <el-table-column 
-        v-for="(item, index) in summaryList" 
-        :key="index"
-        :label="item.category"
-        align="center"
-        :class-name="index === 0 ? 'total-column' : ''"
-      >
-        <template #default="{ row }">
-          <template v-if="row.type === 'quantity'">
-            <span>{{ item.quantity }}</span>
-            <span v-if="index !== 0" class="percentage">
-              ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
-            </span>
-          </template>
-          <template v-else-if="row.type === 'amount'">
-            <span>¥{{ item.loanAmount?.toFixed(2) }}</span>
-            <span v-if="index !== 0" class="percentage">
-              ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
-            </span>
-          </template>
-          <template v-else-if="row.type === 'profit'">
-            <span :class="{'negative': item.actualProfit < 0}">
-              ¥{{ item.actualProfit?.toFixed(2) }}
-            </span>
-            <span v-if="index !== 0" class="percentage">
-              ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
-            </span>
-          </template>
-          <template v-else-if="row.type === 'profitMargin'">
-            <span :class="{'negative': item.profitMargin < 0}">
-              {{ item.profitMargin?.toFixed(2) }}%
-            </span>
-          </template>
-        </template>
-      </el-table-column>
-    </el-table>
-  </el-card>
-</div>
+    <!-- 将原来的浮动卡片改为表格形式 -->
+    <div class="floating-summary" v-if="summaryList">
+      <el-card class="summary-card">
+        <el-table 
+          :data="transformedSummaryData" 
+          :show-header="true" 
+          size="small" 
+          style="width: 100%"
+          :border="true"
+          class="summary-table"
+        >
+          <el-table-column 
+            prop="label" 
+            label="" 
+            width="120" 
+            align="center"
+            fixed="left"
+          />
+          <el-table-column 
+            v-for="(item, index) in summaryList" 
+            :key="index"
+            :label="item.category"
+            align="center"
+            :class-name="index === 0 ? 'total-column' : ''"
+          >
+            <template #default="{ row }">
+              <template v-if="row.type === 'quantity'">
+                <span>{{ item.quantity }}</span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'amount'">
+                <span>¥{{ item.loanAmount?.toFixed(2) }}</span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'profit'">
+                <span :class="{'negative': item.actualProfit < 0}">
+                  ¥{{ item.actualProfit?.toFixed(2) }}
+                </span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'profitMargin'">
+                <span :class="{'negative': item.profitMargin < 0}">
+                  {{ item.profitMargin?.toFixed(2) }}%
+                </span>
+              </template>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
 
 
 
@@ -772,13 +772,18 @@ getList();
 .floating-summary {
   position: fixed;
   bottom: 0;
-  left: 50px;
+  left: 200px; /* 左侧菜单展开时的宽度 */
   right: 0;
   z-index: 1000;
   padding: 0 10px;
   background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-summary {
+  left: 54px; /* 收起时左侧菜单的宽度 */
 }
 
 .floating-summary:not(:empty) {
@@ -858,6 +863,28 @@ getList();
   margin-left: 4px;
 }
 
+.floating-table {
+  position: fixed;
+  bottom: 0;
+  left: 200px; /* 左侧菜单栏的宽度 */
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-table {
+  left: 54px; /* 收起时左侧菜单的宽度 */
+}
+
+/* 其他样式保持不变 */
+.floating-table.el-table {
+  --el-table-header-bg-color: #f5f7fa;
+  --el-table-border-color: #ebeef5;
+  --el-table-header-text-color: #606266;
+}
 
 
 </style>
