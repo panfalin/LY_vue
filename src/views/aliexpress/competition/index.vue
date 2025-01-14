@@ -251,16 +251,14 @@
           </div>
           <div v-else @click="handleEditIds(scope.row, 'all')" class="competition-cell">
             <template v-if="scope.row.publicationIdAll">
-              <div class="competition-tags">
-                <el-tag
+              <div class="competition-tags-vertical">
+                <div
                   v-for="(id, index) in scope.row.publicationIdAll.split(',')"
                   :key="index"
-                  class="competition-tag"
-                  type="info"
-                  effect="plain"
+                  class="competition-tag-item"
                 >
                   {{ id }}
-                </el-tag>
+                </div>
               </div>
             </template>
             <div v-else class="add-competition-placeholder">
@@ -312,16 +310,14 @@
           </div>
           <div v-else @click="handleEditIds(scope.row, 'half')" class="competition-cell">
             <template v-if="scope.row.publicationIdHalf">
-              <div class="competition-tags">
-                <el-tag
+              <div class="competition-tags-vertical">
+                <div
                   v-for="(id, index) in scope.row.publicationIdHalf.split(',')"
                   :key="index"
-                  class="competition-tag"
-                  type="info"
-                  effect="plain"
+                  class="competition-tag-item"
                 >
                   {{ id }}
-                </el-tag>
+                </div>
               </div>
             </template>
             <div v-else class="add-competition-placeholder">
