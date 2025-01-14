@@ -658,12 +658,21 @@ function handleSaveIds(row, type) {
   };
 
   updateCompetition(updatedData).then(response => {
-    row[actualField] = ids.join(',');
-    row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
-    proxy.$modal.msgSuccess("修改成功");
+    if (response.code === 200) {
+      row[actualField] = ids.join(',');
+      row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
+      proxy.$modal.msgSuccess("修改成功");
+      getList(); // 添加这行来刷新列表数据
+    } else {
+      proxy.$modal.msgError("修改失败");
+      row[tempField] = row[actualField] ? row[actualField].split(',') : [''];
+      row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
+    }
   }).catch(() => {
+    proxy.$modal.msgError("修改失败，请重试");
     row[tempField] = row[actualField] ? row[actualField].split(',') : [''];
     row[`isEditing${type.charAt(0).toUpperCase() + type.slice(1)}`] = false;
+    getList(); // 如果失败也刷新列表以恢复数据
   });
 }
 
