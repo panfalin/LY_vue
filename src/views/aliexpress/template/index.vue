@@ -449,7 +449,7 @@
                   >
                     <el-input
                         v-model="currentItem.listingId"
-                        placeholder="��输入商品刊登ID"
+                        placeholder="输入商品刊登ID"
                     >
                       <template #prefix>
                         <el-icon><Link /></el-icon>

@@ -607,14 +607,18 @@ getList();
 .floating-summary {
   position: fixed;
   bottom: 0;
-  left: 50px;
+  left: 200px; /* 左侧菜单展开时的宽度 */
   right: 0;
   z-index: 1000;
   padding: 0 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
-  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 20%);
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-summary {
+  left: 54px; /* 收起时左侧菜单的宽度 */
 }
 
 .floating-summary:not(:empty) {
@@ -657,7 +661,7 @@ getList();
 }
 
 /* 自定义表格边框和分割线颜色 */
-.summary-table.el-table--border, 
+.summary-table.el-table--border,
 .summary-table.el-table--group {
   border-color: #EBEEF5;
 }
@@ -676,17 +680,48 @@ getList();
   font-weight: bold;
 }
 
-/* 为了防止内容被浮动卡片遮挡，给主容器添加底部间距 */
+/* 确保有足够的底部空间 */
 .app-container {
   padding-bottom: 200px;
   min-height: 100vh;
 }
 
-/* 添加响应式布局 */
 @media screen and (max-width: 1400px) {
   .floating-summary {
     left: 80px;
   }
 }
+
+.percentage {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+.floating-table {
+  position: fixed;
+  bottom: 0;
+  left: 200px; /* 左侧菜单栏的宽度 */
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-table {
+  left: 54px; /* 收起时左侧菜单的宽度 */
+}
+
+/* 其他样式保持不变 */
+.floating-table.el-table {
+  --el-table-header-bg-color: #f5f7fa;
+  --el-table-border-color: #ebeef5;
+  --el-table-header-text-color: #606266;
+}
+
+
 </style>
+
 

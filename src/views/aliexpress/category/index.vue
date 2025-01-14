@@ -3,40 +3,40 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="98px">
       <el-form-item label="年份" prop="year">
         <el-select
-          v-model="queryParams.year"
-          placeholder="请选择年份"
-          clearable
-          style="width: 150px"
+            v-model="queryParams.year"
+            placeholder="请选择年份"
+            clearable
+            style="width: 150px"
         >
           <el-option
-            v-for="year in yearOptions"
-            :key="year"
-            :label="year"
-            :value="year"
+              v-for="year in yearOptions"
+              :key="year"
+              :label="year"
+              :value="year"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="月份" prop="moon">
         <el-select
-          v-model="queryParams.moon"
-          placeholder="请选择月份"
-          clearable
-          style="width: 150px"
+            v-model="queryParams.moon"
+            placeholder="请选择月份"
+            clearable
+            style="width: 150px"
         >
           <el-option
-            v-for="month in monthOptions"
-            :key="month"
-            :label="`${month}月`"
-            :value="month"
+              v-for="month in monthOptions"
+              :key="month"
+              :label="`${month}月`"
+              :value="month"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="SKU" prop="sku">
         <el-input
-          v-model="queryParams.sku"
-          placeholder="请输入SKU"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.sku"
+            placeholder="请输入SKU"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
 
@@ -67,10 +67,10 @@
 
       <el-form-item label="可售天数" prop="saleDays">
         <el-input
-          v-model="queryParams.saleDays"
-          placeholder="请输入可售天数"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.saleDays"
+            placeholder="请输入可售天数"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
 
@@ -83,40 +83,40 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['aliexpress:category:add']"
+            type="primary"
+            plain
+            icon="Plus"
+            @click="handleAdd"
+            v-hasPermi="['aliexpress:category:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['aliexpress:category:edit']"
+            type="success"
+            plain
+            icon="Edit"
+            :disabled="single"
+            @click="handleUpdate"
+            v-hasPermi="['aliexpress:category:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['aliexpress:category:remove']"
+            type="danger"
+            plain
+            icon="Delete"
+            :disabled="multiple"
+            @click="handleDelete"
+            v-hasPermi="['aliexpress:category:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['aliexpress:category:export']"
+            type="warning"
+            plain
+            icon="Download"
+            @click="handleExport"
+            v-hasPermi="['aliexpress:category:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
@@ -124,7 +124,7 @@
 
     <el-table v-loading="loading" :data="categoryList" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
       <el-table-column type="selection" width="55" align="center" />
-<!--      <el-table-column label="主键ID" align="center" prop="sId" />-->
+      <!--      <el-table-column label="主键ID" align="center" prop="sId" />-->
       <el-table-column label="年份" align="center" prop="year" sortable />
       <el-table-column label="月份" align="center" prop="moon" sortable/>
       <el-table-column label="SKU" align="center" prop="sku" sortable  width="150"/>
@@ -142,22 +142,22 @@
       </el-table-column>
       <!-- POP-自发 -->
       <el-table-column label="POP-自发" align="center" class-name="group-parent">
-        <el-table-column 
-          label="销量" 
-          align="center" 
-          prop="quantityPop" 
-          sortable 
-          class-name="first-column"
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityPop"
+            sortable
+            class-name="first-column"
         />
         <el-table-column label="利润" align="center" prop="actualProfitPop" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountPop" sortable width="90"/>
-        <el-table-column 
-          label="利润率%" 
-          align="center" 
-          prop="profitMarginPop" 
-          sortable 
-          width="90"
-          class-name="last-column"
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginPop"
+            sortable
+            width="90"
+            class-name="last-column"
         >
           <template #default="{ row }">
             {{ row.profitMarginPop ? `${row.profitMarginPop}%` : '-' }}
@@ -167,22 +167,22 @@
 
       <!-- 半托管-JIT -->
       <el-table-column label="半托管-JIT" align="center" class-name="group-parent">
-        <el-table-column 
-          label="销量" 
-          align="center" 
-          prop="quantityJitHalf" 
-          sortable 
-          
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityJitHalf"
+            sortable
+
         />
         <el-table-column label="利润" align="center" prop="actualProfitJitHalf" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountJitHalf" sortable width="90"/>
-        <el-table-column 
-          label="利润率%" 
-          align="center" 
-          prop="profitMarginJitHalf" 
-          sortable 
-          width="90"
-          class-name="last-column"
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginJitHalf"
+            sortable
+            width="90"
+            class-name="last-column"
         >
           <template #default="{ row }">
             {{ row.profitMarginJitHalf ? `${row.profitMarginJitHalf}%` : '-' }}
@@ -192,22 +192,22 @@
 
       <!-- 半托管-仓发 -->
       <el-table-column label="半托管-仓发" align="center" class-name="group-parent">
-        <el-table-column 
-          label="销量" 
-          align="center" 
-          prop="quantityWarehouseHalf" 
-          sortable 
-         
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityWarehouseHalf"
+            sortable
+
         />
         <el-table-column label="利润" align="center" prop="actualProfitWarehouseHalf" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountWarehouseHalf" sortable width="90"/>
-        <el-table-column 
-          label="利润率%" 
-          align="center" 
-          prop="profitMarginWarehouseHalf" 
-          sortable 
-          width="90"
-          class-name="last-column"
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginWarehouseHalf"
+            sortable
+            width="90"
+            class-name="last-column"
         >
           <template #default="{ row }">
             {{ row.profitMarginWarehouseHalf ? `${row.profitMarginWarehouseHalf}%` : '-' }}
@@ -217,22 +217,22 @@
 
       <!-- 全托管-JIT -->
       <el-table-column label="全托管-JIT" align="center" class-name="group-parent">
-        <el-table-column 
-          label="销量" 
-          align="center" 
-          prop="quantityAllJit" 
-          sortable 
-         
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityAllJit"
+            sortable
+
         />
         <el-table-column label="利润" align="center" prop="actualProfitAllJit" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountAllJit" sortable width="90"/>
-        <el-table-column 
-          label="利润率%" 
-          align="center" 
-          prop="profitMarginAllJit" 
-          sortable 
-          width="90"
-          class-name="last-column"
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginAllJit"
+            sortable
+            width="90"
+            class-name="last-column"
         >
           <template #default="{ row }">
             {{ row.profitMarginAllJit ? `${row.profitMarginAllJit}%` : '-' }}
@@ -242,22 +242,22 @@
 
       <!-- 全托管-仓发 -->
       <el-table-column label="全托管-仓发" align="center" class-name="group-parent">
-        <el-table-column 
-          label="销量" 
-          align="center" 
-          prop="quantityAllWarehouse" 
-          sortable 
-        
+        <el-table-column
+            label="销量"
+            align="center"
+            prop="quantityAllWarehouse"
+            sortable
+
         />
         <el-table-column label="利润" align="center" prop="actualProfitAllWarehouse" sortable />
         <el-table-column label="销售金额" align="center" prop="loanAmountAllWarehouse" sortable width="90"/>
-        <el-table-column 
-          label="利润率%" 
-          align="center" 
-          prop="profitMarginAllWarehouse" 
-          sortable 
-          width="90"
-          class-name="last-column"
+        <el-table-column
+            label="利润率%"
+            align="center"
+            prop="profitMarginAllWarehouse"
+            sortable
+            width="90"
+            class-name="last-column"
         >
           <template #default="{ row }">
             {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse}%` : '-' }}
@@ -291,13 +291,13 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
+        v-show="total>0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        @pagination="getList"
     />
 
     <!-- 添加或修改马帮后台导出金额订单数据对话框 -->
@@ -381,27 +381,27 @@
     <!-- 将原来的浮动卡片改为表格形式 -->
     <div class="floating-summary" v-if="summaryList">
       <el-card class="summary-card">
-        <el-table 
-          :data="transformedSummaryData" 
-          :show-header="true" 
-          size="small" 
-          style="width: 100%"
-          :border="true"
-          class="summary-table"
+        <el-table
+            :data="transformedSummaryData"
+            :show-header="true"
+            size="small"
+            style="width: 100%"
+            :border="true"
+            class="summary-table"
         >
-          <el-table-column 
-            prop="label" 
-            label="" 
-            width="120" 
-            align="center"
-            fixed="left"
+          <el-table-column
+              prop="label"
+              label=""
+              width="120"
+              align="center"
+              fixed="left"
           />
-          <el-table-column 
-            v-for="(item, index) in summaryList" 
-            :key="index"
-            :label="item.category"
-            align="center"
-            :class-name="index === 0 ? 'total-column' : ''"
+          <el-table-column
+              v-for="(item, index) in summaryList"
+              :key="index"
+              :label="item.category"
+              align="center"
+              :class-name="index === 0 ? 'total-column' : ''"
           >
             <template #default="{ row }">
               <template v-if="row.type === 'quantity'">
@@ -505,10 +505,10 @@ function getList() {
   const totalQueryParams = { ...queryParams.value };
   delete totalQueryParams.pageNum;
   delete totalQueryParams.pageSize;
-  
+
   listStatisticsToal(totalQueryParams).then(response => {
-   // 定义期望的排序顺序
-   const orderMap = {
+    // 定义期望的排序顺序
+    const orderMap = {
       'POP-自发': 1,
       '半托管-JIT': 2,
       '半托管-仓发': 3,
@@ -534,8 +534,8 @@ function getList() {
     });
 
     // 计算总利润率
-    totalData.profitMargin = totalData.loanAmount ? 
-      (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
+    totalData.profitMargin = totalData.loanAmount ?
+        (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
 
     // 对数据进行排序,并将总计放在最前面
     summaryList.value = [
@@ -681,13 +681,13 @@ const yearOptions = computed(() => {
 })
 
 // 添加月份选项（1-12月）
-const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+const monthOptions = Array.from({length: 12}, (_, i) => i + 1)
 
 const transformedSummaryData = computed(() => [
-  { label: '单量', type: 'quantity' },
-  { label: '销售额', type: 'amount' },
-  { label: '利润', type: 'profit' },
-  { label: '利润率', type: 'profitMargin' }
+  {label: '单量', type: 'quantity'},
+  {label: '销售额', type: 'amount'},
+  {label: '利润', type: 'profit'},
+  {label: '利润率', type: 'profitMargin'}
 ]);
 
 getList();
@@ -776,7 +776,7 @@ getList();
   right: 0;
   z-index: 1000;
   padding: 0 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 20%);
   opacity: 0;
   transition: all 0.3s ease-in-out;
 }
@@ -826,7 +826,7 @@ getList();
 }
 
 /* 自定义表格边框和分割线颜色 */
-.summary-table.el-table--border, 
+.summary-table.el-table--border,
 .summary-table.el-table--group {
   border-color: #EBEEF5;
 }

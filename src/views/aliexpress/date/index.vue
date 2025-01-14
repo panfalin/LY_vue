@@ -6,7 +6,7 @@
           v-model="queryParams.year"
           placeholder="请选择年份"
           clearable
-          style="width: 180px"
+          style="width: 192px"
         >
           <el-option
             v-for="year in yearOptions"
@@ -58,6 +58,17 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+
+      <el-form-item label="国家" prop="countries">
+        <el-input
+          v-model="queryParams.countries"
+          placeholder="请输入国家"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -115,12 +126,12 @@
       </el-table-column>
       <el-table-column label="店铺名称" align="center" prop="storeName" sortable  width="260"/>
       <!-- 总销售数量、实际总利润和销售总金额 -->
-      <el-table-column label="总销售数量" align="center" prop="quantity" sortable width="100"/>
+      <el-table-column label="总销售SKU数量" align="center" prop="quantity" sortable width="100"/>
       <el-table-column label="销售总金额" align="center" prop="loanAmount" sortable width="100"/>
       <el-table-column label="实际总利润" align="center" prop="actualProfit" sortable width="100"/>
       <el-table-column label="利润率%" align="center" prop="profitMargin" sortable width="90">
         <template #default="{ row }">
-          {{ row.profitMargin ? `${row.profitMargin}%` : '-' }}
+          {{ row.profitMargin ? `${row.profitMargin.toFixed(2)}%` : '-' }}
         </template>
       </el-table-column>
       <!-- POP-自发 -->
@@ -143,7 +154,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginPop ? `${row.profitMarginPop}%` : '-' }}
+            {{ row.profitMarginPop ? `${row.profitMarginPop.toFixed(2)}%` : '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -168,7 +179,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginJitHalf ? `${row.profitMarginJitHalf}%` : '-' }}
+            {{ row.profitMarginJitHalf ? `${row.profitMarginJitHalf.toFixed(2)}%` : '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -193,7 +204,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginWarehouseHalf ? `${row.profitMarginWarehouseHalf}%` : '-' }}
+            {{ row.profitMarginWarehouseHalf ? `${row.profitMarginWarehouseHalf.toFixed(2)}%` : '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -218,7 +229,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginAllJit ? `${row.profitMarginAllJit}%` : '-' }}
+            {{ row.profitMarginAllJit ? `${row.profitMarginAllJit.toFixed(2)}%` : '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -243,7 +254,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse}%` : '-' }}
+            {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse.toFixed(2)}%` : '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -402,62 +413,65 @@
       </template>
     </el-dialog>
 <!-- 在最后添加浮动的汇总卡片 -->
-  <div class="floating-summary" v-if="summaryList">
-    <el-card class="summary-card">
-      <el-table 
-        :data="transformedSummaryData" 
-        :show-header="true" 
-        size="small" 
-        style="width: 100%"
-        :border="true"
-        class="summary-table"
-      >
-        <el-table-column 
-          prop="label" 
-          label="" 
-          width="120" 
-          align="center"
-          fixed="left"
-        />
-        <el-table-column 
-          v-for="(item, index) in summaryList" 
-          :key="index"
-          :label="item.category"
-          align="center"
-          :class-name="index === 0 ? 'total-column' : ''"
+    <div class="floating-summary" v-show="summaryList">
+      <el-card class="summary-card">
+        <el-table
+            :data="transformedSummaryData"
+            :show-header="true"
+            size="small"
+            style="width: 100%"
+            :border="true"
+            class="summary-table"
         >
-          <template #default="{ row }">
-            <template v-if="row.type === 'quantity'">
-              <span>{{ item.quantity }}</span>
-              <span v-if="index !== 0" class="percentage">
-                ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
-              </span>
+          <el-table-column
+              prop="label"
+              label=""
+              width="120"
+              align="center"
+              fixed="left"
+          />
+          <el-table-column
+              v-for="(item, index) in summaryList"
+              :key="index"
+              :label="item.category"
+              align="center"
+              :class-name="index === 0 ? 'total-column' : ''"
+          >
+            <template #default="{ row }">
+              <template v-if="row.type === 'quantity'">
+                <span>{{ item.quantity }}</span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.quantity / summaryList[0].quantity) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'amount'">
+                <span>¥{{ item.loanAmount?.toFixed(2) }}</span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'profit'">
+                <span :class="{'negative': item.actualProfit < 0}">
+                  ¥{{ item.actualProfit?.toFixed(2) }}
+                </span>
+                <span v-if="index !== 0" class="percentage">
+                  ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
+                </span>
+              </template>
+              <template v-else-if="row.type === 'profitMargin'">
+                <span :class="{'negative': item.profitMargin < 0}">
+                  {{ item.profitMargin?.toFixed(2) }}%
+                </span>
+              </template>
             </template>
-            <template v-else-if="row.type === 'amount'">
-              <span>¥{{ item.loanAmount?.toFixed(2) }}</span>
-              <span v-if="index !== 0" class="percentage">
-                ({{ ((item.loanAmount / summaryList[0].loanAmount) * 100).toFixed(2) }}%)
-              </span>
-            </template>
-            <template v-else-if="row.type === 'profit'">
-              <span :class="{'negative': item.actualProfit < 0}">
-                ¥{{ item.actualProfit?.toFixed(2) }}
-              </span>
-              <span v-if="index !== 0" class="percentage">
-                ({{ ((item.actualProfit / summaryList[0].actualProfit) * 100).toFixed(2) }}%)
-              </span>
-            </template>
-            <template v-else-if="row.type === 'profitMargin'">
-              <span :class="{'negative': item.profitMargin < 0}">
-                {{ item.profitMargin?.toFixed(2) }}%
-              </span>
-            </template>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
   </div>
-  </div>
+
+
+
 </template>
 
 <script setup name="Date">
@@ -660,7 +674,8 @@ function reset() {
     quantityAllWarehouse: null,
     loanAmountAllWarehouse: null,
     profitMarginAllWarehouse: null,
-    personCharge: null
+    personCharge: null,
+    countries: null,
   };
   proxy.resetForm("dateRef");
 }
@@ -760,6 +775,36 @@ const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 // 添加月份选项（1-31日）
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1)
 
+// 添加滚动处理
+import { onMounted, onUnmounted } from 'vue';
+
+let scrollTimer = null;
+const handleScroll = () => {
+  const summary = document.querySelector('.floating-summary');
+  if (!summary) return;
+
+  // 添加滚动时的类
+  summary.classList.add('scrolling');
+
+  // 清除之前的定时器
+  if (scrollTimer) clearTimeout(scrollTimer);
+
+  // 设置新的定时器
+  scrollTimer = setTimeout(() => {
+    summary.classList.remove('scrolling');
+  }, 150);
+};
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+  if (scrollTimer) clearTimeout(scrollTimer);
+});
+
+
 
 // 添加转换后的汇总数据计算属性
 const transformedSummaryData = computed(() => [
@@ -772,16 +817,25 @@ const transformedSummaryData = computed(() => [
 getList();
 </script>
 <style scoped>
-/* 浮动汇总样式 */
 .floating-summary {
   position: fixed;
   bottom: 0;
-  left: 50px;
+  left: 200px; /* 左侧菜单展开时的宽度 */
   right: 0;
   z-index: 1000;
   padding: 0 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 20%);
-  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 20%);
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-summary {
+  left: 54px; /* 收起时左侧菜单的宽度 */
+}
+
+.floating-summary:not(:empty) {
+  opacity: 1;
 }
 
 .summary-card {
@@ -790,9 +844,9 @@ getList();
   border-radius: 4px;
   background-color: #fff;
   pointer-events: auto;
+  transition: all 0.3s ease-in-out;
 }
 
-/* 新增表格相关样式 */
 .summary-table {
   margin: 0;
   background-color: transparent;
@@ -820,7 +874,7 @@ getList();
 }
 
 /* 自定义表格边框和分割线颜色 */
-.summary-table.el-table--border, 
+.summary-table.el-table--border,
 .summary-table.el-table--group {
   border-color: #EBEEF5;
 }
@@ -839,13 +893,12 @@ getList();
   font-weight: bold;
 }
 
-/* 为了防止内容被浮动卡片遮挡，给主容器添加底部间距 */
+/* 确保有足够的底部空间 */
 .app-container {
   padding-bottom: 200px;
   min-height: 100vh;
 }
 
-/* 添加响应式布局 */
 @media screen and (max-width: 1400px) {
   .floating-summary {
     left: 80px;
@@ -856,6 +909,29 @@ getList();
   font-size: 12px;
   color: #909399;
   margin-left: 4px;
+}
+
+.floating-table {
+  position: fixed;
+  bottom: 0;
+  left: 200px; /* 左侧菜单栏的宽度 */
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 当左侧菜单收起时的样式 */
+.hideSidebar .floating-table {
+  left: 54px; /* 收起时左侧菜单的宽度 */
+}
+
+/* 其他样式保持不变 */
+.floating-table.el-table {
+  --el-table-header-bg-color: #f5f7fa;
+  --el-table-border-color: #ebeef5;
+  --el-table-header-text-color: #606266;
 }
 
 

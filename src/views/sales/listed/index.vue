@@ -120,7 +120,7 @@
           <el-button-group>
             <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
             <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
-<!--            <el-button type="success" :icon="Plus" @click="generateTasks">生成任务</el-button>-->
+            <el-button type="success" :icon="Plus" @click="generateTasks">生成任务</el-button>
           </el-button-group>
         </el-form-item>
       </el-form>

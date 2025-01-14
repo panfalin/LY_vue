@@ -41,16 +41,6 @@
         </el-select>
       </el-form-item> -->
 
-
-      <el-form-item label="sku负责人" prop="skuPerson">
-        <el-input
-          v-model="queryParams.skuPerson"
-          placeholder="sku负责人"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-
       <el-form-item label="sku负责人" prop="skuPerson">
         <el-select
             v-model="queryParams.skuPerson"
@@ -71,8 +61,8 @@
               value="陈雪芳"
           />
           <el-option
-              label="voice"
-              value="voice"
+              label="蔡晓纯"
+              value="蔡晓纯"
           />
           <el-option
               label="沈娟"
@@ -132,6 +122,12 @@
 
     <el-table v-loading="loading" :data="competitionList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="图片" align="center" prop="picture" width="180">
+        <template #default="scope">
+          <img :src="getProxiedImageUrl(scope.row.picture)" alt="图片" style="width: 100%; height: auto;" />
+          
+        </template>
+      </el-table-column>
       <el-table-column label="sku" align="center" prop="sku" width="180" />
       <el-table-column label="负责人" align="center" prop="skuPerson">
         <template #default="scope">
@@ -442,7 +438,11 @@ const data = reactive({
   rules: {
   }
 });
-
+const getProxiedImageUrl = (url) => {
+  if (!url) return '';
+  // 使用 images.weserv.nl 代理服务
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=https://via.placeholder.com/80x80?text=No+Image`;
+};
 const { queryParams, form, rules } = toRefs(data);
 
 const popInputs = ref([{ value: '' }]);
