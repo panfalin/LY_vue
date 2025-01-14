@@ -228,7 +228,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">总营业额合计:</span>
-            <span class="value" :class="{'negative': totalSum < 0}">
+            <span class="value">
               {{ formatMoney(totalSum) }}
             </span>
           </div>
@@ -236,7 +236,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">直通车花费合计:</span>
-            <span class="value" :class="{'negative': totalDirectCarCost < 0}">
+            <span class="value">
               {{ formatMoney(totalDirectCarCost) }}
             </span>
           </div>
@@ -244,7 +244,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">直通车充值合计:</span>
-            <span class="value" :class="{'negative': totalDirectCar < 0}">
+            <span class="value">
               {{ formatMoney(totalDirectCar) }}
             </span>
           </div>
@@ -255,7 +255,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">财务-pop利润合计:</span>
-            <span class="value" :class="{'negative': totalOrderActualProfit < 0}">
+            <span class="value">
               {{ formatMoney(totalOrderActualProfit) }}
             </span>
           </div>
@@ -263,7 +263,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">财务-半托管合计:</span>
-            <span class="value" :class="{'negative': totalHalf托管Profit < 0}">
+            <span class="value">
               {{ formatMoney(totalHalf托管Profit) }}
             </span>
           </div>
@@ -271,7 +271,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">财务-pop+半托管利润合计:</span>
-            <span class="value" :class="{'negative': totalSelfHalf托管Profit < 0}">
+            <span class="value">
               {{ formatMoney(totalSelfHalf托管Profit) }}
             </span>
           </div>
@@ -703,7 +703,7 @@ function handleSortChange({prop, order}) {
 function getTableRowClass({ row }) {
   try {
     if (!row) return '';
-    return row.grossProfit < 0 ? 'negative-profit' : '';
+    return '';  // 移除负数判断,返回空字符串
   } catch (error) {
     console.error('行样式处理错误:', error);
     return '';
@@ -739,10 +739,6 @@ function calculateTotalProfit(row) {
   font-weight: bold;
 }
 
-.negative-profit {
-  color: #F56C6C;
-}
-
 .error-text {
   color: #F56C6C;
   font-size: 12px;
@@ -775,19 +771,5 @@ function calculateTotalProfit(row) {
   color: #303133;
   font-size: 16px;
   font-weight: bold;
-}
-
-.summary-item .value.negative {
-  color: #f56c6c;
-}
-
-/* 修改负数显示样式 */
-.negative-profit {
-  color: #F56C6C;  /* 红色 */
-}
-
-/* 如果需要正数显示特殊颜色，可以添加 */
-.positive-profit {
-  color: #67C23A;  /* 绿色 */
 }
 </style>

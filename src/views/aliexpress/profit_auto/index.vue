@@ -294,7 +294,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">总营业额合计:</span>
-            <span class="value" :class="{'negative': totalSum < 0}">
+            <span class="value">
               {{ formatMoney(totalSum) }}
             </span>
           </div>
@@ -302,7 +302,7 @@
          <el-col :span="8">
           <div class="summary-item">
             <span class="label">备仓利润合计:</span>
-            <span class="value" :class="{'negative': totalDirectCarCost < 0}">
+            <span class="value">
               {{ formatMoney(totalDirectCarCost) }}
             </span>
           </div>
@@ -310,7 +310,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">JIT利润合计:</span>
-            <span class="value" :class="{'negative': totalDirectCar < 0}">
+            <span class="value">
               {{ formatMoney(totalDirectCar) }}
             </span>
           </div>
@@ -321,7 +321,7 @@
          <el-col :span="8">
           <div class="summary-item">
             <span class="label">当月揽收费用合计:</span>
-            <span class="value" :class="{'negative': totalOrderActualProfit < 0}">
+            <span class="value">
               {{ formatMoney(totalOrderActualProfit) }}
             </span>
           </div>
@@ -329,7 +329,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">当月产生罚款合计:</span>
-            <span class="value" :class="{'negative': totalHalf托管Profit < 0}">
+            <span class="value">
               {{ formatMoney(totalHalf托管Profit) }}
             </span>
           </div>
@@ -337,7 +337,7 @@
         <el-col :span="8">
           <div class="summary-item">
             <span class="label">利润合计:</span>
-            <span class="value" :class="{'negative': totalSelfHalf托管Profit < 0}">
+            <span class="value">
               {{ formatMoney(totalSelfHalf托管Profit) }}
             </span>
           </div>
@@ -732,7 +732,7 @@ function handleSortChange({prop, order}) {
 function getTableRowClass({ row }) {
   try {
     if (!row) return '';
-    return row.grossProfit < 0 ? 'negative-profit' : '';
+    return '';
   } catch (error) {
     console.error('行样式处理错误:', error);
     return '';
@@ -761,10 +761,6 @@ function handleDateRangeChange(val) {
 .summary {
   margin-top: 20px;
   font-weight: bold;
-}
-
-.negative-profit {
-  color: #F56C6C;
 }
 
 .error-text {
@@ -799,10 +795,6 @@ function handleDateRangeChange(val) {
   color: #303133;
   font-size: 16px;
   font-weight: bold;
-}
-
-.summary-item .value.negative {
-  color: #f56c6c;
 }
 
 .left-area {
