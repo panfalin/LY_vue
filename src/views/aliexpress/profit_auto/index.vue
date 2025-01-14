@@ -134,19 +134,19 @@
       <el-table-column fixed label="店铺" align="center" prop="storeName" width="200" sortable/>
       <el-table-column fixed label="负责人" align="center" prop="storeManager" width="80" sortable/>
       <el-table-column fixed label="月份" align="center" prop="mouth" width="80" sortable/>
-      <el-table-column label="订单金额" align="center" prop="orderAmount" width="100" sortable/>
-      <el-table-column label="运费" align="center" prop="shippingFee" width="80" sortable/>
-      <el-table-column label="其他收入" align="center" prop="otherIncome" width="100" sortable/>
-      <el-table-column label="补贴金额" align="center" prop="subsidyAmount" width="100" sortable/>
-      <el-table-column label="退货成本" align="center" prop="returnCost" width="80" sortable/>
-      <el-table-column label="运费退回" align="center" prop="shippingReturn" width="100" sortable/>
-      <el-table-column label="其他店铺收入" align="center" prop="otherStoreIncome" width="120" sortable/>
-      <el-table-column label="合计" align="center" prop="total" width="80" sortable/>
-      <el-table-column label="订单量" align="center" prop="orderQuantity" width="80" sortable/>
-      <el-table-column label="退款订单量" align="center" prop="refundOrderQuantity" width="120" sortable/>
-      <el-table-column label="退款金额" align="center" prop="refundAmount" width="80" sortable/>
-      <el-table-column label="客单价" align="center" prop="customerUnitPrice" width="80" sortable/>
-      <el-table-column label="毛利" align="center" prop="grossProfit" width="80" sortable/>
+      <!--<el-table-column label="订单金额" align="center" prop="orderAmount" width="100" sortable/>-->
+      <!--<el-table-column label="运费" align="center" prop="shippingFee" width="80" sortable/>-->
+      <!--<el-table-column label="其他收入" align="center" prop="otherIncome" width="100" sortable/>-->
+      <!--<el-table-column label="补贴金额" align="center" prop="subsidyAmount" width="100" sortable/>-->
+      <!--<el-table-column label="退货成本" align="center" prop="returnCost" width="80" sortable/>-->
+      <!--<el-table-column label="运费退回" align="center" prop="shippingReturn" width="100" sortable/>-->
+      <!--<el-table-column label="其他店铺收入" align="center" prop="otherStoreIncome" width="120" sortable/>-->
+      <!--<el-table-column label="合计" align="center" prop="total" width="80" sortable/>-->
+      <!--<el-table-column label="订单量" align="center" prop="orderQuantity" width="80" sortable/>-->
+      <!--<el-table-column label="退款订单量" align="center" prop="refundOrderQuantity" width="120" sortable/>-->
+      <!--<el-table-column label="退款金额" align="center" prop="refundAmount" width="80" sortable/>-->
+      <!--<el-table-column label="客单价" align="center" prop="customerUnitPrice" width="80" sortable/>-->
+      <!--<el-table-column label="毛利" align="center" prop="grossProfit" width="80" sortable/>-->
       <!--<el-table-column label="实际退款USD" align="center" prop="actualRefundUsd" width="80" sortable/>-->
       <!--<el-table-column label="直通车充值" align="center" prop="directCar" width="120" sortable/>-->
       <!--<el-table-column label="物流赔付" align="center" prop="cancelOrderRmb" width="120" sortable/>-->
