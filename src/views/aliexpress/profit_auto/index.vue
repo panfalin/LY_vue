@@ -184,12 +184,16 @@
       <!--    <span>{{ (scope.row.profitRate * 100).toFixed(1) + '%' }}</span>-->
       <!--  </template>-->
       <!--</el-table-column>-->
-      <el-table-column label="总供货价金额" align="center" prop="null" width="120" sortable/>
+      <el-table-column label="总供货价金额" align="center" prop="null" width="120" sortable>
+        <template #default="scope">
+            <span>{{ (scope.row.cancelOrderRmb + scope.row.operationFee) || '0.00' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="全托管-JIT" align="center" class-name="group-parent" width="400">
         <el-table-column
-            label="销量"
+            label="SKU销量"
             align="center"
-            prop="quantityAllJit"
+            prop="directCar"
             sortable
             width="100"
             class-name="first-column"
@@ -204,7 +208,7 @@
         <el-table-column
             label="供货价金额"
             align="center"
-            prop="loanAmountAllJit"
+            prop="cancelOrderRmb"
             sortable
             width="100"
         />
@@ -217,7 +221,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginAllJit ? `${row.profitMarginAllJit}%` : '-' }}
+            {{ (row.septemberProfitRate / row.cancelOrderRmb).toFixed(2) + '%' || '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -225,15 +229,15 @@
       <!-- 全托管-仓发 -->
       <el-table-column label="全托管-仓发" align="center" class-name="group-parent" width="400">
         <el-table-column
-            label="销量"
+            label="SKU销量"
             align="center"
-            prop="quantityAllWarehouse"
+            prop="overseasLastShipping"
             sortable
             width="100"
             class-name="first-column"
         />
         <el-table-column label="利润" align="center" prop="septemberProfit" sortable/>
-        <el-table-column label="供货价金额" align="center" prop="loanAmountAllWarehouse" sortable width="90"/>
+        <el-table-column label="供货价金额" align="center" prop="operationFee" sortable width="90"/>
         <el-table-column
             label="利润率%"
             align="center"
@@ -243,12 +247,18 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ row.profitMarginAllWarehouse ? `${row.profitMarginAllWarehouse}%` : '-' }}
+            {{
+              (row.septemberProfit && row.operationFee && !isNaN(row.septemberProfit) && !isNaN(row.operationFee))
+                  ? ((row.septemberProfit / row.operationFee).toFixed(2) + '%')
+                  : '-'
+            }}
           </template>
+
         </el-table-column>
       </el-table-column>
       <!--<el-table-column label="备仓利润" align="center" prop="septemberProfit" width="120" sortable/>-->
       <!--<el-table-column label="jit利润" align="center" prop="septemberProfitRate" width="120" sortable/>-->
+      <el-table-column label="清仓成本补助" align="center" prop="clearanceCostSubsidy" width="120" sortable/>
       <el-table-column label="当月揽收费用" align="center" prop="septemberRevenue" width="120" sortable/>
       <el-table-column label="上月活动差价" align="center" prop="compareRevenue" width="120" sortable/>
       <el-table-column label="当月产生罚款" align="center" prop="compareProfitRate" width="120" sortable/>
@@ -351,6 +361,7 @@
 import {ref, reactive, toRefs, onMounted, getCurrentInstance} from 'vue';
 import {listProfit, getProfit, delProfit, addProfit, updateProfit, listStores} from "@/api/profit/profit";
 import {ElMessage} from 'element-plus';
+import Template from "@/views/aliexpress/template/index.vue";
 
 const {proxy} = getCurrentInstance();
 
