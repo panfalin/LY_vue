@@ -221,7 +221,7 @@
             class-name="last-column"
         >
           <template #default="{ row }">
-            {{ (row.septemberProfitRate / row.cancelOrderRmb).toFixed(2) + '%' || '-' }}
+            {{ ((row.septemberProfitRate / row.cancelOrderRmb) * 100).toFixed(2) + '%' || '-' }}
           </template>
         </el-table-column>
       </el-table-column>
@@ -249,7 +249,7 @@
           <template #default="{ row }">
             {{
               (row.septemberProfit && row.operationFee && !isNaN(row.septemberProfit) && !isNaN(row.operationFee))
-                  ? ((row.septemberProfit / row.operationFee).toFixed(2) + '%')
+                  ? (((row.septemberProfit / row.operationFee) * 100).toFixed(2) + '%')
                   : '-'
             }}
           </template>
@@ -264,7 +264,7 @@
       <el-table-column label="当月产生罚款" align="center" prop="compareProfitRate" width="120" sortable/>
       <el-table-column fixed = "right" label="利润汇总" align="center" prop="totalProfit" width="120" sortable>
         <template #default="scope">
-          <span>{{ (scope.row.septemberProfit + scope.row.septemberProfitRate + scope.row.septemberRevenue + scope.row.compareRevenue - scope.row.compareProfitRate).toFixed(2) }}</span>
+          <span>{{ (scope.row.septemberProfit + scope.row.septemberProfitRate + scope.row.clearanceCostSubsidy + scope.row.septemberRevenue + scope.row.compareRevenue - scope.row.compareProfitRate).toFixed(2) }}</span>
         </template>
       </el-table-column>
     </el-table>
