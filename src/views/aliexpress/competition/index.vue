@@ -125,7 +125,6 @@
       <el-table-column label="图片" align="center" prop="picture" width="180">
         <template #default="scope">
           <img :src="getProxiedImageUrl(scope.row.picture)" alt="图片" style="width: 100%; height: auto;" />
-          
         </template>
       </el-table-column>
       <el-table-column label="sku" align="center" prop="sku" width="180" />
