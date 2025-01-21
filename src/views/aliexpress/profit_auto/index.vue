@@ -289,6 +289,9 @@
         <el-form-item label="当月产生罚款" prop="compareProfitRate">
           <el-input v-model="form.compareProfitRate" placeholder="请输入当月产生罚款" />
         </el-form-item>
+        <el-form-item label="上月活动差价" prop="compareRevenue">
+          <el-input v-model="form.compareRevenue" placeholder="请输入上月活动差价" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -389,6 +392,8 @@ const totalActualCostProfit = ref(0);
 const totalSelfHalf托管Revenue = ref(0);
 const totalSelfHalf托管Profit = ref(0);
 const totalHalf托管Profit = ref(0);
+const totalClearanceCostSubsidy = ref(0);
+const totalCompareRevenue = ref(0);
 const storeOptions = ref([]);
 
 const data = reactive({
@@ -575,9 +580,10 @@ function calculateTotals(data) {
     totalDirectCarCost.value = safeReduce(data, 'septemberProfit');
     totalDirectCar.value = safeReduce(data, 'septemberProfitRate');
     totalOrderActualProfit.value = safeReduce(data, 'septemberRevenue');
-    totalHalf托管Profit.value = safeReduce(data, 'compareProfitRate');
-    totalSelfHalf托管Profit.value = totalDirectCarCost.value + totalDirectCar.value + totalOrderActualProfit.value - totalHalf托管Profit.value;
-
+    totalHalf托管Profit.value = safeReduce(data, 'compareProfitRate');   // 当月罚款
+    totalClearanceCostSubsidy.value = safeReduce(data, 'clearanceCostSubsidy'); // 清仓补助
+    totalCompareRevenue.value = safeReduce(data, 'compareRevenue');   // 活动差价
+    totalSelfHalf托管Profit.value = totalDirectCarCost.value + totalDirectCar.value + totalOrderActualProfit.value + totalClearanceCostSubsidy.value + totalCompareRevenue.value - totalHalf托管Profit.value;
 
   } catch (error) {
     console.error('计算汇总数据时出错:', error);
