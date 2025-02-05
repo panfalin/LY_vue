@@ -75,17 +75,27 @@
       <el-table-column label="订单总金额" align="center" prop="totalOrderAmount" />
       <el-table-column label="实际运费" align="center" prop="actualShipping" />
       <el-table-column label="运费收入" align="center" prop="shippingRevenue" />
-      <el-table-column label="广告费(人民币)" align="center" prop="adCostRmb" />
-      <el-table-column label="平台交易费(人民币)" align="center" prop="platformFeeRmb" />
+      <el-table-column label="广告费(人民币)" align="center" prop="adCostRmb" width="110"/>
+      <el-table-column label="平台交易费(人民币)" align="center" prop="platformFeeRmb" width="130"/>
       <el-table-column label="VAT税费" align="center" prop="vatFeeRmb" />
       <el-table-column label="物流赔付" align="center" prop="logisticsCompensation" />
       <el-table-column label="半托管赔付" align="center" prop="semiManagedCompensation" />
       <el-table-column label="实际退款" align="center" prop="actualRefund" />
       <el-table-column label="清仓补助" align="center" prop="clearanceSubsidy" />
       <el-table-column label="订单利润" align="center" prop="orderProfit" />
-      <el-table-column label="订单利润率" align="center" prop="orderProfitRate" />
+      <el-table-column label="订单利润率" align="center" prop="orderProfitRate" >
+        <template #default="scope">
+          {{ scope.row.orderProfitRate ? `${(scope.row.orderProfitRate * 100).toFixed(2)}%` : '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="实际利润" align="center" prop="actualProfit" />
-      <el-table-column label="实际利润率" align="center" prop="actualProfitRate" />
+
+
+      <el-table-column label="实际利润率" align="center" prop="actualProfitRate">
+        <template #default="scope">
+          {{ scope.row.actualProfitRate ? `${(scope.row.actualProfitRate * 100).toFixed(2)}%` : '-' }}
+        </template>
+      </el-table-column>
 
     </el-table>
     
