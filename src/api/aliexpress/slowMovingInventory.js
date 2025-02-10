@@ -9,6 +9,17 @@ export function listSlowMovingInventory(query) {
   })
 }
 
+// 查询速卖通滞销SKU分析列表
+export function listSlowMovingInventoryTotal(query) {
+  return request({
+    url: '/aliexpress/slowMovingInventory/listTotal',
+    method: 'get',
+    params: query
+  })
+}
+
+
+
 // 查询速卖通滞销SKU分析详细
 export function getSlowMovingInventory(id) {
   return request({

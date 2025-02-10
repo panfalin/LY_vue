@@ -136,7 +136,7 @@
       <el-table-column label="sku" align="center" prop="sku"width="150px" />
       <el-table-column label="sku负责人" align="center" prop="skuPerson"width="150px" />
       <el-table-column label="渠道类型" align="center" prop="orderType" width="70px"/>
-      <el-table-column label="市场容量" align="center" prop="marketCapacity" width="70px"/>
+      <el-table-column label="日均市场容量" align="center" prop="marketCapacity" width="110px"/>
       <el-table-column label="刊登ID" align="center" prop="publicationId" width="150px"/>
       <el-table-column label="店铺" align="center" prop="shops" width="300px" />
       <el-table-column label="店铺类型" align="center" prop="shopsType"width="70px" />

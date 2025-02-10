@@ -188,24 +188,27 @@
         show-overflow-tooltip
       />
       <!-- 库存相关列 -->
+
       <el-table-column label="库存" align="center">
+        <el-table-column label="成本单价" align="center" prop="warehouseCost" sortable="custom" width="100"/>
+        <el-table-column label="成本总价" align="center" prop="totalWarehouseCost" sortable="custom" width="100"/>
         <el-table-column label="本地采购在途" align="center" prop="localInTransitQuantity" sortable="custom" width="100"/>
         <el-table-column label="本地可用" align="center" prop="localAvailableQuantity" sortable="custom" width="100"/>
+        <el-table-column label="本地库存" align="center" prop="totalStock" sortable="custom" width="100"/>
         <el-table-column label="备仓在途" align="center" prop="backupInTransitQuantity" sortable="custom" width="100"/>
         <el-table-column label="半托管备仓可用" align="center" prop="halfManagementBackupAvailableQuantity" sortable="custom" width="120"/>
         <el-table-column label="全托管备仓可用" align="center" prop="fullManagementBackupAvailableQuantity" sortable="custom" width="120"/>
-        <el-table-column label="本地库存" align="center" prop="totalStock" sortable="custom" width="100"/>
       </el-table-column>
       <el-table-column label="pop日均市场容量" align="center" prop="popDailyMarketCapacity" sortable="custom" width="140"/>
-      <el-table-column label="全托管日均市场容量" align="center" prop="fullManagementDailyMarketCapacity" sortable="custom" width="140"/>
-      <el-table-column label="半托管日均市场容量" align="center" prop="halfManagementDailyMarketCapacity" sortable="custom" width="140"/>
-      <el-table-column label="竞对热销国家" align="center" prop="competitorHotSalesCountries" />
-      <el-table-column label="竞对热销价格" align="center" prop="competitorHotSalesPrice" />
-      <el-table-column label="市场平均售价" align="center" prop="marketAveragePrice" />
-      <el-table-column label="对比我们刊登的价格" align="center" prop="priceComparison" />
-      <el-table-column label="pop在线刊登数" align="center" prop="popOnlineListings" />
-      <el-table-column label="全托管在线刊登数" align="center" prop="fullManagementOnlineListings" />
-      <el-table-column label="半托管在线刊登数" align="center" prop="halfManagementOnlineListings" />
+      <el-table-column label="全托管日均市场容量" align="center" prop="fullManagementDailyMarketCapacity" sortable="custom" width="150"/>
+      <el-table-column label="半托管日均市场容量" align="center" prop="halfManagementDailyMarketCapacity" sortable="custom" width="150"/>
+      <el-table-column label="竞对热销国家" align="center" prop="competitorHotSalesCountries" width="250"/>
+      <el-table-column label="竞对热销价格" align="center" prop="competitorHotSalesPrice" width="350"/>
+      <el-table-column label="市场平均售价" align="center" prop="marketAveragePrice"  width="120"/>
+      <el-table-column label="我们刊登的价格" align="center" prop="priceComparison" width="140"/>
+      <el-table-column label="pop在线刊登数" align="center" prop="popOnlineListings" width="120" />
+      <el-table-column label="全托管在线刊登数" align="center" prop="fullManagementOnlineListings" width="120" />
+      <el-table-column label="半托管在线刊登数" align="center" prop="halfManagementOnlineListings"  width="120"/>
       <el-table-column label="推荐操作" align="center" prop="recommendedAction" />
       <el-table-column label="操作状态" align="center" prop="status" />
       <el-table-column label="操作完成时间" align="center" prop="completedAt" width="180">
@@ -229,6 +232,27 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
+
+    <!-- 添加统计浮框 -->
+    <div class="statistics-float">
+      <el-table :data="[totalData]" size="small" border>
+        <el-table-column label="滞销SKU数量" align="center">
+          <template #default="scope">
+            {{ scope.row.skuTotal }}
+          </template>
+        </el-table-column>
+        <el-table-column label="滞销商品总数" align="center">
+          <template #default="scope">
+            {{ scope.row.totalWarehouse }}
+          </template>
+        </el-table-column>
+        <el-table-column label="滞销产品总金额" align="center">
+          <template #default="scope">
+            ¥{{ parseFloat(scope.row.totalWarehouseCost).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
 
     <!-- 添加或修改速卖通滞销SKU分析对话框 -->
 <!--    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -317,7 +341,7 @@
 </template>
 
 <script setup name="SlowMovingInventory">
-import { listSlowMovingInventory, getSlowMovingInventory, delSlowMovingInventory, addSlowMovingInventory, updateSlowMovingInventory } from "@/api/aliexpress/slowMovingInventory";
+import { listSlowMovingInventory, getSlowMovingInventory, delSlowMovingInventory, addSlowMovingInventory, updateSlowMovingInventory ,listSlowMovingInventoryTotal} from "@/api/aliexpress/slowMovingInventory";
 
 const { proxy } = getCurrentInstance();
 
@@ -331,6 +355,11 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const daterangeCompletedAt = ref([]);
+const totalData = ref({
+  skuTotal: 0,
+  totalWarehouse: 0,
+  totalWarehouseCost: 0
+});
 
 const data = reactive({
   form: {},
@@ -371,10 +400,23 @@ function getList() {
     queryParams.value.params["beginCompletedAt"] = daterangeCompletedAt.value[0];
     queryParams.value.params["endCompletedAt"] = daterangeCompletedAt.value[1];
   }
-  listSlowMovingInventory(queryParams.value).then(response => {
-    slowMovingInventoryList.value = response.rows;
-    total.value = response.total;
+  
+  // 使用 Promise.all 同时调用两个接口
+  Promise.all([
+    listSlowMovingInventory(queryParams.value),
+    listSlowMovingInventoryTotal(queryParams.value)
+  ]).then(([listResponse, totalResponse]) => {
+    console.log("123123===>",totalResponse)
+
+    slowMovingInventoryList.value = listResponse.rows;
+    total.value = listResponse.total;
+    // 处理总计数据
+    totalData.value = totalResponse.rows[0];
     loading.value = false;
+  }).catch(error => {
+    loading.value = false;
+    proxy.$modal.msgError("获取数据失败");
+    console.error(error);
   });
 }
 
@@ -512,5 +554,22 @@ getList();
 
 :deep(.el-table .cell) {
   white-space: nowrap;
+}
+
+/* 添加浮框样式 */
+.statistics-float {
+  position: fixed;
+  bottom: 5px;  /* 修改这里，从20px改为80px，让它离底部更远 */
+  right: 20px;
+  background: #fff;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: auto;
+  min-width: 95%;
+  border-radius: 4px; /* 添加圆角效果 */
+}
+
+:deep(.el-table) {
+  margin: 0;
 }
 </style>
