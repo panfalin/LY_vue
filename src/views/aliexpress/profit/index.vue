@@ -60,6 +60,7 @@
             placeholder="请选择月份"
             clearable
         >
+          <el-option label="2025-01" value="2025-01"></el-option>
           <el-option label="2024-12" value="2024-12"></el-option>
           <el-option label="2024-11" value="2024-11"></el-option>
           <el-option label="2024-10" value="2024-10"></el-option>
@@ -322,7 +323,7 @@ const data = reactive({
     storeManager: null,
     category: '半托管,POP',
     moneyType: null,
-    mouth: '2024-12',
+    mouth: '2025-01',
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -622,7 +623,7 @@ function resetQuery() {
   proxy.resetForm("queryRef");
   selectedCategories.value = ['半托管', 'POP'];
   queryParams.value.category = '半托管,POP';
-  queryParams.value.mouth = '2024-11';
+  queryParams.value.mouth = '2025-01';
   handleQuery();
 }
 
