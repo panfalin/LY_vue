@@ -93,10 +93,10 @@
           type="success"
           plain
           icon="Edit"
-          :disabled="single"
+          :disabled="multiple"
           @click="handleUpdate"
           v-hasPermi="['aliexpress:competition:edit']"
-        >修改</el-button>
+        >批量修改</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -341,9 +341,9 @@
     <!-- 添加或修改竞对SKU对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form ref="competitionRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="sku" prop="sku">
+        <!-- <el-form-item label="sku" prop="sku">
           <el-input v-model="form.sku" placeholder="请输入sku" />
-        </el-form-item>
+        </el-form-item> -->
 
         <!-- <el-form-item label="sku负责人" prop="skuPerson">
           <el-input v-model="form.skuPerson" placeholder="sku负责人" />
@@ -535,21 +535,42 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _sId = row.sId || ids.value
-  getCompetition(_sId).then(response => {
-    form.value = response.data;
-    if (form.value.publicationIdPop) {
-      popInputs.value = form.value.publicationIdPop.split(',').map(value => ({ value }));
-    }
-    if (form.value.publicationIdAll) {
-      allInputs.value = form.value.publicationIdAll.split(',').map(value => ({ value }));
-    }
-    if (form.value.publicationIdHalf) {
-      halfInputs.value = form.value.publicationIdHalf.split(',').map(value => ({ value }));
-    }
+  // 修改这里以支持多选
+  const selectedIds = row.sId ? [row.sId] : ids.value;
+  
+  if (selectedIds.length === 0) {
+    proxy.$modal.msgError("请选择要修改的数据");
+    return;
+  }
+
+  // 如果只选择了一条数据，保持原有逻辑
+  if (selectedIds.length === 1) {
+    getCompetition(selectedIds[0]).then(response => {
+      form.value = response.data;
+      if (form.value.publicationIdPop) {
+        popInputs.value = form.value.publicationIdPop.split(',').map(value => ({ value }));
+      }
+      if (form.value.publicationIdAll) {
+        allInputs.value = form.value.publicationIdAll.split(',').map(value => ({ value }));
+      }
+      if (form.value.publicationIdHalf) {
+        halfInputs.value = form.value.publicationIdHalf.split(',').map(value => ({ value }));
+      }
+      open.value = true;
+      title.value = "修改竞对SKU";
+    });
+  } else {
+    // 多选时的处理逻辑
+    form.value = {
+      sIds: selectedIds,  // 添加一个字段存储多个ID
+      sku: '',
+      publicationIdPop: '',
+      publicationIdAll: '',
+      publicationIdHalf: ''
+    };
     open.value = true;
-    title.value = "修改竞对SKU";
-  });
+    title.value = `批量修改 ${selectedIds.length} 个竞对SKU`;
+  }
 }
 
 /** 提交按钮 */
@@ -560,18 +581,43 @@ function submitForm() {
       form.value.publicationIdAll = allInputs.value.map(item => item.value).filter(Boolean).join(',');
       form.value.publicationIdHalf = halfInputs.value.map(item => item.value).filter(Boolean).join(',');
 
-      if (form.value.sId != null) {
-        updateCompetition(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
+      // 修改这里以支持批量更新
+      if (form.value.sIds) {
+        // 批量更新
+        const updatePromises = form.value.sIds.map(sId => {
+          const updateData = {
+            sId,
+            publicationIdPop: form.value.publicationIdPop,
+            publicationIdAll: form.value.publicationIdAll,
+            publicationIdHalf: form.value.publicationIdHalf
+          };
+          return updateCompetition(updateData);
         });
+
+        Promise.all(updatePromises)
+          .then(() => {
+            proxy.$modal.msgSuccess("批量修改成功");
+            open.value = false;
+            getList();
+          })
+          .catch(() => {
+            proxy.$modal.msgError("部分数据修改失败，请重试");
+          });
       } else {
-        addCompetition(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
+        // 单条更新
+        if (form.value.sId != null) {
+          updateCompetition(form.value).then(response => {
+            proxy.$modal.msgSuccess("修改成功");
+            open.value = false;
+            getList();
+          });
+        } else {
+          addCompetition(form.value).then(response => {
+            proxy.$modal.msgSuccess("新增成功");
+            open.value = false;
+            getList();
+          });
+        }
       }
     }
   });
