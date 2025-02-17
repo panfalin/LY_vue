@@ -137,6 +137,17 @@
       <el-table-column label="sku负责人" align="center" prop="skuPerson"width="150px" />
       <el-table-column label="渠道类型" align="center" prop="orderType" width="70px"/>
       <el-table-column label="日均市场容量" align="center" prop="marketCapacity" width="110px"/>
+      <el-table-column label="商品标题" align="center" prop="publicTitle" width="270px">
+        <template #default="scope">
+          <div 
+            class="title-cell" 
+            @click="copyToClipboard(scope.row.publicTitle)"
+            :title="scope.row.publicTitle"
+          >
+            {{ scope.row.publicTitle }}
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="刊登ID" align="center" prop="publicationId" width="150px"/>
       <el-table-column label="店铺" align="center" prop="shops" width="300px" />
       <el-table-column label="店铺类型" align="center" prop="shopsType"width="70px" />
@@ -518,6 +529,28 @@ const spanMethod = ({ row, column, rowIndex, columnIndex }) => {
     }
   }
 };
+
+const copyToClipboard = (text) => {
+  // 创建临时输入框
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  
+  // 选择并复制文本
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    proxy.$modal.msgSuccess("复制成功");
+  } catch (err) {
+    proxy.$modal.msgError("复制失败");
+  } finally {
+    // 移除临时输入框
+    document.body.removeChild(textarea);
+  }
+};
+
 getList();
 </script>
 
@@ -538,5 +571,17 @@ getList();
 
 .el-table .cell:not(.merged) {
   border-bottom: 1px solid #e4e7ed; /* 单元格底部边框 */
+}
+
+.title-cell {
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.title-cell:hover {
+  background-color: #f5f7fa;
 }
 </style>
