@@ -83,6 +83,50 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/issue',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'create',
+        component: () => import('@/views/issue/edit'),
+        name: 'CreateIssue',
+        meta: { title: '新建需求', activeMenu: '/index' }
+      },
+      {
+        path: 'edit/:id',
+        component: () => import('@/views/issue/edit'),
+        name: 'EditIssue',
+        meta: { title: '编辑需求', activeMenu: '/index' }
+      }
+    ]
+  },
+  {
+    path: '/amzTurnover',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'summary',
+        component: () => import('@/views/amazon/amzTurnover/summary'),
+        name: 'SummaryAmz',
+        meta: { title: '汇总' }
+      },
+      {
+        path: 'list',
+        component: () => import('@/views/amazon/amzTurnover/index'),
+        name: 'ListAmz',
+        meta: { title: '周转天数列表' }
+      },
+      {
+        path: 'detail/:id',
+        component: () => import('@/views/amazon/amzTurnover/detail'),
+        name: 'DetailAmz',
+        meta: { title: '详情' }
+      }
+    ]
   }
 ]
 
