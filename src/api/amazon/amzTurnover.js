@@ -51,3 +51,27 @@ export function summaryAmzTurnover(data) {
     data: data
   })
 }
+
+// 获取店铺列表
+export function getStoreList() {
+  return request({
+    url: '/amazon/amzTurnover/getStoreList',
+    method: 'get'
+  })
+}
+
+// 获取销售员列表
+export function getSalesPersonList() {
+  return request({
+    url: '/amazon/amzTurnover/getSalesPersonList',
+    method: 'get'
+  })
+}
+
+// 获取开发员列表
+export function getDeveloperList() {
+  return request({
+    url: '/amazon/amzTurnover/getDeveloperList',
+    method: 'get'
+  })
+}

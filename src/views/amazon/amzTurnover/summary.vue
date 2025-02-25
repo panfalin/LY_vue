@@ -4,7 +4,19 @@
       <el-row :gutter="20">
         <el-col :span="6">
           <el-form-item label="店铺名称">
-            <el-input v-model="form.storeName" placeholder="请输入店铺名称" clearable/>
+            <el-select
+                v-model="form.storeName"
+                placeholder="请选择店铺名称"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="item in storeOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -17,38 +29,62 @@
             <el-input v-model="form.categoryLevelTwo" placeholder="请输入二级目录" clearable/>
           </el-form-item>
         </el-col>
-        <el-col :span="6">
-          <el-form-item label="销售员">
-            <el-input v-model="form.salesPerson" placeholder="请输入销售员" clearable/>
-          </el-form-item>
-        </el-col>
       </el-row>
       <el-row :gutter="20">
         <el-col :span="6">
-          <el-form-item label="可售">
-            <el-input v-model="form.available" placeholder="请输入可售" clearable/>
+          <el-form-item label="销售员">
+            <el-select
+                v-model="form.salesPerson"
+                placeholder="请选择销售员"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="item in salesPersonOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="6">
-          <el-form-item label="待入库">
-            <el-input v-model="form.awaitingStock" placeholder="请输入待入库" clearable/>
-          </el-form-item>
-        </el-col>
+        <!--<el-col :span="6">-->
+        <!--  <el-form-item label="可售">-->
+        <!--    <el-input v-model="form.available" placeholder="请输入可售" clearable/>-->
+        <!--  </el-form-item>-->
+        <!--</el-col>-->
+        <!--<el-col :span="6">-->
+        <!--  <el-form-item label="待入库">-->
+        <!--    <el-input v-model="form.awaitingStock" placeholder="请输入待入库" clearable/>-->
+        <!--  </el-form-item>-->
+        <!--</el-col>-->
         <el-col :span="6">
           <el-form-item label="开发员">
-            <el-input v-model="form.developer" placeholder="请输入开发员" clearable/>
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="上架时间">
-            <el-date-picker
-                v-model="form.listingDate"
-                type="date"
-                placeholder="选择上架时间"
+            <el-select
+                v-model="form.developer"
+                placeholder="请选择开发员"
+                clearable
                 style="width: 100%"
-            />
+            >
+              <el-option
+                  v-for="item in salesDeveloperOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
+        <!--<el-col :span="6">-->
+        <!--  <el-form-item label="上架时间">-->
+        <!--    <el-date-picker-->
+        <!--        v-model="form.listingDate"-->
+        <!--        type="date"-->
+        <!--        placeholder="选择上架时间"-->
+        <!--        style="width: 100%"-->
+        <!--    />-->
+        <!--  </el-form-item>-->
+        <!--</el-col>-->
       </el-row>
       <el-row>
         <el-col :span="24" style="text-align: right">
@@ -174,7 +210,10 @@ import {ref, computed, onMounted} from 'vue';
 import {useRouter} from 'vue-router';
 import {useAmzTurnoverStore} from '@/store/modules/amzTurnover';
 import {
-  summaryAmzTurnover
+  summaryAmzTurnover,
+  getStoreList,
+  getSalesPersonList,
+  getDeveloperList
 } from "@/api/amazon/amzTurnover";
 
 const {proxy} = getCurrentInstance();
@@ -328,6 +367,38 @@ const showSearch = ref(true);
 const {queryParams, form, rules} = toRefs(data);
 const amzTurnoverSummary = ref({});
 
+// 店铺选项
+const storeOptions = ref([]);
+// 销售员选项
+const salesPersonOptions = ref([]);
+// 开发员选项
+const salesDeveloperOptions = ref([]);
+
+// 获取店铺和销售员列表
+const getOptions = async () => {
+  try {
+    // 获取店铺列表
+    const storeRes = await getStoreList();
+    if (storeRes.code === 200) {
+      storeOptions.value = storeRes.data;
+    }
+
+    // 获取销售员列表
+    const salesPersonRes = await getSalesPersonList();
+    if (salesPersonRes.code === 200) {
+      salesPersonOptions.value = salesPersonRes.data;
+    }
+    // 获取销售员列表
+    const salesDevelopers = await getDeveloperList();
+    if (salesDevelopers.code === 200) {
+      salesDeveloperOptions.value = salesDevelopers.data;
+    }
+  } catch (error) {
+    console.error("获取选项数据失败:", error);
+    proxy.$modal.msgError("获取选项数据失败");
+  }
+};
+
 // 常量定义
 const TABLE_COLUMNS = [
   { prop: 'over360', label: '>360', minWidth: 100 },
@@ -477,10 +548,10 @@ const fbaTurnoverTableData = computed(() => {
 // 事件处理
 const handleQuery = async () => {
   try {
-  loading.value = true;
-  store.setSummaryQueryParams(form.value);
+    loading.value = true;
+    store.setSummaryQueryParams(form.value);
     const response = await summaryAmzTurnover(form.value);
-    
+
     if (response.code === 200) {
       amzTurnoverSummary.value = response.data;
     } else {
@@ -491,7 +562,7 @@ const handleQuery = async () => {
     proxy.$modal.msgError("获取数据失败");
   } finally {
     loading.value = false;
-}
+  }
 };
 
 /** 重置按钮操作 */
@@ -507,6 +578,7 @@ onMounted(() => {
   if (store.summaryQueryParams) {
     form.value = {...store.summaryQueryParams};
   }
+  getOptions();
   handleQuery();
 });
 

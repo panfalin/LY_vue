@@ -533,8 +533,25 @@
       <el-table-column label="备注" align="center" prop="remarks"/>
       <el-table-column label="预留" align="center" prop="reserved"/>
       <el-table-column label="计划入库" align="center" prop="plannedStockIn"/>
-      <el-table-column label="销售员" align="center" prop="salesPerson"/>
-      <el-table-column label="开发员" align="center" prop="developer"/>
+      <el-table-column label="销售/开发" align="center" prop="msku" fixed="right" min-width="100">
+        <!-- 表头 -->
+        <template #header>
+          <div style="text-align: center;">
+            <div>销售/开发</div>
+          </div>
+        </template>
+        <!-- 单元格内容 -->
+        <template #default="scope">
+          <div style="text-align: left;">
+            <div><strong>销售:</strong> {{ scope.row.salesPerson }}</div>
+            <div><strong>开发:</strong> {{ scope.row.developer }}</div>
+          </div>
+        </template>
+      </el-table-column>
+      <!--<el-table-column label="FBA库存总额" fixed="right" align="center"  sortable prop="totalFbaInventoryValue"/>-->
+      <!--<el-table-column label="FBA周转天数" fixed="right" align="center"  sortable prop="fbaTurnoverDays"/>-->
+      <el-table-column label="库存总额" fixed="right" align="center" sortable prop="totalInventoryValue" min-width="100"/>
+      <el-table-column label="周转天数" fixed="right" align="center" sortable prop="turnoverDays" min-width="100"/>
       <el-table-column label="上架时间" align="center" prop="listingDate"/>
       <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -770,7 +787,7 @@ onMounted(() => {
 
   // 如果有路由参数，使用路由参数，否则使用存储的参数
   const hasRouteParams = Object.values(routeParams).some(val => val !== undefined);
-  
+
   queryParams.value = {
     ...(hasRouteParams ? routeParams : store.listQueryParams),
     pageNum: 1,
