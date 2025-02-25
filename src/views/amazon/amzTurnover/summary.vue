@@ -4,56 +4,56 @@
       <el-row :gutter="20">
         <el-col :span="6">
           <el-form-item label="店铺名称">
-            <el-input v-model="form.storeName" placeholder="请输入店铺名称" clearable />
-      </el-form-item>
+            <el-input v-model="form.storeName" placeholder="请输入店铺名称" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="商品一级目录">
-            <el-input v-model="form.categoryLevelOne" placeholder="请输入一级目录" clearable />
-      </el-form-item>
+            <el-input v-model="form.categoryLevelOne" placeholder="请输入一级目录" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="商品二级目录">
-            <el-input v-model="form.categoryLevelTwo" placeholder="请输入二级目录" clearable />
-      </el-form-item>
+            <el-input v-model="form.categoryLevelTwo" placeholder="请输入二级目录" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="销售员">
-            <el-input v-model="form.salesPerson" placeholder="请输入销售员" clearable />
-      </el-form-item>
+            <el-input v-model="form.salesPerson" placeholder="请输入销售员" clearable/>
+          </el-form-item>
         </el-col>
       </el-row>
       <el-row :gutter="20">
         <el-col :span="6">
           <el-form-item label="可售">
-            <el-input v-model="form.available" placeholder="请输入可售" clearable />
-      </el-form-item>
+            <el-input v-model="form.available" placeholder="请输入可售" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="待入库">
-            <el-input v-model="form.awaitingStock" placeholder="请输入待入库" clearable />
-      </el-form-item>
+            <el-input v-model="form.awaitingStock" placeholder="请输入待入库" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="开发员">
-            <el-input v-model="form.developer" placeholder="请输入开发员" clearable />
-      </el-form-item>
+            <el-input v-model="form.developer" placeholder="请输入开发员" clearable/>
+          </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="上架时间">
             <el-date-picker
-            v-model="form.listingDate"
-              type="date"
-              placeholder="选择上架时间"
-              style="width: 100%"
-        />
-      </el-form-item>
+                v-model="form.listingDate"
+                type="date"
+                placeholder="选择上架时间"
+                style="width: 100%"
+            />
+          </el-form-item>
         </el-col>
       </el-row>
       <el-row>
         <el-col :span="24" style="text-align: right">
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
         </el-col>
       </el-row>
     </el-card>
@@ -65,70 +65,95 @@
           </template>
           <div class="summary-list">
             <div class="summary-item">
-            <span>上架SKU数量</span>
-              <span 
-                class="clickable" 
-                @click="handleSkuCountClick"
-              >{{ amzTurnoverSummary.listedSkuCount || 0 }}</span>
+              <span>上架SKU数量</span>
+              <span class="clickable" @click="handleSkuCountClick">
+                {{ amzTurnoverSummary.listedSkuCount || 0 }}
+              </span>
             </div>
             <div class="summary-item">
               <span>库存个数总计</span>
               <span>{{ amzTurnoverSummary?.totalInventoryCount || 0 }}</span>
-          </div>
-            <div class="summary-item">
-            <span>库存金额总计</span>
+            </div>
+            <div class="summary-item money-total">
+              <span>库存金额总计</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalInventoryValue) }}</span>
             </div>
-            <div class="summary-item">
+            <div class="summary-item money">
               <span>采购在途总额</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalProcurementInventory) }}</span>
             </div>
-            <div class="summary-item">
+            <div class="summary-item money">
               <span>本地库存总额</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalLocalInventory) }}</span>
             </div>
-            <div class="summary-item">
+            <div class="summary-item money">
               <span>FBA在途总额</span>
-              <span>¥{{ formatCurrency(amzTurnoverSummary?.totalFbaInTransit)}}</span>
-          </div>
-            <div class="summary-item">
+              <span>¥{{ formatCurrency(amzTurnoverSummary?.totalFbaInTransit) }}</span>
+            </div>
+            <div class="summary-item money">
               <span>FBA可售总额</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalFbaAvailable) }}</span>
-        </div>
-            <div class="summary-item">
+            </div>
+            <div class="summary-item money">
               <span>销售额（近7天平均）</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.avgSalesLast7Days) }}</span>
-          </div>
-            <div class="summary-item">
+            </div>
+            <div class="summary-item money">
               <span>销售成本（近7天平均）</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.avgSalesCostLast7Days) }}</span>
-          </div>
+            </div>
             <div class="summary-item">
               <span>周转天数（近7天平均）</span>
-              <span>{{ amzTurnoverSummary?.avgTurnoverDaysLast7Days || 0 }}</span>
-          </div>
+              <span>{{ formatDays(amzTurnoverSummary?.avgTurnoverDaysLast7Days) }}</span>
+            </div>
             <div class="summary-item">
+              <span>FBA周转天数（近7天平均）</span>
+              <span>{{ formatDays(amzTurnoverSummary?.avgFbaTurnoverDaysLast7Days) }}</span>
+            </div>
+            <div class="summary-item money-important">
               <span>营业额</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalRevenue) }}</span>
-        </div>
-            <div class="summary-item">
+            </div>
+            <div class="summary-item money-important">
               <span>利润</span>
               <span>¥{{ formatCurrency(amzTurnoverSummary?.totalProfit) }}</span>
-      </div>
-    </div>
+            </div>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="16">
         <el-card class="turnover-card">
           <template #header>
-            <div class="card-header">统计数据-周转天数（每天）</div>
+            <div class="card-header">总体周转天数统计</div>
           </template>
-          <el-table 
-            :data="turnoverTableData" 
-            border 
-            size="small" 
-            style="width: 100%"
-            :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
+          <el-table
+              :data="turnoverTableData"
+              border
+              size="small"
+              style="width: 100%"
+              :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
+          >
+            <el-table-column prop="label" label="指标" width="100" fixed/>
+            <el-table-column prop="over360" label=">360" min-width="100"/>
+            <el-table-column prop="d270_360" label="270~360" min-width="100"/>
+            <el-table-column prop="d210_270" label="210~270" min-width="100"/>
+            <el-table-column prop="d150_210" label="150~210" min-width="100"/>
+            <el-table-column prop="d120_150" label="120~150" min-width="100"/>
+            <el-table-column prop="d60_120" label="60~120" min-width="100"/>
+            <el-table-column prop="under60" label="<60" min-width="100"/>
+          </el-table>
+        </el-card>
+
+        <el-card class="turnover-card" style="margin-top: 16px;">
+          <template #header>
+            <div class="card-header">FBA周转天数统计</div>
+          </template>
+          <el-table
+              :data="fbaTurnoverTableData"
+              border
+              size="small"
+              style="width: 100%"
+              :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
           >
             <el-table-column prop="label" label="指标" width="100" fixed/>
             <el-table-column prop="over360" label=">360" min-width="100"/>
@@ -145,12 +170,13 @@
   </div>
 </template>
 <script setup name="AmzTurnover">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAmzTurnoverStore } from '@/store/modules/amzTurnover';
+import {ref, computed, onMounted} from 'vue';
+import {useRouter} from 'vue-router';
+import {useAmzTurnoverStore} from '@/store/modules/amzTurnover';
 import {
   summaryAmzTurnover
 } from "@/api/amazon/amzTurnover";
+
 const {proxy} = getCurrentInstance();
 
 const router = useRouter();
@@ -236,6 +262,7 @@ const data = reactive({
     ],
   }
 });
+
 // 表单重置
 function reset() {
   form.value = {
@@ -295,221 +322,177 @@ function reset() {
   };
   proxy.resetForm("amzTurnoverRef");
 }
+
 const loading = ref(true);
 const showSearch = ref(true);
 const {queryParams, form, rules} = toRefs(data);
 const amzTurnoverSummary = ref({});
 
-// 移除写死的初始值
-const stats = ref({
-  over360: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
+// 常量定义
+const TABLE_COLUMNS = [
+  { prop: 'over360', label: '>360', minWidth: 100 },
+  { prop: 'd270_360', label: '270~360', minWidth: 100 },
+  { prop: 'd210_270', label: '210~270', minWidth: 100 },
+  { prop: 'd150_210', label: '150~210', minWidth: 100 },
+  { prop: 'd120_150', label: '120~150', minWidth: 100 },
+  { prop: 'd60_120', label: '60~120', minWidth: 100 },
+  { prop: 'under60', label: '<60', minWidth: 100 }
+];
+
+const ROW_TYPES = {
+  SKU_COUNT: 'SKU数量',
+  SKU_RATIO: 'SKU数量占比',
+  INVENTORY_VALUE: '库存金额',
+  INVENTORY_RATIO: '库存金额占比',
+  REVENUE: '营业额',
+  REVENUE_RATIO: '营业额占比',
+  PROFIT: '利润',
+  PROFIT_RATIO: '利润占比',
+  PROFIT_MARGIN: '利润率'
+};
+
+// 数据转换工具函数
+const transformTurnoverData = (stats, formatters) => {
+  if (!stats || !Array.isArray(stats) || stats.length !== 7) return [];
+
+  const getColumnValue = (stat, key, formatter, prefix = '') => {
+    const value = stat?.[key];
+    return formatter ? `${prefix}${formatter(value)}` : value;
+  };
+
+  return [
+    {
+      label: ROW_TYPES.SKU_COUNT,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'skuCount')
+      }), {})
+    },
+    {
+      label: ROW_TYPES.SKU_RATIO,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'skuRatio', formatters.percent)
+      }), {})
+    },
+    {
+      label: ROW_TYPES.INVENTORY_VALUE,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'inventoryValue', formatters.currency, '¥')
+      }), {})
+    },
+    {
+      label: ROW_TYPES.INVENTORY_RATIO,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'inventoryRatio', formatters.percent)
+      }), {})
+    },
+    {
+      label: ROW_TYPES.REVENUE,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'revenue', formatters.currency, '¥')
+      }), {})
+    },
+    {
+      label: ROW_TYPES.REVENUE_RATIO,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'revenueRatio', formatters.percent)
+      }), {})
+    },
+    {
+      label: ROW_TYPES.PROFIT,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'profit', formatters.currency, '¥')
+      }), {})
+    },
+    {
+      label: ROW_TYPES.PROFIT_RATIO,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'profitRatio', formatters.percent)
+      }), {})
+    },
+    {
+      label: ROW_TYPES.PROFIT_MARGIN,
+      ...TABLE_COLUMNS.reduce((acc, col) => ({
+        ...acc,
+        [col.prop]: getColumnValue(stats[getColumnIndex(col.prop)], 'profitMargin', formatters.percent)
+      }), {})
+    }
+  ];
+};
+
+// 辅助函数
+const getColumnIndex = (columnProp) => {
+  const indexMap = {
+    'over360': 0,
+    'd270_360': 1,
+    'd210_270': 2,
+    'd150_210': 3,
+    'd120_150': 4,
+    'd60_120': 5,
+    'under60': 6
+  };
+  return indexMap[columnProp] ?? 0;
+};
+
+// 格式化函数
+const formatters = {
+  currency: (value) => {
+    if (!value && value !== 0) return '0.00';
+    if (value >= 100000000) {
+      return `${(value / 100000000).toFixed(2)}亿`;
+    } else if (value >= 10000) {
+      return `${(value / 10000).toFixed(2)}万`;
+    }
+    return value.toLocaleString('zh-CN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   },
-  d270_360: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
+  percent: (value) => {
+    if (!value && value !== 0) return '0.00%';
+    return `${Number(value).toFixed(2)}%`;
   },
-  d210_270: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
-  },
-  d150_210: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
-  },
-  d120_150: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
-  },
-  d60_120: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
-  },
-  under60: {
-    skuCount: 0,
-    skuRatio: 0,
-    inventoryValue: 0,
-    inventoryRatio: 0,
-    revenue: 0,
-    revenueRatio: 0,
-    profit: 0,
-    profitRatio: 0,
-    profitMargin: 0
+  days: (value) => {
+    if (!value && value !== 0) return '0天';
+    return `${Number(value).toFixed(2)}天`;
   }
+};
+
+// 计算属性
+const turnoverTableData = computed(() => {
+  return transformTurnoverData(amzTurnoverSummary.value?.turnoverStats, formatters);
 });
 
-// 移除不需要的常量
-const totalInventory = ref(0);
-const totalValue = ref(0);
-const turnoverDays = ref({});
-const skuCount = ref({});
-const inventoryValue = ref({});
-const revenue = ref({});
-const profit = ref({});
-const profitMargin = ref({});
+const fbaTurnoverTableData = computed(() => {
+  return transformTurnoverData(amzTurnoverSummary.value?.fbaTurnoverStats, formatters);
+});
 
-/** 搜索按钮操作 */
-function handleQuery() {
+// 事件处理
+const handleQuery = async () => {
+  try {
   loading.value = true;
-  // 保存查询条件到 store
   store.setSummaryQueryParams(form.value);
-  summaryAmzTurnover(form.value).then(response => {
+    const response = await summaryAmzTurnover(form.value);
+    
     if (response.code === 200) {
-      const data = response.data;
-      
-      // 更新汇总数据
-      amzTurnoverSummary.value = {
-        listedSkuCount: data.listedSkuCount || 0,
-        totalInventoryCount: data.totalInventoryCount || 0,
-        totalInventoryValue: data.totalInventoryValue || 0,
-        totalProcurementInventory: data.totalProcurementInventory || 0,
-        totalLocalInventory: data.totalLocalInventory || 0,
-        totalFbaInTransit: data.totalFbaInTransit || 0,
-        totalFbaAvailable: data.totalFbaAvailable || 0,
-        avgSalesLast7Days: data.avgSalesLast7Days || 0,
-        avgSalesCostLast7Days: data.avgSalesCostLast7Days || 0,
-        avgTurnoverDaysLast7Days: data.avgTurnoverDaysLast7Days || 0,
-        totalRevenue: data.totalRevenue || 0,
-        totalProfit: data.totalProfit || 0
-      };
-
-      // 更新周转天数统计数据
-      if (data.turnoverStats && data.turnoverStats.length === 7) {
-        stats.value = {
-          over360: {
-            skuCount: data.turnoverStats[0].skuCount,
-            skuRatio: data.turnoverStats[0].skuRatio / 100, // 转换为小数
-            inventoryValue: data.turnoverStats[0].inventoryValue,
-            inventoryRatio: data.turnoverStats[0].inventoryRatio / 100,
-            revenue: data.turnoverStats[0].revenue,
-            revenueRatio: data.turnoverStats[0].revenueRatio / 100,
-            profit: data.turnoverStats[0].profit,
-            profitRatio: data.turnoverStats[0].profitRatio / 100,
-            profitMargin: data.turnoverStats[0].profitMargin / 100
-          },
-          d270_360: {
-            skuCount: data.turnoverStats[1].skuCount,
-            skuRatio: data.turnoverStats[1].skuRatio / 100,
-            inventoryValue: data.turnoverStats[1].inventoryValue,
-            inventoryRatio: data.turnoverStats[1].inventoryRatio / 100,
-            revenue: data.turnoverStats[1].revenue,
-            revenueRatio: data.turnoverStats[1].revenueRatio / 100,
-            profit: data.turnoverStats[1].profit,
-            profitRatio: data.turnoverStats[1].profitRatio / 100,
-            profitMargin: data.turnoverStats[1].profitMargin / 100
-          },
-          d210_270: {
-            skuCount: data.turnoverStats[2].skuCount,
-            skuRatio: data.turnoverStats[2].skuRatio / 100,
-            inventoryValue: data.turnoverStats[2].inventoryValue,
-            inventoryRatio: data.turnoverStats[2].inventoryRatio / 100,
-            revenue: data.turnoverStats[2].revenue,
-            revenueRatio: data.turnoverStats[2].revenueRatio / 100,
-            profit: data.turnoverStats[2].profit,
-            profitRatio: data.turnoverStats[2].profitRatio / 100,
-            profitMargin: data.turnoverStats[2].profitMargin / 100
-          },
-          d150_210: {
-            skuCount: data.turnoverStats[3].skuCount,
-            skuRatio: data.turnoverStats[3].skuRatio / 100,
-            inventoryValue: data.turnoverStats[3].inventoryValue,
-            inventoryRatio: data.turnoverStats[3].inventoryRatio / 100,
-            revenue: data.turnoverStats[3].revenue,
-            revenueRatio: data.turnoverStats[3].revenueRatio / 100,
-            profit: data.turnoverStats[3].profit,
-            profitRatio: data.turnoverStats[3].profitRatio / 100,
-            profitMargin: data.turnoverStats[3].profitMargin / 100
-          },
-          d120_150: {
-            skuCount: data.turnoverStats[4].skuCount,
-            skuRatio: data.turnoverStats[4].skuRatio / 100,
-            inventoryValue: data.turnoverStats[4].inventoryValue,
-            inventoryRatio: data.turnoverStats[4].inventoryRatio / 100,
-            revenue: data.turnoverStats[4].revenue,
-            revenueRatio: data.turnoverStats[4].revenueRatio / 100,
-            profit: data.turnoverStats[4].profit,
-            profitRatio: data.turnoverStats[4].profitRatio / 100,
-            profitMargin: data.turnoverStats[4].profitMargin / 100
-          },
-          d60_120: {
-            skuCount: data.turnoverStats[5].skuCount,
-            skuRatio: data.turnoverStats[5].skuRatio / 100,
-            inventoryValue: data.turnoverStats[5].inventoryValue,
-            inventoryRatio: data.turnoverStats[5].inventoryRatio / 100,
-            revenue: data.turnoverStats[5].revenue,
-            revenueRatio: data.turnoverStats[5].revenueRatio / 100,
-            profit: data.turnoverStats[5].profit,
-            profitRatio: data.turnoverStats[5].profitRatio / 100,
-            profitMargin: data.turnoverStats[5].profitMargin / 100
-          },
-          under60: {
-            skuCount: data.turnoverStats[6].skuCount,
-            skuRatio: data.turnoverStats[6].skuRatio / 100,
-            inventoryValue: data.turnoverStats[6].inventoryValue,
-            inventoryRatio: data.turnoverStats[6].inventoryRatio / 100,
-            revenue: data.turnoverStats[6].revenue,
-            revenueRatio: data.turnoverStats[6].revenueRatio / 100,
-            profit: data.turnoverStats[6].profit,
-            profitRatio: data.turnoverStats[6].profitRatio / 100,
-            profitMargin: data.turnoverStats[6].profitMargin / 100
-          }
-        };
-      }
-      
-      console.log('汇总数据:', amzTurnoverSummary.value);
-      console.log('周转天数统计:', stats.value);
+      amzTurnoverSummary.value = response.data;
     } else {
       proxy.$modal.msgError(response.msg);
     }
-  }).catch(error => {
+  } catch (error) {
     console.error("获取数据失败:", error);
-  }).finally(() => {
+    proxy.$modal.msgError("获取数据失败");
+  } finally {
     loading.value = false;
-  });
 }
+};
 
 /** 重置按钮操作 */
 function resetQuery() {
@@ -522,15 +505,26 @@ function resetQuery() {
 onMounted(() => {
   // 如果有存储的查询条件，使用它
   if (store.summaryQueryParams) {
-    form.value = { ...store.summaryQueryParams };
+    form.value = {...store.summaryQueryParams};
   }
   handleQuery();
 });
 
-// 修改格式化函数
+// 添加天数格式化函数
+const formatDays = (value) => {
+  if (!value && value !== 0) return '0天';
+  return `${Number(value).toFixed(2)}天`;
+};
+
+// 修改金额格式化函数
 const formatCurrency = (value) => {
   if (!value || isNaN(value)) return '0.00';
-  return Number(value).toLocaleString('zh-CN', {
+  if (value >= 100000000) {
+    return `${(value / 100000000).toFixed(2)}亿`;
+  } else if (value >= 10000) {
+    return `${(value / 10000).toFixed(2)}万`;
+  }
+  return value.toLocaleString('zh-CN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -540,102 +534,6 @@ const formatPercent = (value) => {
   if (!value) return '0.00%';
   return Number(value).toFixed(2) + '%';  // 不需要乘100，因为后端已经返回百分比值
 };
-
-// 将周转天数数据转换为表格数据
-const turnoverTableData = computed(() => {
-  return [
-    {
-      label: 'SKU数量',
-      over360: stats.value?.over360?.skuCount || 0,
-      d270_360: stats.value?.d270_360?.skuCount || 0,
-      d210_270: stats.value?.d210_270?.skuCount || 0,
-      d150_210: stats.value?.d150_210?.skuCount || 0,
-      d120_150: stats.value?.d120_150?.skuCount || 0,
-      d60_120: stats.value?.d60_120?.skuCount || 0,
-      under60: stats.value?.under60?.skuCount || 0
-    },
-    {
-      label: 'SKU数量占比',
-      over360: formatPercent(stats.value?.over360?.skuRatio),
-      d270_360: formatPercent(stats.value?.d270_360?.skuRatio),
-      d210_270: formatPercent(stats.value?.d210_270?.skuRatio),
-      d150_210: formatPercent(stats.value?.d150_210?.skuRatio),
-      d120_150: formatPercent(stats.value?.d120_150?.skuRatio),
-      d60_120: formatPercent(stats.value?.d60_120?.skuRatio),
-      under60: formatPercent(stats.value?.under60?.skuRatio)
-    },
-    {
-      label: '库存金额',
-      over360: `¥${formatCurrency(stats.value?.over360?.inventoryValue)}`,
-      d270_360: `¥${formatCurrency(stats.value?.d270_360?.inventoryValue)}`,
-      d210_270: `¥${formatCurrency(stats.value?.d210_270?.inventoryValue)}`,
-      d150_210: `¥${formatCurrency(stats.value?.d150_210?.inventoryValue)}`,
-      d120_150: `¥${formatCurrency(stats.value?.d120_150?.inventoryValue)}`,
-      d60_120: `¥${formatCurrency(stats.value?.d60_120?.inventoryValue)}`,
-      under60: `¥${formatCurrency(stats.value?.under60?.inventoryValue)}`
-    },
-    {
-      label: '库存金额占比',
-      over360: formatPercent(stats.value?.over360?.inventoryRatio),
-      d270_360: formatPercent(stats.value?.d270_360?.inventoryRatio),
-      d210_270: formatPercent(stats.value?.d210_270?.inventoryRatio),
-      d150_210: formatPercent(stats.value?.d150_210?.inventoryRatio),
-      d120_150: formatPercent(stats.value?.d120_150?.inventoryRatio),
-      d60_120: formatPercent(stats.value?.d60_120?.inventoryRatio),
-      under60: formatPercent(stats.value?.under60?.inventoryRatio)
-    },
-    {
-      label: '营业额',
-      over360: `¥${formatCurrency(stats.value?.over360?.revenue)}`,
-      d270_360: `¥${formatCurrency(stats.value?.d270_360?.revenue)}`,
-      d210_270: `¥${formatCurrency(stats.value?.d210_270?.revenue)}`,
-      d150_210: `¥${formatCurrency(stats.value?.d150_210?.revenue)}`,
-      d120_150: `¥${formatCurrency(stats.value?.d120_150?.revenue)}`,
-      d60_120: `¥${formatCurrency(stats.value?.d60_120?.revenue)}`,
-      under60: `¥${formatCurrency(stats.value?.under60?.revenue)}`
-    },
-    {
-      label: '营业额占比',
-      over360: formatPercent(stats.value?.over360?.revenueRatio),
-      d270_360: formatPercent(stats.value?.d270_360?.revenueRatio),
-      d210_270: formatPercent(stats.value?.d210_270?.revenueRatio),
-      d150_210: formatPercent(stats.value?.d150_210?.revenueRatio),
-      d120_150: formatPercent(stats.value?.d120_150?.revenueRatio),
-      d60_120: formatPercent(stats.value?.d60_120?.revenueRatio),
-      under60: formatPercent(stats.value?.under60?.revenueRatio)
-    },
-    {
-      label: '利润',
-      over360: `¥${formatCurrency(stats.value?.over360?.profit)}`,
-      d270_360: `¥${formatCurrency(stats.value?.d270_360?.profit)}`,
-      d210_270: `¥${formatCurrency(stats.value?.d210_270?.profit)}`,
-      d150_210: `¥${formatCurrency(stats.value?.d150_210?.profit)}`,
-      d120_150: `¥${formatCurrency(stats.value?.d120_150?.profit)}`,
-      d60_120: `¥${formatCurrency(stats.value?.d60_120?.profit)}`,
-      under60: `¥${formatCurrency(stats.value?.under60?.profit)}`
-    },
-    {
-      label: '利润占比',
-      over360: formatPercent(stats.value?.over360?.profitRatio),
-      d270_360: formatPercent(stats.value?.d270_360?.profitRatio),
-      d210_270: formatPercent(stats.value?.d210_270?.profitRatio),
-      d150_210: formatPercent(stats.value?.d150_210?.profitRatio),
-      d120_150: formatPercent(stats.value?.d120_150?.profitRatio),
-      d60_120: formatPercent(stats.value?.d60_120?.profitRatio),
-      under60: formatPercent(stats.value?.under60?.profitRatio)
-    },
-    {
-      label: '利润率',
-      over360: formatPercent(stats.value?.over360?.profitMargin),
-      d270_360: formatPercent(stats.value?.d270_360?.profitMargin),
-      d210_270: formatPercent(stats.value?.d210_270?.profitMargin),
-      d150_210: formatPercent(stats.value?.d150_210?.profitMargin),
-      d120_150: formatPercent(stats.value?.d120_150?.profitMargin),
-      d60_120: formatPercent(stats.value?.d60_120?.profitMargin),
-      under60: formatPercent(stats.value?.under60?.profitMargin)
-    }
-  ]
-})
 
 // 处理SKU数量点击事件
 const handleSkuCountClick = () => {
@@ -673,7 +571,7 @@ const handleSkuCountClick = () => {
 
   .search-card {
     margin-bottom: 16px;
-    
+
     :deep(.el-form-item) {
       margin-bottom: 18px;
     }
@@ -768,11 +666,36 @@ const handleSkuCountClick = () => {
 }
 
 .summary-item {
+  &.money {
+    span:last-child {
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+
+  &.money-total {
+    background: #f8f9fa;
+    span:last-child {
+      color: #f56c6c;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+
+  &.money-important {
+    background: #fff3f3;
+    span:last-child {
+      color: #f56c6c;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+
   .clickable {
     cursor: pointer;
     color: #409eff !important;
     text-decoration: underline;
-    
+
     &:hover {
       color: #66b1ff !important;
     }

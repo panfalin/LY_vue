@@ -6,6 +6,25 @@ import {
 
 const route = useRoute();
 const data = ref({});
+
+// 格式化金额：添加千分位和货币符号
+const formatMoney = (value) => {
+  if (!value && value !== 0) return '--';
+  return `¥ ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+// 格式化数量：添加千分位
+const formatQuantity = (value) => {
+  if (!value && value !== 0) return '--';
+  return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
+// 格式化小数
+const formatDecimal = (value) => {
+  if (!value && value !== 0) return '--';
+  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 // 从查询参数中获取数据
 if (route.query.data) {
   data.value = JSON.parse(route.query.data); // 解析传递的数据
@@ -36,70 +55,80 @@ if (route.query.data) {
             <span>{{ data.storeName }}</span>
           </div>
           <div class="detail-row">
-            <label>MSKU：</label>
-            <span>{{ data.msku }}</span>
-          </div>
-          <div class="detail-row">
-            <label>ASIN：</label>
-            <span>{{ data.asin }}</span>
-          </div>
-          <div class="detail-row">
-            <label>FNSKU：</label>
-            <span>{{ data.fnsku }}</span>
-          </div>
-          <div class="detail-row">
-            <label>本地SKU：</label>
-            <span>{{ data.localSku }}</span>
-          </div>
-          <div class="detail-row">
-            <label>主SKU：</label>
-            <span>{{ data.mainSku || '暂无数据' }}</span>
+            <label>产品名称：</label>
+            <span>{{ data.productName }}</span>
           </div>
           <div class="detail-row">
             <label>商品目录：</label>
             <span>{{ data.categoryLevelOne }} / {{ data.categoryLevelTwo }}</span>
           </div>
-          <div class="detail-row">
-            <label>产品名称：</label>
-            <span>{{ data.productName }}</span>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>MSKU</label>
+              <span>{{ data.msku }}</span>
+            </div>
+            <div class="grid-item">
+              <label>ASIN</label>
+              <span>{{ data.asin }}</span>
+            </div>
+            <div class="grid-item">
+              <label>FNSKU</label>
+              <span>{{ data.fnsku }}</span>
+            </div>
+            <div class="grid-item">
+              <label>本地SKU</label>
+              <span>{{ data.localSku }}</span>
+            </div>
           </div>
         </div>
 
         <!-- 销售数据 -->
         <div class="detail-section">
           <div class="section-title">销售数据</div>
-          <div class="detail-row">
-            <label>7天销量：</label>
-            <span>{{ data.sales7Days }}</span>
-          </div>
-          <div class="detail-row">
-            <label>14天销量：</label>
-            <span>{{ data.sales14Days }}</span>
-          </div>
-          <div class="detail-row">
-            <label>30天销量：</label>
-            <span>{{ data.sales30Days }}</span>
-          </div>
-          <div class="detail-row">
-            <label>90天销量：</label>
-            <span>{{ data.sales90Days }}</span>
-          </div>
-          <div class="detail-row">
-            <label>日均销量：</label>
-            <span>{{ data.avgDailySales }}</span>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>7天销量</label>
+              <span>{{ formatQuantity(data.sales7Days) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>14天销量</label>
+              <span>{{ formatQuantity(data.sales14Days) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>30天销量</label>
+              <span>{{ formatQuantity(data.sales30Days) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>90天销量</label>
+              <span>{{ formatQuantity(data.sales90Days) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>日均销量</label>
+              <span>{{ formatQuantity(data.avgDailySales) }} 个</span>
+            </div>
           </div>
         </div>
 
         <!-- 市场数据 -->
         <div class="detail-section">
           <div class="section-title">市场数据</div>
-          <div class="detail-row">
-            <label>竞争对手销量：</label>
-            <span>{{ data.amCompetitorSales }}</span>
-          </div>
-          <div class="detail-row">
-            <label>市场容量：</label>
-            <span>{{ data.amMarketCapacity }}</span>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>竞争对手销量</label>
+              <span>{{ formatQuantity(data.amCompetitorSales) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>市场容量</label>
+              <span>{{ formatQuantity(data.amMarketCapacity) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>上架时间</label>
+              <span>{{ formatQuantity(data.amzInventoryShelfTime) }} 天</span>
+            </div>
+            <div class="grid-item">
+              <label>预警天数</label>
+              <span>{{ formatQuantity(data.stockWarningDays) }} 天</span>
+            </div>
           </div>
         </div>
       </div>
@@ -113,59 +142,97 @@ if (route.query.data) {
             <label>库存状态：</label>
             <span class="status-tag">{{ data.stockStatus }}</span>
           </div>
-          <div class="detail-row">
-            <label>本地库存：</label>
-            <span>{{ data.localInventory }}</span>
-          </div>
-          <div class="detail-row">
-            <label>采购在途：</label>
-            <span>{{ data.procurementInTransit }}</span>
-          </div>
-          <div class="detail-row">
-            <label>FBA可售：</label>
-            <span>{{ data.available }}</span>
-          </div>
-          <div class="detail-row">
-            <label>FBA待入库：</label>
-            <span>{{ data.awaitingStock }}</span>
-          </div>
-          <div class="detail-row">
-            <label>FBA在途：</label>
-            <span>{{ data.inTransit }}</span>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>本地库存</label>
+              <span>{{ formatQuantity(data.localInventory) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>采购在途</label>
+              <span>{{ formatQuantity(data.procurementInTransit) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA可售</label>
+              <span>{{ formatQuantity(data.available) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA待入库</label>
+              <span>{{ formatQuantity(data.awaitingStock) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA在途</label>
+              <span>{{ formatQuantity(data.inTransit) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA预留</label>
+              <span>{{ formatQuantity(data.reserved) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>总库存数量</label>
+              <span>{{ formatQuantity(data.totalInventoryCount) }} 个</span>
+            </div>
           </div>
         </div>
 
-        <!-- 采购信息 -->
+        <!-- 库存价值与周转 -->
         <div class="detail-section">
-          <div class="section-title">采购信息</div>
+          <div class="section-title">库存价值与周转</div>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>本地库存价值</label>
+              <span class="money">{{ formatMoney(data.totalLocalInventoryValue) }}</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA库存价值</label>
+              <span class="money">{{ formatMoney(data.totalFbaInventoryValue) }}</span>
+            </div>
+            <div class="grid-item">
+              <label>总库存价值</label>
+              <span class="money">{{ formatMoney(data.totalInventoryValue) }}</span>
+            </div>
+            <div class="grid-item">
+              <label>总周转天数</label>
+              <span>{{ formatQuantity(data.turnoverDays) }} 天</span>
+            </div>
+            <div class="grid-item">
+              <label>FBA周转天数</label>
+              <span>{{ formatQuantity(data.fbaTurnoverDays) }} 天</span>
+            </div>
+            <div class="grid-item">
+              <label>可售天数</label>
+              <span>{{ formatQuantity(data.availableDays) }} 天</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 采购与规格 -->
+        <div class="detail-section">
+          <div class="section-title">采购与规格</div>
           <div class="detail-row">
             <label>供应商：</label>
             <span>{{ data.supplierName }}</span>
           </div>
-          <div class="detail-row">
-            <label>最新采购价：</label>
-            <span>{{ data.latestPurchasePrice }}</span>
-          </div>
-          <div class="detail-row">
-            <label>最小采购量：</label>
-            <span>{{ data.minPurchaseQuantity }}</span>
-          </div>
-          <div class="detail-row">
-            <label>采购天数：</label>
-            <span>{{ data.procurementDays }}</span>
-          </div>
-        </div>
-
-        <!-- 未开发的功能 -->
-        <div class="detail-section">
-          <div class="section-title">其他信息</div>
-          <div class="undeveloped">
-            以下功能正在开发中：
-            <ul>
-              <li>季节性产品信息</li>
-              <li>产品生命周期状态</li>
-              <li>改造信息</li>
-            </ul>
+          <div class="detail-grid">
+            <div class="grid-item">
+              <label>最新采购价</label>
+              <span class="money">{{ formatMoney(data.latestPurchasePrice) }}</span>
+            </div>
+            <div class="grid-item">
+              <label>最小采购量</label>
+              <span>{{ formatQuantity(data.minPurchaseQuantity) }} 个</span>
+            </div>
+            <div class="grid-item">
+              <label>采购天数</label>
+              <span>{{ formatQuantity(data.procurementDays) }} 天</span>
+            </div>
+            <div class="grid-item">
+              <label>重量(g)</label>
+              <span>{{ formatQuantity(data.weight) }} g</span>
+            </div>
+            <div class="grid-item">
+              <label>体积(cm³)</label>
+              <span>{{ formatQuantity(data.volumeCm3) }} cm³</span>
+            </div>
           </div>
         </div>
       </div>
@@ -176,7 +243,6 @@ if (route.query.data) {
 <style scoped lang="scss">
 .detail-container {
   padding: 10px;
-  min-height: calc(100vh - 100px);
   background: #f5f7fa;
 }
 
@@ -188,7 +254,7 @@ if (route.query.data) {
 .detail-left,
 .detail-right {
   flex: 1;
-  min-width: 0; // 防止flex子项溢出
+  min-width: 0;
 }
 
 .detail-section {
@@ -208,6 +274,7 @@ if (route.query.data) {
 .detail-row {
   padding: 8px 10px;
   display: flex;
+  align-items: center;
   border-bottom: 1px solid #ebeef5;
   
   &:last-child {
@@ -225,6 +292,32 @@ if (route.query.data) {
   }
 }
 
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  padding: 10px;
+  gap: 10px;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+
+  label {
+    color: #909399;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  span {
+    color: #303133;
+    font-size: 14px;
+  }
+}
+
 .status-tag {
   padding: 2px 8px;
   background: #f0f9eb;
@@ -232,18 +325,11 @@ if (route.query.data) {
   border-radius: 2px;
 }
 
-.undeveloped {
-  padding: 10px;
-  color: #f56c6c;
-  font-size: 14px;
-  
-  ul {
-    margin: 5px 0 0 20px;
-    padding: 0;
-  }
+.money {
+  color: #f56c6c !important; // 使用红色突出显示金额
+  font-weight: 500;
 }
 
-// 响应式布局
 @media screen and (max-width: 1200px) {
   .detail-layout {
     flex-direction: column;
