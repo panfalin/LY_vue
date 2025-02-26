@@ -8,10 +8,10 @@
             <div class="card-header">
               <span>快捷导航</span>
               <el-button-group>
-                <el-button type="primary" plain @click="customizeShortcuts">
-                  <el-icon><Setting /></el-icon>
-                  自定义
-                </el-button>
+                <!--<el-button type="primary" plain @click="customizeShortcuts">-->
+                <!--  <el-icon><Setting /></el-icon>-->
+                <!--  自定义-->
+                <!--</el-button>-->
               </el-button-group>
             </div>
           </template>
@@ -113,10 +113,10 @@
           <template #header>
             <div class="card-header">
               <span>需求反馈</span>
-              <el-button type="primary" @click="createNewIssue">
-                <el-icon><Plus /></el-icon>
-                提交新需求
-              </el-button>
+              <!--<el-button type="primary" @click="createNewIssue">-->
+              <!--  <el-icon><Plus /></el-icon>-->
+              <!--  提交新需求-->
+              <!--</el-button>-->
             </div>
           </template>
           
