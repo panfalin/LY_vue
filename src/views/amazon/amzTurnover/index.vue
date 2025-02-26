@@ -17,6 +17,22 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="最大周转天数" prop="turnoverDaysMax">
+        <el-input
+            v-model="queryParams.turnoverDaysMax"
+            placeholder="请输入最大周转天数"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="最小周转天数" prop="turnoverDaysMin">
+        <el-input
+            v-model="queryParams.turnoverDaysMin"
+            placeholder="请输入最小周转天数"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="商品一级目录" prop="categoryLevelOne">
         <el-input
             v-model="queryParams.categoryLevelOne"
@@ -73,86 +89,86 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="7天销量" prop="sales7Days">
-        <el-input
-            v-model="queryParams.sales7Days"
-            placeholder="请输入7天销量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="14天销量" prop="sales14Days">
-        <el-input
-            v-model="queryParams.sales14Days"
-            placeholder="请输入14天销量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="30天销量" prop="sales30Days">
-        <el-input
-            v-model="queryParams.sales30Days"
-            placeholder="请输入30天销量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="90天销量" prop="sales90Days">
-        <el-input
-            v-model="queryParams.sales90Days"
-            placeholder="请输入90天销量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="日均销量" prop="avgDailySales">
-        <el-input
-            v-model="queryParams.avgDailySales"
-            placeholder="请输入日均销量"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="采购在途" prop="procurementInTransit">
-        <el-input
-            v-model="queryParams.procurementInTransit"
-            placeholder="请输入采购在途"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="本地库存" prop="localInventory">
-        <el-input
-            v-model="queryParams.localInventory"
-            placeholder="请输入本地库存"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="可售" prop="available">
-        <el-input
-            v-model="queryParams.available"
-            placeholder="请输入可售"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="待入库" prop="awaitingStock">
-        <el-input
-            v-model="queryParams.awaitingStock"
-            placeholder="请输入待入库"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="库存SKU" prop="sku">
-        <el-input
-            v-model="queryParams.sku"
-            placeholder="请输入库存SKU"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+      <!--<el-form-item label="7天销量" prop="sales7Days">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.sales7Days"-->
+      <!--      placeholder="请输入7天销量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="14天销量" prop="sales14Days">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.sales14Days"-->
+      <!--      placeholder="请输入14天销量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="30天销量" prop="sales30Days">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.sales30Days"-->
+      <!--      placeholder="请输入30天销量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="90天销量" prop="sales90Days">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.sales90Days"-->
+      <!--      placeholder="请输入90天销量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="日均销量" prop="avgDailySales">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.avgDailySales"-->
+      <!--      placeholder="请输入日均销量"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="采购在途" prop="procurementInTransit">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.procurementInTransit"-->
+      <!--      placeholder="请输入采购在途"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="本地库存" prop="localInventory">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.localInventory"-->
+      <!--      placeholder="请输入本地库存"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="可售" prop="available">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.available"-->
+      <!--      placeholder="请输入可售"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="待入库" prop="awaitingStock">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.awaitingStock"-->
+      <!--      placeholder="请输入待入库"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
+      <!--<el-form-item label="库存SKU" prop="sku">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.sku"-->
+      <!--      placeholder="请输入库存SKU"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
       <!--      <el-form-item label="仓库名称" prop="warehouseName">
               <el-input
                 v-model="queryParams.warehouseName"
@@ -345,14 +361,14 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="上架时间" prop="listingDate">
-        <el-input
-            v-model="queryParams.listingDate"
-            placeholder="请输入上架时间"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+      <!--<el-form-item label="上架时间" prop="listingDate">-->
+      <!--  <el-input-->
+      <!--      v-model="queryParams.listingDate"-->
+      <!--      placeholder="请输入上架时间"-->
+      <!--      clearable-->
+      <!--      @keyup.enter="handleQuery"-->
+      <!--  />-->
+      <!--</el-form-item>-->
       <!--      <el-form-item label="是否删除" prop="isDelete">
               <el-input
                 v-model="queryParams.isDelete"
@@ -868,7 +884,9 @@ function reset() {
     updateTime: null,
     createBy: null,
     updateBy: null,
-    version: null
+    version: null,
+    turnoverDaysMin: null,
+    turnoverDaysMax: null
   };
   proxy.resetForm("amzTurnoverRef");
 }
