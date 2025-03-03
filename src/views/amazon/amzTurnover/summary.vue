@@ -169,14 +169,22 @@
               style="width: 100%"
               :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
           >
-            <el-table-column prop="label" label="指标" width="100" fixed/>
-            <el-table-column prop="over360" label=">360" min-width="100"/>
-            <el-table-column prop="d270_360" label="270~360" min-width="100"/>
-            <el-table-column prop="d210_270" label="210~270" min-width="100"/>
-            <el-table-column prop="d150_210" label="150~210" min-width="100"/>
-            <el-table-column prop="d120_150" label="120~150" min-width="100"/>
-            <el-table-column prop="d60_120" label="60~120" min-width="100"/>
-            <el-table-column prop="under60" label="<60" min-width="100"/>
+            <el-table-column prop="label" label="周转天数" width="100" fixed/>
+            <el-table-column prop="skuCount" label="SKU数量" min-width="100">
+                <template #default="{ row }">
+                    <span class="clickable_table" @click="handleSkuCountClick(row.turnover_days)">
+                        {{ row.skuCount }}
+                    </span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="skuRatio" label="SKU比例" min-width="100"/>
+            <el-table-column prop="inventoryValue" label="库存金额" min-width="100"/>
+            <el-table-column prop="inventoryRatio" label="库存比例" min-width="100"/>
+            <el-table-column prop="revenue" label="营业额" min-width="100"/>
+            <el-table-column prop="revenueRatio" label="营业额比例" min-width="100"/>
+            <el-table-column prop="profit" label="利润" min-width="100"/>
+            <el-table-column prop="profitRatio" label="利润比例" min-width="100"/>
+            <el-table-column prop="profitMargin" label="利润率" min-width="100"/>
           </el-table>
         </el-card>
 
@@ -191,14 +199,16 @@
               style="width: 100%"
               :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
           >
-            <el-table-column prop="label" label="指标" width="100" fixed/>
-            <el-table-column prop="over360" label=">360" min-width="100"/>
-            <el-table-column prop="d270_360" label="270~360" min-width="100"/>
-            <el-table-column prop="d210_270" label="210~270" min-width="100"/>
-            <el-table-column prop="d150_210" label="150~210" min-width="100"/>
-            <el-table-column prop="d120_150" label="120~150" min-width="100"/>
-            <el-table-column prop="d60_120" label="60~120" min-width="100"/>
-            <el-table-column prop="under60" label="<60" min-width="100"/>
+            <el-table-column prop="label" label="周转天数" width="100" fixed/>
+            <el-table-column prop="skuCount" label="SKU数量" min-width="100"/>
+            <el-table-column prop="skuRatio" label="SKU比例" min-width="100"/>
+            <el-table-column prop="inventoryValue" label="库存金额" min-width="100"/>
+            <el-table-column prop="inventoryRatio" label="库存比例" min-width="100"/>
+            <el-table-column prop="revenue" label="营业额" min-width="100"/>
+            <el-table-column prop="revenueRatio" label="营业额比例" min-width="100"/>
+            <el-table-column prop="profit" label="利润" min-width="100"/>
+            <el-table-column prop="profitRatio" label="利润比例" min-width="100"/>
+            <el-table-column prop="profitMargin" label="利润率" min-width="100"/>
           </el-table>
         </el-card>
       </el-col>
@@ -401,13 +411,13 @@ const getOptions = async () => {
 
 // 常量定义
 const TABLE_COLUMNS = [
-  { prop: 'over360', label: '>360', minWidth: 100 },
-  { prop: 'd270_360', label: '270~360', minWidth: 100 },
-  { prop: 'd210_270', label: '210~270', minWidth: 100 },
-  { prop: 'd150_210', label: '150~210', minWidth: 100 },
-  { prop: 'd120_150', label: '120~150', minWidth: 100 },
-  { prop: 'd60_120', label: '60~120', minWidth: 100 },
-  { prop: 'under60', label: '<60', minWidth: 100 }
+  { prop: 'over360', label: '大于360天', minWidth: 100 },
+  { prop: 'd270_360', label: '270~360天', minWidth: 100 },
+  { prop: 'd210_270', label: '210~270天', minWidth: 100 },
+  { prop: 'd150_210', label: '150~210天', minWidth: 100 },
+  { prop: 'd120_150', label: '120~150天', minWidth: 100 },
+  { prop: 'd60_120', label: '60~120天', minWidth: 100 },
+  { prop: 'under60', label: '小于60天', minWidth: 100 }
 ];
 
 const ROW_TYPES = {
@@ -427,7 +437,7 @@ const transformTurnoverData = (stats, formatters) => {
   if (!stats || !Array.isArray(stats) || stats.length !== 7) return [];
 
   const getColumnValue = (stat, key, formatter, prefix = '') => {
-    const value = stat?.[key];
+    const value = stat?.[key] ?? 0;
     return formatter ? `${prefix}${formatter(value)}` : value;
   };
 
@@ -515,20 +525,20 @@ const getColumnIndex = (columnProp) => {
 // 格式化函数
 const formatters = {
   currency: (value) => {
-    if (!value && value !== 0) return '0.00';
+    if (!value && value !== 0) return '¥0.00';
     if (value >= 100000000) {
-      return `${(value / 100000000).toFixed(2)}亿`;
+      return `¥${(value / 100000000).toFixed(2)}亿`;
     } else if (value >= 10000) {
-      return `${(value / 10000).toFixed(2)}万`;
+      return `¥${(value / 10000).toFixed(2)}万`;
     }
-    return value.toLocaleString('zh-CN', {
+    return `¥${value.toLocaleString('zh-CN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    });
+    })}`;
   },
   percent: (value) => {
     if (!value && value !== 0) return '0.00%';
-    return `${Number(value).toFixed(2)}%`;
+    return `${(Number(value)).toFixed(2)}%`;
   },
   days: (value) => {
     if (!value && value !== 0) return '0天';
@@ -538,11 +548,40 @@ const formatters = {
 
 // 计算属性
 const turnoverTableData = computed(() => {
-  return transformTurnoverData(amzTurnoverSummary.value?.turnoverStats, formatters);
+  return (amzTurnoverSummary.value?.turnoverStats || []).map(stat => ({
+    label: stat.turnover_range,
+    over360: formatters.currency(stat.over360),
+    d270_360: formatters.currency(stat.d270_360),
+    d210_270: formatters.currency(stat.d210_270),
+    d150_210: formatters.currency(stat.d150_210),
+    d120_150: formatters.currency(stat.d120_150),
+    d60_120: formatters.currency(stat.d60_120),
+    under60: formatters.currency(stat.under60),
+    skuCount: stat.skuCount,
+    skuRatio: formatters.percent(stat.skuRatio),
+    inventoryValue: formatters.currency(stat.inventoryValue),
+    inventoryRatio: formatters.percent(stat.inventoryRatio),
+    revenue: formatters.currency(stat.revenue),
+    revenueRatio: formatters.percent(stat.revenueRatio),
+    profit: formatters.currency(stat.profit),
+    profitRatio: formatters.percent(stat.profitRatio),
+    profitMargin: formatters.percent(stat.profitMargin)
+  }));
 });
 
 const fbaTurnoverTableData = computed(() => {
-  return transformTurnoverData(amzTurnoverSummary.value?.fbaTurnoverStats, formatters);
+  return (amzTurnoverSummary.value?.fbaTurnoverStats || []).map(stat => ({
+    label: stat.turnover_range,
+    skuCount: stat.skuCount,
+    skuRatio: formatters.percent(stat.skuRatio),
+    inventoryValue: formatters.currency(stat.inventoryValue),
+    inventoryRatio: formatters.percent(stat.inventoryRatio),
+    revenue: formatters.currency(stat.revenue),
+    revenueRatio: formatters.percent(stat.revenueRatio),
+    profit: formatters.currency(stat.profit),
+    profitRatio: formatters.percent(stat.profitRatio),
+    profitMargin: formatters.percent(stat.profitMargin)
+  }));
 });
 
 // 事件处理
@@ -608,31 +647,33 @@ const formatPercent = (value) => {
 };
 
 // 处理SKU数量点击事件
-const handleSkuCountClick = () => {
-  // 构建查询参数
-  const queryParams = {
-    storeName: form.value.storeName,
-    categoryLevelOne: form.value.categoryLevelOne,
-    categoryLevelTwo: form.value.categoryLevelTwo,
-    available: form.value.available,
-    awaitingStock: form.value.awaitingStock,
-    salesPerson: form.value.salesPerson,
-    developer: form.value.developer,
-    listingDate: form.value.listingDate
-  };
+const handleSkuCountClick = (turnoverDays) => {
+    // 构建查询参数
+    const queryParams = {
+        storeName: form.value.storeName,
+        categoryLevelOne: form.value.categoryLevelOne,
+        categoryLevelTwo: form.value.categoryLevelTwo,
+        available: form.value.available,
+        awaitingStock: form.value.awaitingStock,
+        salesPerson: form.value.salesPerson,
+        developer: form.value.developer,
+        listingDate: form.value.listingDate,
+        turnoverDaysMin: turnoverDays, // 传递最小周转天数
+        turnoverDaysMax: turnoverDays // 传递最大周转天数
+    };
 
-  // 移除空值
-  Object.keys(queryParams).forEach(key => {
-    if (!queryParams[key]) {
-      delete queryParams[key];
-    }
-  });
+    // 移除空值
+    Object.keys(queryParams).forEach(key => {
+        if (!queryParams[key]) {
+            delete queryParams[key];
+        }
+    });
 
-  // 跳转到列表页面
-  router.push({
-    name: 'ListAmz',
-    query: queryParams
-  });
+    // 跳转到列表页面
+    router.push({
+        name: 'ListAmz',
+        query: queryParams
+    });
 };
 </script>
 <style scoped lang="scss">
@@ -766,11 +807,42 @@ const handleSkuCountClick = () => {
   .clickable {
     cursor: pointer;
     color: #409eff !important;
-    text-decoration: underline;
+    text-decoration: underline !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    transition: color 0.3s, background-color 0.3s !important;
 
     &:hover {
       color: #66b1ff !important;
+      background-color: rgba(64, 158, 255, 0.1) !important;
     }
   }
+  .clickable_table {
+    cursor: pointer;
+    color: #409eff;
+    text-decoration: underline;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.3s, background-color 0.3s;
+
+    &:hover {
+      color: #66b1ff;
+      background-color: rgba(64, 158, 255, 0.1);
+    }
+  }
+}
+
+.el-table .clickable_table {
+    cursor: pointer;
+    color: #409eff;
+    text-decoration: underline;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.3s, background-color 0.3s;
+
+    &:hover {
+        color: #66b1ff;
+        background-color: rgba(64, 158, 255, 0.1);
+    }
 }
 </style>
