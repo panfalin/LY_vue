@@ -11,6 +11,20 @@
         />
       </el-form-item>
 
+
+      <el-form-item label="总库存金额大于" prop="totalWarehouseCost" label-width="120px">
+        <el-input
+            v-model="queryParams.totalWarehouseCost"
+            placeholder="总库存金额大于"
+            clearable
+            style="width: 240px"
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
+
+
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -76,6 +90,9 @@
 
       </el-table-column>
       <el-table-column label="重量" align="center" prop="weight" sortable="custom" width="140"/>
+      <el-table-column label="刊登总数" align="center" prop="totalPublications" sortable="custom" width="140"/>
+      <el-table-column label="7天销量" align="center" prop="salesLast7Days" sortable="custom" width="140"/>
+      <el-table-column label="28天销量" align="center" prop="salesLast28Days" sortable="custom" width="140"/>
       <!-- 库存相关列 -->
       <el-table-column label="库存" align="center">
         <el-table-column label="成本单价" align="center" prop="warehouseCost" sortable="custom" width="100"/>

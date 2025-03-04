@@ -127,7 +127,7 @@
       <!--      <el-table-column label="主键ID" align="center" prop="sId" />-->
       <el-table-column label="年份" align="center" prop="year" sortable />
       <el-table-column label="月份" align="center" prop="moon" sortable/>
-      <el-table-column label="SKU" align="center" prop="sku" sortable  width="150"/>
+      <el-table-column label="SKU" align="center" prop="sku" sortable  width="200"/>
       <el-table-column label="SKU负责人" align="center" prop="personCharge" sortable  width="120"/>
       <el-table-column label="SKU状态" align="center" prop="skuState" sortable width="90"/>
       <!-- 总销售数量、实际总利润和销售总金额 -->
@@ -442,7 +442,7 @@
 
 <script setup name="Category">
 import { listCategory, getCategory, delCategory, addCategory, updateCategory } from "@/api/aliexpress/category";
-import {listStatisticsToal} from "@/api/statistics/statistics";
+import {listStatisticsToalAll} from "@/api/statistics/statistics";
 
 const { proxy } = getCurrentInstance();
 
@@ -506,7 +506,7 @@ function getList() {
   delete totalQueryParams.pageNum;
   delete totalQueryParams.pageSize;
 
-  listStatisticsToal(totalQueryParams).then(response => {
+  listStatisticsToalAll(totalQueryParams).then(response => {
     // 定义期望的排序顺序
     const orderMap = {
       'POP-自发': 1,

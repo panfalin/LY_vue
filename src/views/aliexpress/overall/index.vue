@@ -33,26 +33,26 @@
       </el-form-item>
       <el-form-item label="SKU" prop="sku">
         <el-input
-          v-model="queryParams.sku"
-          placeholder="请输入SKU"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.sku"
+            placeholder="请输入SKU"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="商品数量" prop="quantity">
         <el-input
-          v-model="queryParams.quantity"
-          placeholder="请输入商品数量"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.quantity"
+            placeholder="请输入商品数量"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="实际利润" prop="actualProfit">
         <el-input
-          v-model="queryParams.actualProfit"
-          placeholder="请输入实际利润"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.actualProfit"
+            placeholder="请输入实际利润"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
 
@@ -65,7 +65,7 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-<!--       新增的订单类型下拉框-->
+      <!--       新增的订单类型下拉框-->
       <el-form-item label="订单类型" prop="category">
         <el-select
             v-model="queryParams.category"
@@ -105,11 +105,11 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['statistics:statistics:export']"
+            type="warning"
+            plain
+            icon="Download"
+            @click="handleExport"
+            v-hasPermi="['statistics:statistics:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
@@ -135,13 +135,13 @@
       </el-table-column>
       <el-table-column label="成本价格" align="center" prop="costPrice" sortable />
     </el-table>
-    
+
     <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
+        v-show="total>0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        @pagination="getList"
     />
 
     <!-- 添加或修改马帮后台导出金额订单数据对话框 -->
@@ -183,27 +183,27 @@
     <!-- 在最后添加浮动的汇总卡片 -->
     <div class="floating-summary" v-show="summaryList">
       <el-card class="summary-card">
-        <el-table 
-          :data="transformedSummaryData" 
-          :show-header="true" 
-          size="small" 
-          style="width: 100%"
-          :border="true"
-          class="summary-table"
+        <el-table
+            :data="transformedSummaryData"
+            :show-header="true"
+            size="small"
+            style="width: 100%"
+            :border="true"
+            class="summary-table"
         >
-          <el-table-column 
-            prop="label" 
-            label="" 
-            width="120" 
-            align="center"
-            fixed="left"
+          <el-table-column
+              prop="label"
+              label=""
+              width="120"
+              align="center"
+              fixed="left"
           />
-          <el-table-column 
-            v-for="(item, index) in summaryList" 
-            :key="index"
-            :label="item.category"
-            align="center"
-            :class-name="index === 0 ? 'total-column' : ''"
+          <el-table-column
+              v-for="(item, index) in summaryList"
+              :key="index"
+              :label="item.category"
+              align="center"
+              :class-name="index === 0 ? 'total-column' : ''"
           >
             <template #default="{ row }">
               <template v-if="row.type === 'quantity'">
@@ -239,11 +239,11 @@
   </div>
 
 
-  
+
 </template>
 
 <script setup name="Statistics">
-import {listStatisticsToalAll,listStatisticsAll, listStatistics,listStatisticsToal, getStatistics, delStatistics, addStatistics, updateStatistics} from "@/api/statistics/statistics";
+import { listStatistics, getStatistics, delStatistics, addStatistics, updateStatistics,listStatisticsToal} from "@/api/statistics/statistics";
 
 const { proxy } = getCurrentInstance();
 
@@ -281,7 +281,7 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询马帮后台导出金额订单数据列表 */
 function getList() {
   loading.value = true;
-  listStatisticsAll(queryParams.value).then(response => {
+  listStatistics(queryParams.value).then(response => {
     statisticsList.value = response.rows;
     total.value = response.total;
     loading.value = false;
@@ -291,10 +291,10 @@ function getList() {
   const totalQueryParams = { ...queryParams.value };
   delete totalQueryParams.pageNum;
   delete totalQueryParams.pageSize;
-  
-  listStatisticsToalAll(totalQueryParams).then(response => {
-   // 定义期望的排序顺序
-   const orderMap = {
+
+  listStatisticsToal(totalQueryParams).then(response => {
+    // 定义期望的排序顺序
+    const orderMap = {
       'POP-自发': 1,
       '半托管-JIT': 2,
       '半托管-仓发': 3,
@@ -320,8 +320,8 @@ function getList() {
     });
 
     // 计算总利润率
-    totalData.profitMargin = totalData.loanAmount ? 
-      (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
+    totalData.profitMargin = totalData.loanAmount ?
+        (totalData.actualProfit / totalData.loanAmount) * 100 : 0;
 
     // 对数据进行排序,并将总计放在最前面
     summaryList.value = [
@@ -464,13 +464,13 @@ let scrollTimer = null;
 const handleScroll = () => {
   const summary = document.querySelector('.floating-summary');
   if (!summary) return;
-  
+
   // 添加滚动时的类
   summary.classList.add('scrolling');
-  
+
   // 清除之前的定时器
   if (scrollTimer) clearTimeout(scrollTimer);
-  
+
   // 设置新的定时器
   scrollTimer = setTimeout(() => {
     summary.classList.remove('scrolling');

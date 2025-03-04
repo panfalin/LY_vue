@@ -50,15 +50,21 @@
 
 
 
-      <el-form-item label="店铺名称" prop="storeName">
-        <el-input
-          v-model="queryParams.storeName"
-          placeholder="请输入店铺名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="店铺" prop="shopName">
+        <el-select
+            v-model="queryParams.shopName"
+            placeholder="请选择店铺"
+            clearable
+            @change="handleQuery"
+        >
+          <el-option
+              v-for="item in shopOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          />
+        </el-select>
       </el-form-item>
-
       <el-form-item label="国家" prop="countries">
         <el-input
           v-model="queryParams.countries"
@@ -477,6 +483,7 @@
 <script setup name="Date">
 import { listDate, getDate, delDate, addDate, updateDate } from "@/api/aliexpress/date";
 import { listStatistics_shopsToal } from "@/api/aliexpress/statistics_shops";
+import { selectShop } from "@/api/aliexpress/indicators";
 const { proxy } = getCurrentInstance();
 
 const dateList = ref([]);
@@ -680,6 +687,29 @@ function reset() {
   proxy.resetForm("dateRef");
 }
 
+const shopOptions = ref([]);
+/** 获取店铺列表 */
+function getShopList() {
+  selectShop().then(response => {
+    console.log('店铺数据响应:', response);
+    if (response.code === 200 && response.rows) {
+      shopOptions.value = response.rows.map(item => {
+        return {
+          value: item.shopName,
+          label: item.shopName
+        }
+      });
+    } else {
+      proxy.$modal.msgError('获取店铺列表失败');
+    }
+  }).catch(error => {
+    console.error('获取店铺列表错误:', error);
+    proxy.$modal.msgError('获取店铺列表失败');
+  });
+}
+
+
+
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
@@ -767,6 +797,10 @@ const yearOptions = computed(() => {
 })
 
 
+onMounted(() => {
+  getList();
+  getShopList();
+});
 
 // 添加月份选项（1-12月）
 const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
@@ -819,8 +853,8 @@ getList();
 <style scoped>
 .floating-summary {
   position: fixed;
-  bottom: 0;
-  left: 200px; /* 左侧菜单展开时的宽度 */
+  bottom: 20px;
+  left: 200px;
   right: 0;
   z-index: 1000;
   padding: 0 10px;
@@ -895,7 +929,7 @@ getList();
 
 /* 确保有足够的底部空间 */
 .app-container {
-  padding-bottom: 200px;
+  padding-bottom: 270px;
   min-height: 100vh;
 }
 

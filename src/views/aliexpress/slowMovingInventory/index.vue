@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="滞销SKU" prop="sku" label-width="80px">
+      <el-form-item label="滞销SKU" prop="sku" label-width="100px">
         <el-input
           v-model="queryParams.sku"
           placeholder="请输入滞销SKU"
@@ -10,6 +10,21 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+
+
+      <el-form-item label="总库存金额大于" prop="totalWarehouseCost" label-width="120px">
+        <el-input
+            v-model="queryParams.totalWarehouseCost"
+            placeholder="总库存金额大于"
+            clearable
+            style="width: 240px"
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
+
+
+
       <el-form-item label="推荐操作" prop="recommendedAction">
         <el-input
           v-model="queryParams.recommendedAction"
@@ -124,6 +139,7 @@
 
       </el-table-column>
       <el-table-column label="重量" align="center" prop="weight" sortable="custom" width="140"/>
+      <el-table-column label="刊登总数" align="center" prop="totalPublications" sortable="custom" width="140"/>
       <!-- 库存相关列 -->
       <el-table-column label="库存" align="center">
         <el-table-column label="成本单价" align="center" prop="warehouseCost" sortable="custom" width="100"/>

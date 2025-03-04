@@ -1384,7 +1384,8 @@ const managerOptions = ref([
   { value: 'voice', label: 'voice' },
   { value: '夏慧颖', label: '夏慧颖' },
   { value: '赵世杰', label: '赵世杰' },
-  { value: '沈娟', label: '沈娟' }
+  { value: 'mac', label: 'mac' },
+  { value: '符晓琳', label: '符晓琳' }
 ])
 
 </script>

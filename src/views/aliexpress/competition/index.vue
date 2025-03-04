@@ -65,8 +65,12 @@
               value="蔡晓纯"
           />
           <el-option
-              label="沈娟"
-              value="沈娟"
+              label="mak"
+              value="mak"
+          />
+          <el-option
+              label="符晓琳"
+              value="符晓琳"
           />
         </el-select>
       </el-form-item>
@@ -79,15 +83,15 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['aliexpress:competition:add']"
-        >新增</el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button-->
+<!--          type="primary"-->
+<!--          plain-->
+<!--          icon="Plus"-->
+<!--          @click="handleAdd"-->
+<!--          v-hasPermi="['aliexpress:competition:add']"-->
+<!--        >新增</el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="success"
@@ -98,16 +102,16 @@
           v-hasPermi="['aliexpress:competition:edit']"
         >批量修改</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['aliexpress:competition:remove']"
-        >删除</el-button>
-      </el-col>
+<!--      <el-col :span="1.5">-->
+<!--        <el-button-->
+<!--          type="danger"-->
+<!--          plain-->
+<!--          icon="Delete"-->
+<!--          :disabled="multiple"-->
+<!--          @click="handleDelete"-->
+<!--          v-hasPermi="['aliexpress:competition:remove']"-->
+<!--        >删除</el-button>-->
+<!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -120,15 +124,21 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="competitionList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="图片" align="center" prop="picture" width="180">
+    <el-table 
+      v-loading="loading" 
+      :data="competitionList" 
+      @selection-change="handleSelectionChange"
+      height="650"
+      :header-cell-style="{background:'#F5F7FA'}"
+    >
+      <el-table-column type="selection" width="55" align="center" fixed="left" />
+      <el-table-column label="图片" align="center" prop="picture" width="180" fixed="left">
         <template #default="scope">
           <img :src="getProxiedImageUrl(scope.row.picture)" alt="图片" style="width: 100%; height: auto;" />
         </template>
       </el-table-column>
-      <el-table-column label="sku" align="center" prop="sku" width="180" />
-      <el-table-column label="负责人" align="center" prop="skuPerson">
+      <el-table-column label="sku" align="center" prop="sku" width="180" fixed="left" />
+      <el-table-column label="负责人" align="center" prop="skuPerson" width="150" fixed="left">
         <template #default="scope">
           <el-select
             v-model="scope.row.skuPerson"
@@ -722,8 +732,9 @@ const personOptions = ref([
   { label: '夏慧颖', value: '夏慧颖' },
   { label: '赵世杰', value: '赵世杰' },
   { label: '陈雪芳', value: '陈雪芳' },
-  { label: 'voice', value: 'voice' },
-  { label: '沈娟', value: '沈娟' }
+  { label: 'mac', value: 'mac' },
+  { label: '沈娟', value: '沈娟' },
+  { label: '符晓琳', value: '符晓琳' }
 ]);
 
 // 处理负责人变更
