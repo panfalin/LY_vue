@@ -6,7 +6,7 @@
         <el-col :span="6">
           <el-form-item label="店铺名称">
             <el-select
-                v-model="form.storeName"
+                v-model="queryParams.storeName"
                 placeholder="请选择店铺名称"
                 clearable
                 style="width: 100%"
@@ -54,7 +54,7 @@
 
       <!-- 第二行 -->
       <el-row :gutter="20">
-        <el-col :span="6">
+        <!-- <el-col :span="6">
           <el-form-item label="周转天数" prop="turnoverDays">
             <el-input-number
               v-model="queryParams.turnoverDaysMin"
@@ -70,7 +70,7 @@
               style="width: 110px"
             />
           </el-form-item>
-        </el-col>
+        </el-col> -->
         <el-col :span="6">
           <el-form-item label="上架时间" prop="inventoryShelfTimeRange">
             <el-select v-model="queryParams.quickFilter" placeholder="选择商品类型" @change="handleQuickFilterChange" style="width: 100%">
@@ -94,7 +94,7 @@
         <el-col :span="6">
           <el-form-item label="销售员">
             <el-select
-                v-model="form.salesPerson"
+                v-model="queryParams.salesPerson"
                 placeholder="请选择销售员"
                 clearable
                 style="width: 100%"
@@ -111,7 +111,7 @@
         <el-col :span="6">
           <el-form-item label="开发员">
             <el-select
-                v-model="form.developer"
+                v-model="queryParams.developer"
                 placeholder="请选择开发员"
                 clearable
                 style="width: 100%"
@@ -749,6 +749,61 @@ function handleExport() {
     ...queryParams.value
   }, `amzTurnover_${new Date().getTime()}.xlsx`)
 }
+
+// 添加快捷筛选处理函数
+const handleQuickFilterChange = (value) => {
+  const today = new Date();
+  
+  switch (value) {
+    case 'new':
+      // 新品：90天（3个月）内 - 从3个月前到现在
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setDate(today.getDate() - 90);
+      queryParams.value.inventoryShelfTimeRange = [
+        threeMonthsAgo.toISOString().split('T')[0],
+        today.toISOString().split('T')[0]
+      ];
+      queryParams.value.beginTime = threeMonthsAgo.toISOString().split('T')[0];
+      queryParams.value.endTime = today.toISOString().split('T')[0];
+      break;
+      
+    case 'semi_new':
+      // 次新品：180天到90天（6个月前到3个月前）
+      const sixMonthsAgo = new Date(today);
+      const threeMonthsAgo2 = new Date(today);
+      sixMonthsAgo.setDate(today.getDate() - 180);
+      threeMonthsAgo2.setDate(today.getDate() - 90);
+      queryParams.value.inventoryShelfTimeRange = [
+        sixMonthsAgo.toISOString().split('T')[0],
+        threeMonthsAgo2.toISOString().split('T')[0]
+      ];
+      queryParams.value.beginTime = sixMonthsAgo.toISOString().split('T')[0];
+      queryParams.value.endTime = threeMonthsAgo2.toISOString().split('T')[0];
+      break;
+      
+    case 'old':
+      // 老品：180天以上（从1900年到6个月前）
+      const sixMonthsAgo2 = new Date(today);
+      sixMonthsAgo2.setDate(today.getDate() - 180);
+      queryParams.value.inventoryShelfTimeRange = [
+        '1900-01-01',  // 设置一个足够早的日期
+        sixMonthsAgo2.toISOString().split('T')[0]
+      ];
+      queryParams.value.beginTime = '1900-01-01';
+      queryParams.value.endTime = sixMonthsAgo2.toISOString().split('T')[0];
+      break;
+      
+    case 'custom':
+      // 自定义：清空日期范围
+      queryParams.value.inventoryShelfTimeRange = null;
+      queryParams.value.beginTime = null;
+      queryParams.value.endTime = null;
+      break;
+  }
+  
+  // 触发查询
+  handleQuery();
+};
 
 getList();
 </script>
