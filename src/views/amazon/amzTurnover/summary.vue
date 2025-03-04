@@ -75,16 +75,25 @@
             </el-select>
           </el-form-item>
         </el-col>
-        <!--<el-col :span="6">-->
-        <!--  <el-form-item label="上架时间">-->
-        <!--    <el-date-picker-->
-        <!--        v-model="form.listingDate"-->
-        <!--        type="date"-->
-        <!--        placeholder="选择上架时间"-->
-        <!--        style="width: 100%"-->
-        <!--    />-->
-        <!--  </el-form-item>-->
-        <!--</el-col>-->
+        <el-col :span="6">
+          <el-form-item label="库存上架时间范围">
+            <el-select v-model="form.quickFilter" placeholder="选择商品类型" @change="handleQuickFilterChange">
+              <el-option label="新品(90天内)" value="new"></el-option>
+              <el-option label="次新品(90-180天)" value="semi_new"></el-option>
+              <el-option label="老品(180天以上)" value="old"></el-option>
+              <el-option label="自定义" value="custom"></el-option>
+            </el-select>
+            <el-date-picker
+              v-model="form.inventoryShelfTimeRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="-"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
       </el-row>
       <el-row>
         <el-col :span="24" style="text-align: right">
@@ -102,7 +111,7 @@
           <div class="summary-list">
             <div class="summary-item">
               <span>上架SKU数量</span>
-              <span class="clickable" @click="handleSkuCountClick">
+              <span class="clickable" @click="handleSumSkuCountClick">
                 {{ amzTurnoverSummary.listedSkuCount || 0 }}
               </span>
             </div>
@@ -171,11 +180,11 @@
           >
             <el-table-column prop="label" label="周转天数" width="100" fixed/>
             <el-table-column prop="skuCount" label="SKU数量" min-width="100">
-                <template #default="{ row }">
-                    <span class="clickable_table" @click="handleSkuCountClick(row.turnover_days)">
+              <template #default="{ row }">
+                    <span class="clickable_table" @click="handleSkuCountClick(row.label)">
                         {{ row.skuCount }}
                     </span>
-                </template>
+              </template>
             </el-table-column>
             <el-table-column prop="skuRatio" label="SKU比例" min-width="100"/>
             <el-table-column prop="inventoryValue" label="库存金额" min-width="100"/>
@@ -230,6 +239,7 @@ const {proxy} = getCurrentInstance();
 
 const router = useRouter();
 const store = useAmzTurnoverStore();
+const amzInventoryShelfTime = ref([]);
 
 const data = reactive({
   form: {
@@ -250,6 +260,8 @@ const data = reactive({
     avgDailySales: null,
     salesPerson: null,
     developer: null,
+    inventoryShelfTimeRange: null,
+    quickFilter: null,
   },
   queryParams: {
     storeName: null,
@@ -286,7 +298,7 @@ const data = reactive({
     weight: null,
     volumeCm3: null,
     minPurchaseQuantity: null,
-    amzInventoryShelfTime: null,
+    inventoryShelfTimeRange: null,
     reshaper: null,
     reshaping: null,
     inTransit: null,
@@ -309,7 +321,9 @@ const data = reactive({
     isDelete: [
       {required: true, message: "是否删除不能为空", trigger: "blur"}
     ],
-  }
+  },
+  turnoverDaysMin: null,
+  turnoverDaysMax: null
 });
 
 // 表单重置
@@ -350,7 +364,7 @@ function reset() {
     weight: null,
     volumeCm3: null,
     minPurchaseQuantity: null,
-    amzInventoryShelfTime: null,
+    inventoryShelfTimeRange: null,
     reshaper: null,
     reshaping: null,
     inTransit: null,
@@ -367,7 +381,8 @@ function reset() {
     updateTime: null,
     createBy: null,
     updateBy: null,
-    version: null
+    version: null,
+    quickFilter: null,
   };
   proxy.resetForm("amzTurnoverRef");
 }
@@ -411,13 +426,13 @@ const getOptions = async () => {
 
 // 常量定义
 const TABLE_COLUMNS = [
-  { prop: 'over360', label: '大于360天', minWidth: 100 },
-  { prop: 'd270_360', label: '270~360天', minWidth: 100 },
-  { prop: 'd210_270', label: '210~270天', minWidth: 100 },
-  { prop: 'd150_210', label: '150~210天', minWidth: 100 },
-  { prop: 'd120_150', label: '120~150天', minWidth: 100 },
-  { prop: 'd60_120', label: '60~120天', minWidth: 100 },
-  { prop: 'under60', label: '小于60天', minWidth: 100 }
+  {prop: 'over360', label: '大于360天', minWidth: 100},
+  {prop: 'd270_360', label: '270~360天', minWidth: 100},
+  {prop: 'd210_270', label: '210~270天', minWidth: 100},
+  {prop: 'd150_210', label: '150~210天', minWidth: 100},
+  {prop: 'd120_150', label: '120~150天', minWidth: 100},
+  {prop: 'd60_120', label: '60~120天', minWidth: 100},
+  {prop: 'under60', label: '小于60天', minWidth: 100}
 ];
 
 const ROW_TYPES = {
@@ -526,19 +541,14 @@ const getColumnIndex = (columnProp) => {
 const formatters = {
   currency: (value) => {
     if (!value && value !== 0) return '¥0.00';
-    if (value >= 100000000) {
-      return `¥${(value / 100000000).toFixed(2)}亿`;
-    } else if (value >= 10000) {
-      return `¥${(value / 10000).toFixed(2)}万`;
-    }
-    return `¥${value.toLocaleString('zh-CN', {
+    return `¥${Number(value).toLocaleString('zh-CN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
   },
   percent: (value) => {
     if (!value && value !== 0) return '0.00%';
-    return `${(Number(value)).toFixed(2)}%`;
+    return `${Number(value).toFixed(2)}%`;
   },
   days: (value) => {
     if (!value && value !== 0) return '0天';
@@ -565,7 +575,8 @@ const turnoverTableData = computed(() => {
     revenueRatio: formatters.percent(stat.revenueRatio),
     profit: formatters.currency(stat.profit),
     profitRatio: formatters.percent(stat.profitRatio),
-    profitMargin: formatters.percent(stat.profitMargin)
+    profitMargin: formatters.percent(stat.profitMargin),
+    turnover_days: getTurnoverDays(stat.turnover_range)
   }));
 });
 
@@ -580,7 +591,8 @@ const fbaTurnoverTableData = computed(() => {
     revenueRatio: formatters.percent(stat.revenueRatio),
     profit: formatters.currency(stat.profit),
     profitRatio: formatters.percent(stat.profitRatio),
-    profitMargin: formatters.percent(stat.profitMargin)
+    profitMargin: formatters.percent(stat.profitMargin),
+    turnover_days: getTurnoverDays(stat.turnover_range)
   }));
 });
 
@@ -611,14 +623,18 @@ function resetQuery() {
   handleQuery();
 }
 
-// 组件挂载时自动加载数据
-onMounted(() => {
-  // 如果有存储的查询条件，使用它
-  if (store.summaryQueryParams) {
-    form.value = {...store.summaryQueryParams};
+// 确保在这里调用 onMounted
+onMounted(async () => {
+  try {
+    // 如果有存储的查询条件，使用它
+    if (store.summaryQueryParams) {
+      data.form = {...store.summaryQueryParams};
+    }
+    await getOptions();
+    await handleQuery();
+  } catch (error) {
+    console.error("组件挂载时出错:", error);
   }
-  getOptions();
-  handleQuery();
 });
 
 // 添加天数格式化函数
@@ -647,33 +663,128 @@ const formatPercent = (value) => {
 };
 
 // 处理SKU数量点击事件
-const handleSkuCountClick = (turnoverDays) => {
-    // 构建查询参数
-    const queryParams = {
-        storeName: form.value.storeName,
-        categoryLevelOne: form.value.categoryLevelOne,
-        categoryLevelTwo: form.value.categoryLevelTwo,
-        available: form.value.available,
-        awaitingStock: form.value.awaitingStock,
-        salesPerson: form.value.salesPerson,
-        developer: form.value.developer,
-        listingDate: form.value.listingDate,
-        turnoverDaysMin: turnoverDays, // 传递最小周转天数
-        turnoverDaysMax: turnoverDays // 传递最大周转天数
-    };
+const handleSkuCountClick = (turnoverRange) => {
+  const queryParams = {
+    storeName: form.value.storeName,
+    categoryLevelOne: form.value.categoryLevelOne,
+    categoryLevelTwo: form.value.categoryLevelTwo,
+    available: form.value.available,
+    awaitingStock: form.value.awaitingStock,
+    salesPerson: form.value.salesPerson,
+    developer: form.value.developer,
+    listingDate: form.value.listingDate,
+    turnoverDaysMin: data.turnoverDaysMin,
+    turnoverDaysMax: data.turnoverDaysMax,
+    turnoverRange: turnoverRange || null,
+    beginTime: form.value.inventoryShelfTimeRange ? form.value.inventoryShelfTimeRange[0] : null,
+    endTime: form.value.inventoryShelfTimeRange ? form.value.inventoryShelfTimeRange[1] : null
+  };
 
-    // 移除空值
-    Object.keys(queryParams).forEach(key => {
-        if (!queryParams[key]) {
-            delete queryParams[key];
-        }
-    });
+  // 移除空值
+  Object.keys(queryParams).forEach(key => {
+    if (!queryParams[key]) {
+      delete queryParams[key];
+    }
+  });
 
-    // 跳转到列表页面
-    router.push({
-        name: 'ListAmz',
-        query: queryParams
-    });
+  router.push({
+    name: 'ListAmz',
+    query: queryParams
+  });
+};
+
+const handleSumSkuCountClick = () => {
+  const queryParams = {
+    storeName: form.value.storeName,
+    categoryLevelOne: form.value.categoryLevelOne,
+    categoryLevelTwo: form.value.categoryLevelTwo,
+    available: form.value.available,
+    awaitingStock: form.value.awaitingStock,
+    salesPerson: form.value.salesPerson,
+    developer: form.value.developer,
+    listingDate: form.value.listingDate
+  };
+
+  // 移除空值
+  Object.keys(queryParams).forEach(key => {
+    if (!queryParams[key]) {
+      delete queryParams[key];
+    }
+  });
+
+  router.push({
+    name: 'ListAmz',
+    query: queryParams
+  });
+};
+
+// 示例函数，根据 turnover_range 返回对应的周转天数
+const getTurnoverDays = (range) => {
+  switch (range) {
+    case 'over360':
+      return 361; // 示例值
+    case 'd270_360':
+      return 270; // 示例值
+    case 'd210_270':
+      return 210; // 示例值
+    case 'd150_210':
+      return 150; // 示例值
+    case 'd120_150':
+      return 120; // 示例值
+    case 'd60_120':
+      return 60; // 示例值
+    case 'under60':
+      return 0; // 示例值
+    default:
+      return null;
+  }
+};
+
+// 添加快捷筛选处理函数
+const handleQuickFilterChange = (value) => {
+    const today = new Date();
+    
+    switch (value) {
+        case 'new':
+            // 新品：90天（3个月）内 - 从3个月前到现在
+            const threeMonthsAgo = new Date(today);
+            threeMonthsAgo.setDate(today.getDate() - 90);
+            form.value.inventoryShelfTimeRange = [
+                threeMonthsAgo.toISOString().split('T')[0],
+                today.toISOString().split('T')[0]
+            ];
+            break;
+            
+        case 'semi_new':
+            // 次新品：180天到90天（6个月前到3个月前）
+            const sixMonthsAgo = new Date(today);
+            const threeMonthsAgo2 = new Date(today);  
+            sixMonthsAgo.setDate(today.getDate() - 180);
+            threeMonthsAgo2.setDate(today.getDate() - 90);
+            form.value.inventoryShelfTimeRange = [
+                sixMonthsAgo.toISOString().split('T')[0],
+                threeMonthsAgo2.toISOString().split('T')[0]
+            ];
+            break;
+            
+        case 'old':
+            // 老品：180天以上（从1900年到6个月前）
+            const sixMonthsAgo2 = new Date(today);
+            sixMonthsAgo2.setDate(today.getDate() - 180);
+            form.value.inventoryShelfTimeRange = [
+                '1900-01-01',  // 设置一个足够早的日期
+                sixMonthsAgo2.toISOString().split('T')[0]
+            ];
+            break;
+            
+        case 'custom':
+            // 自定义：清空日期范围
+            form.value.inventoryShelfTimeRange = null;
+            break;
+    }
+    
+    // 可以选择在这里直接触发查询
+    handleQuery();
 };
 </script>
 <style scoped lang="scss">
@@ -788,6 +899,7 @@ const handleSkuCountClick = (turnoverDays) => {
 
   &.money-total {
     background: #f8f9fa;
+
     span:last-child {
       color: #f56c6c;
       font-size: 16px;
@@ -797,6 +909,7 @@ const handleSkuCountClick = (turnoverDays) => {
 
   &.money-important {
     background: #fff3f3;
+
     span:last-child {
       color: #f56c6c;
       font-size: 16px;
@@ -817,6 +930,7 @@ const handleSkuCountClick = (turnoverDays) => {
       background-color: rgba(64, 158, 255, 0.1) !important;
     }
   }
+
   .clickable_table {
     cursor: pointer;
     color: #409eff;
@@ -833,16 +947,16 @@ const handleSkuCountClick = (turnoverDays) => {
 }
 
 .el-table .clickable_table {
-    cursor: pointer;
-    color: #409eff;
-    text-decoration: underline;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: color 0.3s, background-color 0.3s;
+  cursor: pointer;
+  color: #409eff;
+  text-decoration: underline;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.3s, background-color 0.3s;
 
-    &:hover {
-        color: #66b1ff;
-        background-color: rgba(64, 158, 255, 0.1);
-    }
+  &:hover {
+    color: #66b1ff;
+    background-color: rgba(64, 158, 255, 0.1);
+  }
 }
 </style>
