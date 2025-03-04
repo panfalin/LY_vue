@@ -646,12 +646,7 @@ const formatDays = (value) => {
 // 修改金额格式化函数
 const formatCurrency = (value) => {
   if (!value || isNaN(value)) return '0.00';
-  if (value >= 100000000) {
-    return `${(value / 100000000).toFixed(2)}亿`;
-  } else if (value >= 10000) {
-    return `${(value / 10000).toFixed(2)}万`;
-  }
-  return value.toLocaleString('zh-CN', {
+  return Number(value).toLocaleString('zh-CN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
