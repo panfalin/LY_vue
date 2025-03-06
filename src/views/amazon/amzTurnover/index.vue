@@ -178,13 +178,13 @@
         >导出
         </el-button>
       </el-col>
+      <!-- 这里的权限设置应该关闭 -->
       <el-col :span="1.5">
         <el-button
           type="primary"
           plain
           icon="Bell"
           @click="handleTask"
-          v-hasPermi="['amazon:amzTurnover:task']"
         >任务设置</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -195,13 +195,15 @@
           @click="goToTaskList"
         >任务列表</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="primary"
-            circle
-            icon="Edit"
-        ></el-button>
-      </el-col>
+      <!--      这里将这个编辑按钮去掉-->
+
+      <!--      <el-col :span="1.5">
+              <el-button
+                  type="primary"
+                  circle
+                  icon="Edit"
+              ></el-button>
+            </el-col>-->
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
