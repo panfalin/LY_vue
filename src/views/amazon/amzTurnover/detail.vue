@@ -1,5 +1,5 @@
 <script setup name="Detail">
-import { useRoute } from 'vue-router'; // 确保导入 useRoute
+import {useRoute} from 'vue-router'; // 确保导入 useRoute
 import {
   getAmzTurnover,
 } from "@/api/amazon/amzTurnover";
@@ -15,27 +15,31 @@ const assignedTos = ref([]);
 const notificationMethods = ref([]); // 新增通知方式
 const reminderFrequency = ref(''); // 新增提醒频率
 const userOptions = ref([
-  { id: 1, name: '张三' },
-  { id: 2, name: '李四' },
-  { id: 3, name: '王五' }
+  {id: 1, name: '张三'},
+  {id: 2, name: '李四'},
+  {id: 3, name: '王五'}
 ]);
+const companyTargets = ref([]); // 公司指标
+const supervisorTargets = ref([]); // 主管指标
+const personalTargets = ref([]); // 个人指标
+const globalCompletionDate = ref(null); // 统一完成时间
 
 // 格式化金额：添加千分位和货币符号
 const formatMoney = (value) => {
   if (!value && value !== 0) return '--';
-  return `¥ ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `¥ ${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 };
 
 // 格式化数量：添加千分位
 const formatQuantity = (value) => {
   if (!value && value !== 0) return '--';
-  return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
 };
 
 // 格式化小数
 const formatDecimal = (value) => {
   if (!value && value !== 0) return '--';
-  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 };
 
 // 从查询参数中获取数据
@@ -68,17 +72,34 @@ if (route.query.data) {
 
 // 可选择的指标字段
 const allFields = [
-  { label: '过去7天销量', value: 'sales7Days' },
-  { label: '过去14天销量', value: 'sales14Days' },
-  { label: '过去30天销量', value: 'sales30Days' },
-  { label: '最新采购价', value: 'latestPurchasePrice' },
-  // { label: '最小采购量', value: 'minPurchaseQuantity' },
-  // { label: '采购天数', value: 'procurementDays' },
-  // { label: '重量(g)', value: 'weight' },
-  // { label: '体积(cm³)', value: 'volumeCm3' },
-  { label: '周转天数', value: 'turnoverDays' },
-  // 添加其他需要的字段
+  {label: '过去7天销量', value: 'sales7Days'},
+  {label: '过去14天销量', value: 'sales14Days'},
+  {label: '过去30天销量', value: 'sales30Days'},
+  {label: '最新采购价', value: 'latestPurchasePrice'},
+  {label: '周转天数', value: 'turnoverDays'},
 ];
+
+const publishTask = () => {
+  // 这里可以根据设置的指标和统一完成时间生成任务
+  selectedFields.value.forEach((field, index) => {
+    const task = {
+      field,
+      companyTarget: companyTargets.value[index],
+      supervisorTarget: supervisorTargets.value[index],
+      personalTarget: personalTargets.value[index],
+      completionDate: globalCompletionDate.value, // 使用统一完成时间
+    };
+    // 这里可以将任务发送到后端或进行其他处理
+    console.log("发布任务:", task);
+  });
+};
+
+const setMetrics = () => {
+  // 根据选择的字段初始化指标值
+  companyTargets.value = Array(selectedFields.value.length).fill(0);
+  supervisorTargets.value = Array(selectedFields.value.length).fill(0);
+  personalTargets.value = Array(selectedFields.value.length).fill(0);
+};
 </script>
 
 <template>
@@ -172,49 +193,6 @@ const allFields = [
               <span>{{ formatQuantity(data.stockWarningDays) }} 天</span>
             </div>
           </div>
-        </div>
-
-        <!-- 指标设置 -->
-        <div class="metric-section">
-          <div class="section-title">指标设置</div>
-          <el-checkbox-group v-model="selectedFields">
-            <div v-for="field in allFields" :key="field.value">
-              <el-checkbox :label="field.value">{{ field.label }}</el-checkbox>
-            </div>
-          </el-checkbox-group>
-          <div v-for="(field, index) in selectedFields" :key="index" class="metric-item">
-            <div class="metric-header">
-              <span>{{ field }}</span>
-            </div>
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-form-item label="现有值">
-                  <el-input-number 
-                    v-model="currentValues[index]" 
-                    :min="0" 
-                    style="width: 100%"
-                    :disabled="true"
-                  ></el-input-number>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="目标值">
-                  <el-input-number v-model="targetValues[index]" :min="0" style="width: 100%"></el-input-number>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item label="完成时间">
-                  <el-date-picker v-model="completionDates[index]" type="date" placeholder="选择完成日期" style="width: 100%"></el-date-picker>
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-          </div>
-        </div>
-
-        <!-- 发布任务按钮 -->
-        <div class="publish-button">
-          <el-button type="primary" @click="publishTask">发布任务</el-button>
         </div>
       </div>
 
@@ -322,6 +300,61 @@ const allFields = [
         </div>
       </div>
     </div>
+
+    <div class="detail-layout">
+      <!-- 左侧区域 -->
+      <div class="detail-left">
+        <!-- 指标设置 -->
+        <div class="metric-section">
+          <div class="section-title">指标设置</div>
+          <div class="metric-layout">
+            <!-- 左侧区域：字段选择 -->
+            <div class="field-selection">
+              <el-checkbox-group v-model="selectedFields">
+                <div v-for="field in allFields" :key="field.value">
+                  <el-checkbox :label="field.value">{{ field.label }}</el-checkbox>
+                </div>
+              </el-checkbox-group>
+              <el-button type="primary" @click="setMetrics">设置指标</el-button>
+            </div>
+            <!-- 右侧区域：指标设置 -->
+            <div class="metric-settings" v-if="selectedFields.length > 0">
+              <el-form-item label="统一完成时间">
+                <el-date-picker v-model="globalCompletionDate" type="date" placeholder="选择完成日期"
+                                style="width: 100%"></el-date-picker>
+              </el-form-item>
+              <div v-for="(field, index) in selectedFields" :key="index" class="metric-item">
+                <div class="metric-header">
+                  <span>{{ field }}</span>
+                </div>
+                <el-row :gutter="20">
+                  <el-col :span="6">
+                    <el-form-item label="公司指标">
+                      <el-input-number v-model="companyTargets[index]" :min="0" style="width: 100%"></el-input-number>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="6">
+                    <el-form-item label="主管指标">
+                      <el-input-number v-model="supervisorTargets[index]" :min="0"
+                                       style="width: 100%"></el-input-number>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="6">
+                    <el-form-item label="个人指标">
+                      <el-input-number v-model="personalTargets[index]" :min="0" style="width: 100%"></el-input-number>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+            </div>
+            <!-- 发布任务按钮 -->
+            <div class="publish-button">
+              <el-button type="primary" @click="publishTask">发布任务</el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -361,7 +394,7 @@ const allFields = [
   display: flex;
   align-items: center;
   border-bottom: 1px solid #ebeef5;
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -423,7 +456,7 @@ const allFields = [
   .detail-layout {
     flex-direction: column;
   }
-  
+
   .detail-left,
   .detail-right {
     width: 100%;
