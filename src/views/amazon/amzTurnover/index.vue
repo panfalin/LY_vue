@@ -127,13 +127,33 @@
         </el-col>
       </el-row>
 
+      <!-- 可见列设置
+      <el-row>
+        <el-col :span="24">
+          <div style="margin-bottom: 10px;">
+            <span>可见列设置:</span>
+            <el-checkbox-group v-model="visibleColumns">
+              <el-checkbox label="店铺名称" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="商品信息" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="库存状态" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="日均销量" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="周转天数" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="目标值" name="visibleColumns"></el-checkbox>
+              <el-checkbox label="当前值" name="visibleColumns"></el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </el-col>
+      </el-row> -->
+
       <!-- 按钮行 -->
       <el-row>
         <el-col :span="24" style="text-align: right">
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+          <el-button type="info" @click="openVisibleColumnsDialog">设置可见列</el-button>
         </el-col>
       </el-row>
+      <!-- 这里添加一个br空行，使这里的边框的有点距离 -->
     </el-form>
 
     <el-row :gutter="10" class="mb8">
@@ -158,6 +178,30 @@
         >导出
         </el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Bell"
+          @click="handleTask"
+          v-hasPermi="['amazon:amzTurnover:task']"
+        >任务设置</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          plain
+          icon="List"
+          @click="goToTaskList"
+        >任务列表</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+            type="primary"
+            circle
+            icon="Edit"
+        ></el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -173,10 +217,8 @@
         :default-sort="{ prop: 'storeName', order: 'ascending' }"
         @sort-change="handleSortChange"
     >
-      <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="店铺名称" align="center" sortable prop="storeName" fixed min-width="120"/>
-      <el-table-column label="商品信息" align="center" sortable prop="msku" fixed min-width="200">
-        <!-- 表头 -->
+      <el-table-column v-if="visibleColumns.includes('店铺名称')" label="店铺名称" align="center" sortable prop="storeName" fixed min-width="120"/>
+      <el-table-column v-if="visibleColumns.includes('商品信息')" label="商品信息" align="center" sortable prop="msku" fixed min-width="200">
         <template #header>
           <div style="text-align: center;">
             <div>商品信息</div>
@@ -185,7 +227,6 @@
             </div>
           </div>
         </template>
-        <!-- 单元格内容 -->
         <template #default="scope">
           <div style="text-align: left;">
             <div><strong>MSKU:</strong> {{ scope.row.msku }}</div>
@@ -196,16 +237,17 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="商品一级目录" align="center" prop="categoryLevelOne" min-width="150"/>
-      <el-table-column label="商品二级目录" align="center" prop="categoryLevelTwo" min-width="150"/>
-      <!-- 这里暂时先注释掉，等会恢复 -->
-      <el-table-column label="产品名称" align="center" prop="productName" min-width="250">
+      <el-table-column v-if="visibleColumns.includes('库存状态')" label="库存状态" align="center" prop="stockStatus" min-width="120"/>
+      <el-table-column v-if="visibleColumns.includes('日均销量')" label="日均销量" align="center" prop="avgDailySales"/>
+      <el-table-column v-if="visibleColumns.includes('周转天数')" label="周转天数" fixed="right" align="center" min-width="200">
         <template #default="scope">
-          <div style="white-space: pre-line; word-break: break-all;">{{ scope.row.productName }}</div>
+          <div>
+            {{ scope.row.turnoverDays }} 
+            <span v-if="scope.row.currentValue < scope.row.targetValue" style="color: red;">未完成</span>
+            <span v-else style="color: green;">已完成</span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column label="库存状态" align="center" prop="stockStatus" min-width="120"/>
-      <!-- 这里是销量相关的字段 -->
       <el-table-column label="销量(7/14/30/90)" align="center" sortable
                        :sort-by="['sales7Days', 'sales14Days', 'sales30Days', 'sales90Days']" min-width="180">
         <template #header>
@@ -224,7 +266,8 @@
           <div>90天: {{ scope.row.sales90Days }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="日均销量" align="center" prop="avgDailySales"/>
+      <el-table-column v-if="visibleColumns.includes('目标值')" label="目标值" align="center" prop="targetValue"/>
+      <el-table-column v-if="visibleColumns.includes('当前值')" label="当前值" align="center" prop="currentValue"/>
       <el-table-column label="本地库存" align="center">
         <el-table-column label="采购在途" align="center" prop="procurementInTransit"/>
         <el-table-column label="本地库存" align="center" prop="localInventory"/>
@@ -233,7 +276,7 @@
         <el-table-column label="可售" align="center" prop="available"/>
         <el-table-column label="待入库" align="center" prop="awaitingStock"/>
         <el-table-column label="在途" align="center" prop="inTransit"/>
-      </el-table-column>
+      </el-table-column>  
       <!--库存SKU这个字段没有，并没有在这里显示-->
       <!--<el-table-column label="库存SKU" align="center" prop="sku"/>-->
       <el-table-column label="SKU信息模板" align="center">
@@ -280,8 +323,6 @@
       <!--<el-table-column label="FBA库存总额" fixed="right" align="center"  sortable prop="totalFbaInventoryValue"/>-->
       <!--<el-table-column label="FBA周转天数" fixed="right" align="center"  sortable prop="fbaTurnoverDays"/>-->
       <el-table-column label="库存总额" fixed="right" align="center" sortable prop="totalInventoryValue" min-width="100"/>
-      <el-table-column label="周转天数" fixed="right" align="center" sortable prop="turnoverDays" min-width="100"/>
-      <el-table-column label="上架时间" align="center" prop="listingDate"/>
       <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
@@ -291,6 +332,33 @@
       </el-table-column>
     </el-table>
 
+    <el-dialog title="可见列设置" v-model="visibleColumnsDialog" width="800px" append-to-body>
+      <div class="custom-list-container">
+        <el-input type="text" placeholder="输入列名称进行搜索" v-model="searchQuery" border />
+        <el-form :model="form">
+          <el-form-item label="商品信息" :label-width="formLabelWidth">
+            <div class="checkbox-group">
+              <el-checkbox-group v-model="visibleColumns">
+                <el-checkbox label="店铺名称" border></el-checkbox>
+                <el-checkbox label="商品信息" border></el-checkbox>
+              </el-checkbox-group>
+            </div>
+          </el-form-item>
+          <el-form-item label="销售" :label-width="formLabelWidth">
+            <div class="checkbox-group">
+              <el-checkbox-group v-model="visibleColumns">
+                <el-checkbox label="日均销量" border></el-checkbox>
+                <el-checkbox label="7天销量" border></el-checkbox>
+                <el-checkbox label="14天销量" border></el-checkbox>
+                <el-checkbox label="30天销量" border></el-checkbox>
+                <el-checkbox label="90天销量" border></el-checkbox>
+              </el-checkbox-group>
+            </div>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-dialog>
+
     <pagination
         v-show="total>0"
         :total="total"
@@ -298,163 +366,6 @@
         v-model:limit="queryParams.pageSize"
         @pagination="getList"
     />
-
-    <!-- 添加或修改亚马逊数据分析，周转率，mskulist，这个是基础信息对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="amzTurnoverRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="MSKU" prop="msku">
-          <el-input v-model="form.msku" placeholder="请输入MSKU"/>
-        </el-form-item>
-        <el-form-item label="商品一级目录" prop="categoryLevelOne">
-          <el-input v-model="form.categoryLevelOne" placeholder="请输入商品一级目录"/>
-        </el-form-item>
-        <el-form-item label="商品二级目录" prop="categoryLevelTwo">
-          <el-input v-model="form.categoryLevelTwo" placeholder="请输入商品二级目录"/>
-        </el-form-item>
-        <el-form-item label="FNSKU" prop="fnsku">
-          <el-input v-model="form.fnsku" placeholder="请输入FNSKU"/>
-        </el-form-item>
-        <el-form-item label="本地SKU" prop="localSku">
-          <el-input v-model="form.localSku" placeholder="请输入本地SKU"/>
-        </el-form-item>
-        <el-form-item label="主SKU" prop="mainSku">
-          <el-input v-model="form.mainSku" placeholder="请输入主SKU"/>
-        </el-form-item>
-        <el-form-item label="产品名称" prop="productName">
-          <el-input v-model="form.productName" placeholder="请输入产品名称"/>
-        </el-form-item>
-        <el-form-item label="ASIN" prop="asin">
-          <el-input v-model="form.asin" placeholder="请输入ASIN"/>
-        </el-form-item>
-        <el-form-item label="7天销量" prop="sales7Days">
-          <el-input v-model="form.sales7Days" placeholder="请输入7天销量"/>
-        </el-form-item>
-        <el-form-item label="14天销量" prop="sales14Days">
-          <el-input v-model="form.sales14Days" placeholder="请输入14天销量"/>
-        </el-form-item>
-        <el-form-item label="30天销量" prop="sales30Days">
-          <el-input v-model="form.sales30Days" placeholder="请输入30天销量"/>
-        </el-form-item>
-        <el-form-item label="90天销量" prop="sales90Days">
-          <el-input v-model="form.sales90Days" placeholder="请输入90天销量"/>
-        </el-form-item>
-        <el-form-item label="日均销量" prop="avgDailySales">
-          <el-input v-model="form.avgDailySales" placeholder="请输入日均销量"/>
-        </el-form-item>
-        <el-form-item label="采购在途" prop="procurementInTransit">
-          <el-input v-model="form.procurementInTransit" placeholder="请输入采购在途"/>
-        </el-form-item>
-        <el-form-item label="本地库存" prop="localInventory">
-          <el-input v-model="form.localInventory" placeholder="请输入本地库存"/>
-        </el-form-item>
-        <el-form-item label="可售" prop="available">
-          <el-input v-model="form.available" placeholder="请输入可售"/>
-        </el-form-item>
-        <el-form-item label="待入库" prop="awaitingStock">
-          <el-input v-model="form.awaitingStock" placeholder="请输入待入库"/>
-        </el-form-item>
-        <el-form-item label="库存SKU" prop="sku">
-          <el-input v-model="form.sku" placeholder="请输入库存SKU"/>
-        </el-form-item>
-        <el-form-item label="仓库名称" prop="warehouseName">
-          <el-input v-model="form.warehouseName" placeholder="请输入仓库名称"/>
-        </el-form-item>
-        <el-form-item label="库存警戒天数" prop="stockWarningDays">
-          <el-input v-model="form.stockWarningDays" placeholder="请输入库存警戒天数"/>
-        </el-form-item>
-        <el-form-item label="AM-季节性产品-淡季【扩展属性】" prop="amSeasonalProductOffseason">
-          <el-input v-model="form.amSeasonalProductOffseason" placeholder="请输入AM-季节性产品-淡季【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="AM-季节性产品-旺季上升比例【扩展属性】" prop="amSeasonalProductPeakIncreaseRatio">
-          <el-input v-model="form.amSeasonalProductPeakIncreaseRatio"
-                    placeholder="请输入AM-季节性产品-旺季上升比例【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="AM-季节性产品-旺季【扩展属性】" prop="amSeasonalProductPeak">
-          <el-input v-model="form.amSeasonalProductPeak" placeholder="请输入AM-季节性产品-旺季【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="AM-竞对销量【扩展属性】" prop="amCompetitorSales">
-          <el-input v-model="form.amCompetitorSales" placeholder="请输入AM-竞对销量【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="AM-市场容量【扩展属性】" prop="amMarketCapacity">
-          <el-input v-model="form.amMarketCapacity" placeholder="请输入AM-市场容量【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="AM-季节性产品-淡季下滑比例【扩展属性】" prop="amSeasonalProductOffseasonDecline">
-          <el-input v-model="form.amSeasonalProductOffseasonDecline"
-                    placeholder="请输入AM-季节性产品-淡季下滑比例【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="供应商名称" prop="supplierName">
-          <el-input v-model="form.supplierName" placeholder="请输入供应商名称"/>
-        </el-form-item>
-        <el-form-item label="最新采购价" prop="latestPurchasePrice">
-          <el-input v-model="form.latestPurchasePrice" placeholder="请输入最新采购价"/>
-        </el-form-item>
-        <el-form-item label="重量" prop="weight">
-          <el-input v-model="form.weight" placeholder="请输入重量"/>
-        </el-form-item>
-        <el-form-item label="体积(cm³)" prop="volumeCm3">
-          <el-input v-model="form.volumeCm3" placeholder="请输入体积(cm³)"/>
-        </el-form-item>
-        <el-form-item label="仓库最小采购量" prop="minPurchaseQuantity">
-          <el-input v-model="form.minPurchaseQuantity" placeholder="请输入仓库最小采购量"/>
-        </el-form-item>
-        <el-form-item label="AMZ-库存上架时间【扩展属性】" prop="amzInventoryShelfTime">
-          <el-input v-model="form.amzInventoryShelfTime" placeholder="请输入AMZ-库存上架时间【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="重塑人【扩展属性】" prop="reshaper">
-          <el-input v-model="form.reshaper" placeholder="请输入重塑人【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="重塑【扩展属性】" prop="reshaping">
-          <el-input v-model="form.reshaping" placeholder="请输入重塑【扩展属性】"/>
-        </el-form-item>
-        <el-form-item label="在途" prop="inTransit">
-          <el-input v-model="form.inTransit" placeholder="请输入在途"/>
-        </el-form-item>
-        <el-form-item label="可售天数" prop="availableDays">
-          <el-input v-model="form.availableDays" placeholder="请输入可售天数"/>
-        </el-form-item>
-        <el-form-item label="采购天数" prop="procurementDays">
-          <el-input v-model="form.procurementDays" placeholder="请输入采购天数"/>
-        </el-form-item>
-        <el-form-item label="备注" prop="remarks">
-          <el-input v-model="form.remarks" placeholder="请输入备注"/>
-        </el-form-item>
-        <el-form-item label="预留" prop="reserved">
-          <el-input v-model="form.reserved" placeholder="请输入预留"/>
-        </el-form-item>
-        <el-form-item label="计划入库" prop="plannedStockIn">
-          <el-input v-model="form.plannedStockIn" placeholder="请输入计划入库"/>
-        </el-form-item>
-        <el-form-item label="销售员" prop="salesPerson">
-          <el-input v-model="form.salesPerson" placeholder="请输入销售员"/>
-        </el-form-item>
-        <el-form-item label="开发员" prop="developer">
-          <el-input v-model="form.developer" placeholder="请输入开发员"/>
-        </el-form-item>
-        <el-form-item label="上架时间" prop="listingDate">
-          <el-input v-model="form.listingDate" placeholder="请输入上架时间"/>
-        </el-form-item>
-        <el-form-item label="是否删除" prop="isDelete">
-          <el-input v-model="form.isDelete" placeholder="请输入是否删除"/>
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createdAt">
-          <el-date-picker clearable
-                          v-model="form.createdAt"
-                          type="date"
-                          value-format="YYYY-MM-DD"
-                          placeholder="请选择创建时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="记录当天有没有新增过记录" prop="version">
-          <el-input v-model="form.version" placeholder="请输入记录当天有没有新增过记录"/>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -468,7 +379,7 @@ import {
 } from "@/api/amazon/amzTurnover";
 import router from "@/router/index.js";
 import {ref, onMounted} from 'vue';
-import {useRoute} from 'vue-router';
+import {useRoute, useRouter} from 'vue-router';
 import { useAmzTurnoverStore } from '@/store/modules/amzTurnover';
 
 const route = useRoute();
@@ -485,6 +396,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const queryParams = ref({});
+const visibleColumnsDialog = ref(false);
 
 const data = reactive({
   form: {},
@@ -691,13 +603,6 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length;
 }
 
-/** 新增按钮操作 */
-function handleAdd() {
-  reset();
-  open.value = true;
-  title.value = "添加亚马逊数据分析，周转率，mskulist，这个是基础信息";
-}
-
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _id = row.id || ids.value[0];  // 取第一个选中项的id
@@ -728,18 +633,6 @@ function submitForm() {
         });
       }
     }
-  });
-}
-
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除亚马逊数据分析，周转率，mskulist，这个是基础信息编号为"' + _ids + '"的数据项？').then(function () {
-    return delAmzTurnover(_ids);
-  }).then(() => {
-    getList();
-    proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {
   });
 }
 
@@ -803,6 +696,29 @@ const handleQuickFilterChange = (value) => {
   
   // 触发查询
   handleQuery();
+};
+
+
+/*
+* 这里是跳转页面的逻辑，这些需要注意，跳转任务设置，跳转任务列表
+* */
+/** 添加任务设置按钮操作 */
+function handleTask() {
+  router.push({
+    name: 'TaskAmz'
+  });
+}
+
+// 跳转到任务列表
+const goToTaskList = () => {
+  router.push('/amzTurnover/taskList');
+};
+
+const visibleColumns = ref(['店铺名称', '商品信息', '库存状态', '日均销量', '周转天数', '目标值', '当前值']); // 默认可见列
+
+// 打开可见列设置对话框
+const openVisibleColumnsDialog = () => {
+  visibleColumnsDialog.value = true;
 };
 
 getList();

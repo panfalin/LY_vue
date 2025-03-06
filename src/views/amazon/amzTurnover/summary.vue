@@ -106,7 +106,7 @@
       <el-col :span="8">
         <el-card class="summary-card">
           <template #header>
-            <div class="card-header">全公司汇总数据（每天）</div>
+            <div class="card-header">汇总数据（每天）</div>
           </template>
           <div class="summary-list">
             <div class="summary-item">
@@ -426,7 +426,7 @@ const getOptions = async () => {
 
 // 常量定义
 const TABLE_COLUMNS = [
-  {prop: 'over360', label: '大于360天', minWidth: 100},
+  {prop: 'over360over360', label: '大于360天', minWidth: 100},
   {prop: 'd270_360', label: '270~360天', minWidth: 100},
   {prop: 'd210_270', label: '210~270天', minWidth: 100},
   {prop: 'd150_210', label: '150~210天', minWidth: 100},
@@ -526,7 +526,7 @@ const transformTurnoverData = (stats, formatters) => {
 // 辅助函数
 const getColumnIndex = (columnProp) => {
   const indexMap = {
-    'over360': 0,
+    'over360over360': 0,
     'd270_360': 1,
     'd210_270': 2,
     'd150_210': 3,
@@ -560,7 +560,7 @@ const formatters = {
 const turnoverTableData = computed(() => {
   return (amzTurnoverSummary.value?.turnoverStats || []).map(stat => ({
     label: stat.turnover_range,
-    over360: formatters.currency(stat.over360),
+    over360over360: formatters.currency(stat.over360),
     d270_360: formatters.currency(stat.d270_360),
     d210_270: formatters.currency(stat.d210_270),
     d150_210: formatters.currency(stat.d150_210),

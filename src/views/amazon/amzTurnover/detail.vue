@@ -6,6 +6,19 @@ import {
 
 const route = useRoute();
 const data = ref({});
+const selectedDataModules = ref([]);
+const selectedFields = ref([]);
+const currentValues = ref([]);
+const targetValues = ref([]);
+const completionDates = ref([]);
+const assignedTos = ref([]);
+const notificationMethods = ref([]); // 新增通知方式
+const reminderFrequency = ref(''); // 新增提醒频率
+const userOptions = ref([
+  { id: 1, name: '张三' },
+  { id: 2, name: '李四' },
+  { id: 3, name: '王五' }
+]);
 
 // 格式化金额：添加千分位和货币符号
 const formatMoney = (value) => {
@@ -33,6 +46,18 @@ if (route.query.data) {
   if (id) {
     getAmzTurnover(id).then(res => {
       data.value = res.data; // 直接赋值，因为返回的数据结构已经匹配
+      // 初始化现有值
+      currentValues.value = [
+        data.value.sales7Days,
+        data.value.sales14Days,
+        data.value.sales30Days,
+        data.value.latestPurchasePrice,
+        data.value.minPurchaseQuantity,
+        data.value.procurementDays,
+        data.value.weight,
+        data.value.volumeCm3,
+        data.value.turnoverDays,
+      ];
     }).catch(error => {
       console.error("获取数据失败:", error); // 添加错误处理
       console.log("错误详情:", error); // 添加详细错误信息打印
@@ -40,6 +65,20 @@ if (route.query.data) {
     });
   }
 }
+
+// 可选择的指标字段
+const allFields = [
+  { label: '过去7天销量', value: 'sales7Days' },
+  { label: '过去14天销量', value: 'sales14Days' },
+  { label: '过去30天销量', value: 'sales30Days' },
+  { label: '最新采购价', value: 'latestPurchasePrice' },
+  // { label: '最小采购量', value: 'minPurchaseQuantity' },
+  // { label: '采购天数', value: 'procurementDays' },
+  // { label: '重量(g)', value: 'weight' },
+  // { label: '体积(cm³)', value: 'volumeCm3' },
+  { label: '周转天数', value: 'turnoverDays' },
+  // 添加其他需要的字段
+];
 </script>
 
 <template>
@@ -79,12 +118,16 @@ if (route.query.data) {
               <label>本地SKU</label>
               <span>{{ data.localSku }}</span>
             </div>
+            <div class="grid-item">
+              <label>库存状态</label>
+              <span class="status-tag">{{ data.stockStatus }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- 销售数据 -->
+        <!-- 销量信息 -->
         <div class="detail-section">
-          <div class="section-title">销售数据</div>
+          <div class="section-title">销量信息</div>
           <div class="detail-grid">
             <div class="grid-item">
               <label>7天销量</label>
@@ -109,7 +152,6 @@ if (route.query.data) {
           </div>
         </div>
 
-        <!-- 市场数据 -->
         <div class="detail-section">
           <div class="section-title">市场数据</div>
           <div class="detail-grid">
@@ -130,6 +172,49 @@ if (route.query.data) {
               <span>{{ formatQuantity(data.stockWarningDays) }} 天</span>
             </div>
           </div>
+        </div>
+
+        <!-- 指标设置 -->
+        <div class="metric-section">
+          <div class="section-title">指标设置</div>
+          <el-checkbox-group v-model="selectedFields">
+            <div v-for="field in allFields" :key="field.value">
+              <el-checkbox :label="field.value">{{ field.label }}</el-checkbox>
+            </div>
+          </el-checkbox-group>
+          <div v-for="(field, index) in selectedFields" :key="index" class="metric-item">
+            <div class="metric-header">
+              <span>{{ field }}</span>
+            </div>
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="现有值">
+                  <el-input-number 
+                    v-model="currentValues[index]" 
+                    :min="0" 
+                    style="width: 100%"
+                    :disabled="true"
+                  ></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="目标值">
+                  <el-input-number v-model="targetValues[index]" :min="0" style="width: 100%"></el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="完成时间">
+                  <el-date-picker v-model="completionDates[index]" type="date" placeholder="选择完成日期" style="width: 100%"></el-date-picker>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+          </div>
+        </div>
+
+        <!-- 发布任务按钮 -->
+        <div class="publish-button">
+          <el-button type="primary" @click="publishTask">发布任务</el-button>
         </div>
       </div>
 
@@ -328,6 +413,10 @@ if (route.query.data) {
 .money {
   color: #f56c6c !important; // 使用红色突出显示金额
   font-weight: 500;
+}
+
+.publish-button {
+  margin-top: 10px;
 }
 
 @media screen and (max-width: 1200px) {

@@ -125,6 +125,18 @@ export const constantRoutes = [
         component: () => import('@/views/amazon/amzTurnover/detail'),
         name: 'DetailAmz',
         meta: { title: '详情' }
+      },
+      {
+        path: 'taskList',
+        component: () => import('@/views/amazon/amzTurnover/taskList'),
+        name: 'TaskListAmz',
+        meta: { title: '任务列表' }
+      },
+      {
+        path: 'task',
+        component: () => import('@/views/amazon/amzTurnover/taskInfo'),
+        name: 'TaskAmz',
+        meta: { title: '任务设置' }
       }
     ]
   }
