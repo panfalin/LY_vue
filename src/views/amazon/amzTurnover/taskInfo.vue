@@ -108,8 +108,6 @@
                           <el-input-number 
                             v-model="taskForm.filter.grossProfit.min" 
                             :min="0"
-                            :max="100"
-                            :precision="2"
                             placeholder="最小值"
                             style="width: 100%"
                           />
@@ -121,8 +119,6 @@
                           <el-input-number 
                             v-model="taskForm.filter.grossProfit.max" 
                             :min="0"
-                            :max="100"
-                            :precision="2"
                             placeholder="最大值"
                             style="width: 100%"
                           />
