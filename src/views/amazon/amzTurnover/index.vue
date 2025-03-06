@@ -332,8 +332,9 @@
                   :text-inside="true"
               />
               <div style="display: flex; justify-content: space-between;">
-                <span>{{ target.currentValue }}</span>
-                <span>{{ target.targetValue }}</span>
+                <span> {{ target.initialValue }}</span>
+                <span> {{ target.currentValue }}</span>
+                <span> {{ target.targetValue }}</span>
               </div>
             </div>
           </div>
@@ -510,13 +511,65 @@ onMounted(() => {
 function getList() {
   loading.value = true;
   listAmzTurnover(queryParams.value).then(response => {
+    // 生成目标值、当前值和初始值的函数
+    const generateTargetData = (minTarget, maxTarget) => {
+        const targetValue = minTarget + Math.floor(Math.random() * (maxTarget - minTarget + 1)); // 生成目标值
+        const currentValue = Math.floor(Math.random() * 100); // 生成当前值
+        const initialValue = Math.floor(Math.random() * targetValue); // 确保初始值小于目标值
+        return { targetValue, currentValue, initialValue };
+    };
+
     amzTurnoverList.value = response.rows.map(item => ({
       ...item,
       completedTargets: [
-        { level: 'personal', name: '周转天数', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 60 + Math.floor(Math.random() * 40) },
-        { level: 'personal', name: '利润率指标', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 50 + Math.floor(Math.random() * 50) },
-        { level: 'manager', name: '销售额指标', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 70 + Math.floor(Math.random() * 30) },
-        { level: 'company', name: '销量', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 80 + Math.floor(Math.random() * 20) }
+        (() => {
+          const { targetValue, currentValue, initialValue } = generateTargetData(60, 100); // 生成周转天数的数据
+          const progress = (currentValue / targetValue) * 100; // 计算进度百分比
+          return {
+            level: 'personal',
+            name: '周转天数',
+            progress,
+            targetValue,
+            currentValue,
+            initialValue
+          };
+        })(),
+        (() => {
+          const { targetValue, currentValue, initialValue } = generateTargetData(50, 100); // 生成利润率指标的数据
+          const progress = (currentValue / targetValue) * 100; // 计算进度百分比
+          return {
+            level: 'personal',
+            name: '利润率指标',
+            progress,
+            targetValue,
+            currentValue,
+            initialValue
+          };
+        })(),
+        (() => {
+          const { targetValue, currentValue, initialValue } = generateTargetData(70, 100); // 生成销售额指标的数据
+          const progress = (currentValue / targetValue) * 100; // 计算进度百分比
+          return {
+            level: 'manager',
+            name: '销售额指标',
+            progress,
+            targetValue,
+            currentValue,
+            initialValue
+          };
+        })(),
+        (() => {
+          const { targetValue, currentValue, initialValue } = generateTargetData(80, 100); // 生成销量的数据
+          const progress = (currentValue / targetValue) * 100; // 计算进度百分比
+          return {
+            level: 'company',
+            name: '销量',
+            progress,
+            targetValue,
+            currentValue,
+            initialValue
+          };
+        })()
       ]
     }));
     total.value = response.total;
