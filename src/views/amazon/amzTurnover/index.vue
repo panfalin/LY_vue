@@ -239,21 +239,12 @@
       </el-table-column>
       <el-table-column v-if="visibleColumns.includes('库存状态')" label="库存状态" align="center" prop="stockStatus" min-width="120"/>
       <el-table-column v-if="visibleColumns.includes('日均销量')" label="日均销量" align="center" prop="avgDailySales"/>
-      <el-table-column v-if="visibleColumns.includes('周转天数')" label="周转天数" fixed="right" align="center" min-width="200">
-        <template #default="scope">
-          <div>
-            {{ scope.row.turnoverDays }} 
-            <span v-if="scope.row.currentValue < scope.row.targetValue" style="color: red;">未完成</span>
-            <span v-else style="color: green;">已完成</span>
-          </div>
-        </template>
-      </el-table-column>
       <el-table-column label="销量(7/14/30/90)" align="center" sortable
-                       :sort-by="['sales7Days', 'sales14Days', 'sales30Days', 'sales90Days']" min-width="180">
-        <template #header>
-          <div style="text-align: left;">
-            <div>
-              销量(7/14/30/90)
+      :sort-by="['sales7Days', 'sales14Days', 'sales30Days', 'sales90Days']" min-width="180">
+      <template #header>
+        <div style="text-align: left;">
+          <div>
+            销量(7/14/30/90)
               <i class="el-icon-caret-top"></i>
               <i class="el-icon-caret-bottom"></i>
             </div>
@@ -284,7 +275,7 @@
         <el-table-column label="库存警戒天数" align="center" prop="stockWarningDays"/>
         <el-table-column label="AM-季节性产品-淡季【扩展属性】" align="center" prop="amSeasonalProductOffseason"/>
         <el-table-column label="AM-季节性产品-旺季上升比例【扩展属性】" align="center"
-                         prop="amSeasonalProductPeakIncreaseRatio"/>
+        prop="amSeasonalProductPeakIncreaseRatio"/>
         <el-table-column label="AM-季节性产品-旺季【扩展属性】" align="center" prop="amSeasonalProductPeak"/>
         <el-table-column label="AM-竞对销量【扩展属性】" align="center" prop="amCompetitorSales"/>
         <el-table-column label="AM-市场容量【扩展属性】" align="center" prop="amMarketCapacity"/>
@@ -305,6 +296,7 @@
       <el-table-column label="备注" align="center" prop="remarks"/>
       <el-table-column label="预留" align="center" prop="reserved"/>
       <el-table-column label="计划入库" align="center" prop="plannedStockIn"/>
+      <el-table-column v-if="visibleColumns.includes('周转天数')" label="周转天数" align="center"  prop="turnoverDays" min-width="200"/>
       <el-table-column label="销售/开发" align="center" prop="msku" fixed="right" min-width="100">
         <!-- 表头 -->
         <template #header>
@@ -323,6 +315,28 @@
       <!--<el-table-column label="FBA库存总额" fixed="right" align="center"  sortable prop="totalFbaInventoryValue"/>-->
       <!--<el-table-column label="FBA周转天数" fixed="right" align="center"  sortable prop="fbaTurnoverDays"/>-->
       <el-table-column label="库存总额" fixed="right" align="center" sortable prop="totalInventoryValue" min-width="100"/>
+      <!--
+      这里增加一个任务状态，用来显示当前的sku，当前登陆人的未完成或者已完成的任务
+      -->
+      <el-table-column label="任务状态" align="center" fixed="right" min-width="200">
+        <template #default="scope">
+          <div class="progress-list">
+            <div v-for="target in scope.row.completedTargets" :key="target.level" class="progress-item">
+              <span class="progress-label">{{ target.name }}</span>
+              <el-progress
+                  :percentage="target.progress.toFixed(2)"
+                  :status="getProgressStatus(target.progress)"
+                  :stroke-width="8"
+                  :text-inside="true"
+              />
+              <div style="display: flex; justify-content: space-between;">
+                <span>{{ target.currentValue }}</span>
+                <span>{{ target.targetValue }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
@@ -378,7 +392,7 @@ import {
   updateAmzTurnover, getStoreList, getSalesPersonList, getDeveloperList
 } from "@/api/amazon/amzTurnover";
 import router from "@/router/index.js";
-import {ref, onMounted} from 'vue';
+import {ref, onMounted, reactive} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import { useAmzTurnoverStore } from '@/store/modules/amzTurnover';
 
@@ -494,11 +508,31 @@ onMounted(() => {
 function getList() {
   loading.value = true;
   listAmzTurnover(queryParams.value).then(response => {
-    amzTurnoverList.value = response.rows;
+    amzTurnoverList.value = response.rows.map(item => ({
+      ...item,
+      completedTargets: [
+        { level: 'personal', name: '周转天数', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 60 + Math.floor(Math.random() * 40) },
+        { level: 'personal', name: '利润率指标', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 50 + Math.floor(Math.random() * 50) },
+        { level: 'manager', name: '销售额指标', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 70 + Math.floor(Math.random() * 30) },
+        { level: 'company', name: '销量', progress: Math.random() * 100, currentValue: Math.floor(Math.random() * 100), targetValue: 80 + Math.floor(Math.random() * 20) }
+      ]
+    }));
     total.value = response.total;
     loading.value = false;
   });
 }
+
+// 获取进度状态
+/**
+ * 这里是任务状态进度条的颜色划分
+ * @param progress
+ * @returns {string}
+ */
+const getProgressStatus = (progress) => {
+  if (progress >= 100) return 'success';
+  if (progress >= 80) return 'warning';
+  return 'exception';
+};
 
 // 取消按钮
 function cancel() {
