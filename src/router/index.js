@@ -118,7 +118,7 @@ export const constantRoutes = [
         path: 'list',
         component: () => import('@/views/amazon/amzTurnover/index'),
         name: 'ListAmz',
-        meta: { title: '周转天数列表' }
+        meta: { title: '商品分析' }
       },
       {
         path: 'detail/:id',
@@ -137,6 +137,31 @@ export const constantRoutes = [
         component: () => import('@/views/amazon/amzTurnover/taskInfo'),
         name: 'TaskAmz',
         meta: { title: '任务设置' }
+      }
+    ]
+  },
+  {
+    path: '/kpi',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'create',
+        component: () => import('@/views/amazon/kpi/create'),
+        name: 'createKpi',
+        meta: { title: '创建KPI' }
+      },
+      {
+        path: 'list',
+        component: () => import('@/views/amazon/kpi/list'),
+        name: 'kpiList',
+        meta: { title: 'KPI列表' }
+      },
+      {
+        path: 'info',
+        component: () => import('@/views/amazon/kpi/info'),
+        name: 'info',
+        meta: { title: 'KPI详情' }
       }
     ]
   }
