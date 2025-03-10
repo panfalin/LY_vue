@@ -22,7 +22,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd">新增考核人</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd">设置考核项</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate">修改</el-button>
@@ -47,6 +47,9 @@
             <el-table-column label="考核项名称" prop="name"/>
             <el-table-column label="权重" prop="weight"/>
             <el-table-column label="得分" prop="score"/>
+            <el-table-column label="计算方式" prop="calcType">
+              <span>{{ scope.row.calcType ? scope.row.calcType : '自动计算' }}</span>
+            </el-table-column>
           </el-table>
         </template>
       </el-table-column>
@@ -539,6 +542,8 @@ const departmentStaff = {
   design: ['刘艺', '陈美', '周设']
 }
 
+const salesPersonOptions = ['张三', '李四', '王五']
+
 // 添加全选相关的响应式变量
 const checkAll = ref(false)
 const isIndeterminate = ref(false)
@@ -551,9 +556,9 @@ function getList() {
     {
       name: '张三',
       targets: [
-        {name: 'GMV', weight: 0.4, score: 85},
-        {name: 'Profit', weight: 0.3, score: 90},
-        {name: '重塑率', weight: 0.3, score: 75}
+        {name: 'GMV', weight: 0.4, score: 85, calcType: '自动计算'},
+        {name: 'Profit', weight: 0.3, score: 90, calcType: '自动计算'},
+        {name: '重塑率', weight: 0.3, score: 75, calcType: '自动计算'},
       ],
       totalScore: 85 // 计算总得分
     },
