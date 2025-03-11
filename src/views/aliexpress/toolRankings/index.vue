@@ -21,7 +21,7 @@
             v-model="queryParams.personName"
             placeholder="请选择店铺负责人"
             clearable
-            @change="handleQuery"
+            @change="handlePersonChange"
         >
           <el-option
               v-for="item in personOptions"
@@ -42,7 +42,13 @@
           placeholder="请选择日期"
           @change="handleQuery">
         </el-date-picker>
+      <div style="margin-top: 0px;">
+          <el-button style="margin-right: 15px;" type="primary" link @click="handleDateRange(7)">近7天</el-button>
+          <el-button style="margin-right: 15px;" type="primary" link @click="handleDateRange(14)">近14天</el-button>
+          <el-button type="primary" link @click="handleDateRange(30)">近30天</el-button>
+        </div>  
       </el-form-item>
+      
 
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -51,7 +57,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -78,6 +83,7 @@
       <el-table-column label="排名" align="center" prop="ranking" />
       <el-table-column label="近30天支付金额" align="center" prop="amountPaid" />
       <el-table-column label="访客" align="center" prop="visitors" />
+      <el-table-column label="刊登数量" align="center" prop="storesPublished" />
 
     </el-table>
     
@@ -151,8 +157,8 @@ const data = reactive({
     pageSize: 10,
     shops: null,
     personName: null,
-    beginTime: new Date().toISOString().split('T')[0],
-    endTime: new Date().toISOString().split('T')[0],
+    beginTime: new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0],
+    endTime: new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0],
     mainCategory: null,
     level: null,
     ranking: null
@@ -163,7 +169,10 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-const dateRange = ref([new Date().toISOString().split('T')[0], new Date().toISOString().split('T')[0]]);
+const dateRange = ref([
+  new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0],
+  new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0]
+]);
 
 /** 查询速卖通工具-店铺排名列表 */
 function getList() {
@@ -175,8 +184,8 @@ function getList() {
     beginTime: dateRange.value && dateRange.value[0] ? dateRange.value[0] : null,
     endTime: dateRange.value && dateRange.value[1] ? dateRange.value[1] : null
   };
-  delete params.shopName;
-  delete params.shopPerson;
+  // delete params.shopName;
+  // delete params.shopPerson;
   
   listToolRankings(params).then(response => {
     toolRankingsList.value = response.rows;
@@ -212,8 +221,13 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
-  dateRange.value = [new Date().toISOString().split('T')[0], new Date().toISOString().split('T')[0]];
+  dateRange.value = [
+    new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0],
+    new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0]
+  ];
   proxy.resetForm("queryRef");
+  // 重置后重新获取店铺列表
+  getShopList('');
   handleQuery();
 }
 
@@ -264,8 +278,11 @@ function submitForm() {
 }
 
 /** 获取店铺列表 */
-function getShopList() {
-  selectShop().then(response => {
+function getShopList(shopPerson = '') {
+  selectShop({ 
+    shopPerson,
+    type:'POP'
+  }).then(response => {
     console.log('店铺数据响应:', response);
     if (response.code === 200 && response.rows) {
       shopOptions.value = response.rows.map(item => {
@@ -299,6 +316,14 @@ function getPersonList() {
           label: person
         }
       });
+
+      // 在获取到负责人列表后，立即调用获取店铺列表的方法，并传入当前选中的负责人
+      if (queryParams.value.personName) {
+        getShopList(queryParams.value.personName);
+      } else {
+        getShopList();
+      }
+      
     } else {
       proxy.$modal.msgError('获取负责人列表失败');
     }
@@ -325,9 +350,30 @@ function handleExport() {
     ...queryParams.value
   }, `toolRankings_${new Date().getTime()}.xlsx`)
 }
+
+/** 处理日期范围快捷选择 */
+function handleDateRange(days) {
+  const end = new Date()
+  const start = new Date()
+  start.setTime(start.getTime() - 3600 * 1000 * 24 * days)
+  dateRange.value = [
+    start.toISOString().split('T')[0],
+    end.toISOString().split('T')[0]
+  ]
+  handleQuery()
+}
+
+/** 处理负责人选择变化 */
+function handlePersonChange(value) {
+  // 获取店铺列表
+  getShopList(value);
+  // 获取数据列表
+  handleQuery();
+}
+
 onMounted(() => {
   getList();
-  getShopList();
+  getShopList('');
   getPersonList();
 });
 getList();
