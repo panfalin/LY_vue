@@ -2,20 +2,34 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="88px">
       <el-form-item label="店铺" prop="shopName">
-        <el-input
-          v-model="queryParams.shopName"
-          placeholder="请输入店铺"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.shopName"
+            placeholder="请选择店铺"
+            clearable
+            @change="handleQuery"
+        >
+          <el-option
+              v-for="item in shopOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="店铺负责人" prop="shopPerson">
-        <el-input
-          v-model="queryParams.shopPerson"
-          placeholder="请输入店铺负责人"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select
+            v-model="queryParams.shopPerson"
+            placeholder="请选择店铺负责人"
+            clearable
+            @change="handleQuery"
+        >
+          <el-option
+              v-for="item in personOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item>
@@ -25,35 +39,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['aliexpress:auto:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['aliexpress:auto:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['aliexpress:auto:remove']"
-        >删除</el-button>
-      </el-col>
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -70,31 +55,14 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="店铺" align="center" prop="shopName" width="180" />
       <el-table-column label="店铺负责人" align="center" prop="shopPerson" />
-      <el-table-column label="违背发货承诺订单数" align="center" prop="contraryOrderNum" />
-      <el-table-column label="违规侵权" align="center" prop="illegalInfringement" />
-      <el-table-column label="jit入库超时" align="center" prop="warehousTimeoutJit" />
-      <el-table-column label="理货报告纠纷" align="center" prop="tallyReportDisputes" />
-      <el-table-column label="件重尺纠纷" align="center" prop="heavyRulerDispute" />
-      <el-table-column
-          label="超过24小时未发货订单数"
-          align="center"
-          prop="unshippedOrders24"
-          min-width="300"
-      >
-        <template #default="scope">
-          <div v-if="scope.row.unshippedOrders24">
-            <div
-                v-for="(item, index) in JSON.parse(scope.row.unshippedOrders24)"
-                :key="index"
-                class="order-item"
-            >
-              <div>订单编号：<el-text class="order-number" copyable>{{ item.order_id }}</el-text></div>
-              <div>原因：{{ item.reason }}</div>
-            </div>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="jit订单异常" align="center" prop="orderExceptionJit" />
+      <el-table-column label="质量纠纷" align="center" prop="qualityDisputes" />
+      <el-table-column label="3PL物流纠纷" align="center" prop="pllogistics" />
+      <el-table-column label="待响应JIT入库超时纠纷" align="center" prop="jitwarehousingTimeout" />
+      <el-table-column label="待响应备货入仓处罚纠纷" align="center" prop="warehouseOverPenalty" />
+      <el-table-column label="待申述处罚" align="center" prop="pendingAppeal" />
+      <el-table-column label="已断货" align="center" prop="outStock" />
+      <el-table-column label="已断码" align="center" prop="brokenSize" />
+
     </el-table>
     
     <pagination
@@ -145,8 +113,15 @@
 
 <script setup name="Auto">
 import { listAuto, getAuto, delAuto, addAuto, updateAuto } from "@/api/aliexpress/auto";
+import {selectShop,SelectShopName } from "@/api/aliexpress/indicators";
+import {onMounted} from "vue";
 
 const { proxy } = getCurrentInstance();
+
+const shopOptions = ref([]);
+const personOptions = ref([]);
+
+
 
 const autoList = ref([]);
 const open = ref(false);
@@ -250,6 +225,50 @@ function handleUpdate(row) {
   });
 }
 
+/** 获取店铺列表 */
+function getShopList() {
+  selectShop({
+    type:'全托管'
+  }).then(response => {
+    console.log('店铺数据响应:', response);
+    if (response.code === 200 && response.rows) {
+      shopOptions.value = response.rows.map(item => {
+        return {
+          value: item.shopName,
+          label: item.shopName
+        }
+      });
+    } else {
+      proxy.$modal.msgError('获取店铺列表失败');
+    }
+  }).catch(error => {
+    console.error('获取店铺列表错误:', error);
+    proxy.$modal.msgError('获取店铺列表失败');
+  });
+}
+
+
+/** 获取店铺负责人列表 */
+function getPersonList() {
+  SelectShopName().then(response => {
+    if (response.code === 200 && response.rows) {
+      // 获取所有不重复的店铺负责人
+      const uniquePersons = [...new Set(response.rows
+          .map(item => item.shopPerson)
+          .filter(person => person !== null && person !== '')
+      )];
+
+      personOptions.value = uniquePersons.map(person => {
+        return {
+          value: person,
+          label: person
+        }
+      });
+    }
+  });
+}
+
+
 /** 提交按钮 */
 function submitForm() {
   proxy.$refs["autoRef"].validate(valid => {
@@ -288,6 +307,13 @@ function handleExport() {
     ...queryParams.value
   }, `auto_${new Date().getTime()}.xlsx`)
 }
+
+
+onMounted(() => {
+  getList();
+  getShopList();
+  getPersonList();
+});
 
 getList();
 </script>
