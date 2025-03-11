@@ -138,7 +138,8 @@
         </template>
 
       </el-table-column>
-      <el-table-column label="重量" align="center" prop="weight" sortable="custom" width="140"/>
+      <el-table-column label="重量（kg）" align="center" prop="weight" sortable="custom" width="140"/>
+      <el-table-column label="包裹尺寸" align="center" prop="packageSize" sortable="custom" width="140"/>
       <el-table-column label="刊登总数" align="center" prop="totalPublications" sortable="custom" width="140"/>
       <!-- 库存相关列 -->
       <el-table-column label="库存" align="center">
@@ -162,19 +163,19 @@
       <el-table-column label="全托管在线刊登数" align="center" prop="fullManagementOnlineListings" width="120" />
       <el-table-column label="半托管在线刊登数" align="center" prop="halfManagementOnlineListings"  width="120"/>
       <el-table-column label="推荐操作" align="center" prop="recommendedAction" width="280" />
-      <el-table-column label="操作状态" align="center" prop="status" />
-      <el-table-column label="操作完成时间" align="center" prop="completedAt" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.completedAt, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作日志" align="center" prop="operationLog" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['aliexpress:slowMovingInventory:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['aliexpress:slowMovingInventory:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+<!--      <el-table-column label="操作状态" align="center" prop="status" />-->
+<!--      <el-table-column label="操作完成时间" align="center" prop="completedAt" width="180">-->
+<!--        <template #default="scope">-->
+<!--          <span>{{ parseTime(scope.row.completedAt, '{y}-{m}-{d}') }}</span>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
+<!--      <el-table-column label="操作日志" align="center" prop="operationLog" />-->
+<!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
+<!--        <template #default="scope">-->
+<!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['aliexpress:slowMovingInventory:edit']">修改</el-button>-->
+<!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['aliexpress:slowMovingInventory:remove']">删除</el-button>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
     </el-table>
 
     <pagination
@@ -228,6 +229,9 @@ const totalData = ref({
   totalWarehouse: 0,
   totalWarehouseCost: 0
 });
+
+
+
 
 const getProxiedImageUrl = (url) => {
   if (!url) return '';
