@@ -177,7 +177,10 @@ const personOptions = ref([]);
 
 /** 获取店铺列表 */
 function getShopList() {
-  selectShop().then(response => {
+  selectShop({
+    type:'POP'
+  }).then(response => {
+    console.log('店铺数据响应:', response);
     if (response.code === 200 && response.rows) {
       shopOptions.value = response.rows.map(item => {
         return {
@@ -185,7 +188,12 @@ function getShopList() {
           label: item.shopName
         }
       });
+    } else {
+      proxy.$modal.msgError('获取店铺列表失败');
     }
+  }).catch(error => {
+    console.error('获取店铺列表错误:', error);
+    proxy.$modal.msgError('获取店铺列表失败');
   });
 }
 
