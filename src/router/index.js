@@ -128,13 +128,13 @@ export const constantRoutes = [
       },
       {
         path: 'taskList',
-        component: () => import('@/views/amazon/amzTurnover/taskList'),
+        component: () => import('@/views/amazon/task/taskList.vue'),
         name: 'TaskListAmz',
         meta: { title: '任务列表' }
       },
       {
         path: 'task',
-        component: () => import('@/views/amazon/amzTurnover/taskInfo'),
+        component: () => import('@/views/amazon/task/taskInfo.vue'),
         name: 'TaskAmz',
         meta: { title: '任务设置' }
       }

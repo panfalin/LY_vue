@@ -41,19 +41,34 @@
     >
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="员工姓名" align="center" prop="name"/>
-      <el-table-column label="考核项" align="center">
+      <el-table-column label="考核项" align="center" width="800px">
         <template #default="scope">
           <el-table :data="scope.row.targets" style="width: 100%">
             <el-table-column label="考核项名称" prop="name"/>
+            <el-table-column label="当前值" prop="currValue"/>
+            <el-table-column label="目标值" prop="targetValue"/>
+            <el-table-column label="备注" :show-overflow-tooltip="false">
+              <template #default="scope">
+                <div class="cell-wrap"> 
+                  {{ scope.row.remark }}
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column label="权重" prop="weight"/>
             <el-table-column label="得分" prop="score"/>
             <el-table-column label="计算方式" prop="calcType">
-              <span>{{ scope.row.calcType ? scope.row.calcType : '自动计算' }}</span>
             </el-table-column>
           </el-table>
         </template>
       </el-table-column>
       <el-table-column label="总得分" align="center" prop="totalScore"/>
+      <el-table-column label="历史得分" align="center">
+        <div class="summary-item">
+          <div class="value">90 (2月)</div>
+          <div class="value">88 (1月)</div>
+          <div class="value">92 (12月)</div>
+        </div>
+      </el-table-column>
       <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">详情
@@ -62,11 +77,11 @@
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"  
                 v-model:limit="queryParams.pageSize" @pagination="getList"/>
 
     <!-- 新增/修改弹窗 -->
-    <el-dialog :title="title" v-model="open" width="60%" append-to-body class="kpi-dialog">
+    <el-dialog :title="title" v-model="open" width="80%" append-to-body class="kpi-dialog">
       <el-form :model="form" ref="kpiFormRef" :rules="rules" label-width="100px">
         <!-- 部门标签页移到这里 -->
         <el-tabs v-model="activeDepartment" @tab-click="handleDepartmentChange">
@@ -123,8 +138,8 @@
               style="width: 100%"
               class="target-table"
           >
-            <el-table-column label="考核项" prop="name" min-width="120"/>
-            <el-table-column label="当前值" min-width="120">
+            <el-table-column label="考核项" prop="name" min-width="100"/>
+            <el-table-column label="当前值" min-width="100">
               <template #default="scope">
                 <span>{{ scope.row.currValue }}</span>
               </template>
@@ -139,6 +154,15 @@
                     controls-position="right"
                 />
               </template>
+            </el-table-column>
+            <el-table-column label="评分原则" min-width="150">
+                <el-input
+                  v-model="textarea2"
+                  style="width: 240px"
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  type="textarea"
+                  placeholder="请输入"
+                />
             </el-table-column>
             <el-table-column label="权重(%)" min-width="120">
               <template #default="scope">
@@ -204,6 +228,7 @@ const {proxy} = getCurrentInstance()
 const loading = ref(false)
 const open = ref(false)
 const title = ref('')
+const titleEdit = ref('')
 const total = ref(0)
 const single = ref(true)
 const showSearch = ref(true)
@@ -214,46 +239,6 @@ const queryParams = ref({
   pageSize: 10,
   salesPerson: undefined
 })
-
-// 可选的考核项列表
-const availableTargets = ref([
-  {
-    name: '产品开发效能',
-    currValue: 20,
-    targetValue: 50,
-    defaultWeight: 20,
-  },
-  {
-    name: '开发利润增长率',
-    currValue: 1.2,
-    targetValue: 1.5,
-    defaultWeight: 5,
-  },
-  {
-    name: '新品优化抽查',
-    currValue: 0,
-    targetValue: 1,
-    defaultWeight: 20,
-  },
-  {
-    name: '当月产品重塑率',
-    currValue: 0.3,
-    targetValue: 0.5,
-    defaultWeight: 20,
-  },
-  {
-    name: '供应商开发数量',
-    currValue: 2,
-    targetValue: 3,
-    defaultWeight: 3,
-  },
-  {
-    name: '工作态度',
-    currValue: 0,
-    targetValue: null,
-    defaultWeight: 10,
-  }
-])
 
 // 已选择的考核项
 const selectedTargets = ref([])
@@ -335,6 +320,12 @@ const departmentTargets = {
       currValue: 0,
       targetValue: 1,
       defaultWeight: 20,
+    },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
     }
   ],
   nonStandard: [
@@ -373,6 +364,12 @@ const departmentTargets = {
       currValue: 4.2,
       targetValue: 4.5,
       defaultWeight: 30,
+    },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
     }
   ],
   nonStandardDev: [
@@ -418,6 +415,12 @@ const departmentTargets = {
       targetValue: 95,
       defaultWeight: 25,
     },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
+    }
   ],
   standardParts: [
     {
@@ -503,6 +506,12 @@ const departmentTargets = {
       currValue: 95,
       targetValue: 98,
       defaultWeight: 30,
+    },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
     }
   ],
   design: [
@@ -529,6 +538,12 @@ const departmentTargets = {
       currValue: 88,
       targetValue: 92,
       defaultWeight: 25,
+    },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
     }
   ]
 }
@@ -556,25 +571,26 @@ function getList() {
     {
       name: '张三',
       targets: [
-        {name: 'GMV', weight: 0.4, score: 85, calcType: '自动计算'},
-        {name: 'Profit', weight: 0.3, score: 90, calcType: '自动计算'},
-        {name: '重塑率', weight: 0.3, score: 75, calcType: '自动计算'},
+        {name: 'GMV', weight: 0.4, score: 85, currValue: 80, targetValue: 90, remark: '本月利润增长率达到1.8%', calcType: '自动计算'},
+        {name: 'Profit', weight: 0.3, score: 90, currValue: 80, targetValue: 90, calcType: '自动计算'},
+        {name: '重塑率', weight: 0.3, score: 75, currValue: 80, targetValue: 90, calcType: '自动计算'},
+        {name: '个人考勤', weight: 0.3, score: 75, currValue: 80, targetValue: 90, calcType: '自定义输入'},
       ],
       totalScore: 85 // 计算总得分
     },
     {
       name: '李四',
       targets: [
-        {name: 'GMV', weight: 0.5, score: 80},
-        {name: 'Profit', weight: 0.5, score: 85}
+        {name: 'GMV', weight: 0.5, currValue: 80, targetValue: 90, score: 80, calcType: '自动计算'},
+        {name: 'Profit', weight: 0.5, currValue: 80, targetValue: 90, score: 85, calcType: '自动计算'}
       ],
       totalScore: 82.5 // 计算总得分
     },
     {
       name: '王五',
       targets: [
-        {name: 'GMV', weight: 0.3, score: 75},
-        {name: '重塑率', weight: 0.7, score: 70}
+        {name: 'GMV', weight: 0.3, currValue: 80, targetValue: 90,score: 75, calcType: '自动计算'},
+        {name: '重塑率', weight: 0.7, currValue: 80, targetValue: 90, score: 70, calcType: '自动计算'}
       ],
       totalScore: 72.5 // 计算总得分
     },
@@ -801,4 +817,9 @@ getList()
   padding-bottom: 1px;
   border-bottom: 1px dashed #EBEEF5;
 }
+.cell-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
 </style>

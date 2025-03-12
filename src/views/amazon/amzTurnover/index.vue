@@ -219,6 +219,7 @@
         :default-sort="{ prop: 'storeName', order: 'ascending' }"
         @sort-change="handleSortChange"
     >
+      <el-table-column type="selection" width="55" align="center" />
       <el-table-column v-if="visibleColumns.includes('店铺名称')" label="店铺名称" align="center" sortable prop="storeName" fixed min-width="120"/>
       <el-table-column v-if="visibleColumns.includes('商品信息')" label="商品信息" align="center" sortable prop="msku" fixed min-width="200">
         <template #header>
@@ -320,7 +321,7 @@
       <!--
       这里增加一个任务状态，用来显示当前的sku，当前登陆人的未完成或者已完成的任务
       -->
-      <el-table-column label="任务状态" align="center" fixed="right" min-width="200">
+      <!-- <el-table-column label="任务状态" align="center" fixed="right" min-width="200">
         <template #default="scope">
           <div class="progress-list">
             <div v-for="target in scope.row.completedTargets" :key="target.level" class="progress-item">
@@ -339,7 +340,7 @@
             </div>
           </div>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"

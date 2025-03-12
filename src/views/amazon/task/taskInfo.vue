@@ -479,7 +479,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { listAmzTurnover } from "@/api/amazon/amzTurnover";
+import { listAmzTurnover } from "@/api/amazon/amzTurnover.js";
 
 // 模拟数据
 const mskuOptions = ref([

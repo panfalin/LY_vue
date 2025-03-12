@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import Template from "@/views/aliexpress/template/index.vue";
 
 const route = useRoute()
 
@@ -19,28 +20,32 @@ const kpiInfo = ref({
           evaluationCriteria: '目标值：50个产品每月，每少1个扣5分',
           weight: 20,
           finalScore: 15,
-          remarks: '本月完成47个新品开发'
+          remarks: '本月完成47个新品开发',
+          calcType: '自动计算'
         },
         {
           indicator: '开发利润增长率',
           evaluationCriteria: '利润率增长：目标：1.5% 总分共5分。超出加2分，每未达到0.5%扣2分，直到分数扣完为止',
           weight: 5,
           finalScore: 7,
-          remarks: '本月利润增长率达到1.8%'
+          remarks: '本月利润增长率达到1.8%',
+          calcType: '自动计算'
         },
         {
           indicator: '新品优化抽查',
           evaluationCriteria: '每周最低抽查1次; 每抽查1次未做优化，扣除5分，直到分数扣完为止',
           weight: 20,
           finalScore: 15,
-          remarks: '第三周一次优化未完成'
+          remarks: '第三周一次优化未完成',
+          calcType: '自动计算'
         },
         {
           indicator: '当月产品重塑率',
           evaluationCriteria: '根据开发上架的产品，进入重塑，开发专员每款加0.5分，扣完即止。',
           weight: 20,
           finalScore: 22,
-          remarks: '完成4款产品重塑优化'
+          remarks: '完成4款产品重塑优化',
+          calcType: '自动计算'
         }
       ]
     },
@@ -53,7 +58,8 @@ const kpiInfo = ref({
           evaluationCriteria: '目标值：3家/月；每少1家扣1分，每多1家加1分（需通过资质审核）',
           weight: 3,
           finalScore: 4,
-          remarks: '本月成功开发4家合格供应商'
+          remarks: '本月成功开发4家合格供应商',
+          calcType: '自动计算'
         }
       ]
     },
@@ -66,7 +72,8 @@ const kpiInfo = ref({
           evaluationCriteria: '每出现1次图片和设计商标侵权扣5分一次(以平台投诉和抽查记录为准)',
           weight: 5,
           finalScore: 5,
-          remarks: '本月无侵权投诉'
+          remarks: '本月无侵权投诉',
+          calcType: '自动计算'
         }
       ]
     },
@@ -79,7 +86,8 @@ const kpiInfo = ref({
           evaluationCriteria: '产品资料检查出OEM、车型、年份有问题，缺失1项扣2分',
           weight: 15,
           finalScore: 13,
-          remarks: '有1个产品年份信息不完整'
+          remarks: '有1个产品年份信息不完整',
+          calcType: '自动计算'
         }
       ]
     },
@@ -92,14 +100,16 @@ const kpiInfo = ref({
           evaluationCriteria: '主管交代的工作是否完成，以及配合度，如出现不配合情况一次扣除5分。',
           weight: 4,
           finalScore: 4,
-          remarks: '工作配合度高'
+          remarks: '工作配合度高',
+          calcType: '自定义输入'
         },
         {
           indicator: '配合其他工作部门完成工作',
           evaluationCriteria: '运营和美工，如出现投诉1次，此项分数为0',
           weight: 4,
           finalScore: 4,
-          remarks: '与各部门合作顺畅'
+          remarks: '与各部门合作顺畅',
+          calcType: '自定义输入'
         }
       ]
     },
@@ -112,7 +122,8 @@ const kpiInfo = ref({
           evaluationCriteria: '迟到早退≥2次，此项0分',
           weight: 4,
           finalScore: 4,
-          remarks: '本月全勤'
+          remarks: '本月全勤',
+          calcType: '自定义输入'
         }
       ]
     }
@@ -256,10 +267,17 @@ onMounted(() => {
                 type="textarea"
                 size="small"
                 :rows="1"
-                @change="handleRemarksChange"
+                @change="handleRemarksChange" 
               />
             </template>
             <span v-else>{{ scope.row.remarks }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="calcType" label="计算方式" width="80" align="center">
+          <template #default="scope">
+            <div>
+              <span>{{ scope.row.calcType ? scope.row.calcType : '自动计算' }}</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="150" align="center">
@@ -291,6 +309,16 @@ onMounted(() => {
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="score-summary">
+        <div class="summary-item">
+          <span class="label">历史得分：</span>
+          <span class="value">85 (上月)</span>
+          <span class="value">, 90 (2月)</span>
+          <span class="value">, 88 (1月)</span>
+          <span class="value">, 92 (12月)</span>
+        </div>
+      </div>
 
       <div class="score-summary">
         <div class="summary-item">

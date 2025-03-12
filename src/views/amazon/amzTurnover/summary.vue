@@ -76,6 +76,23 @@
           </el-form-item>
         </el-col>
         <el-col :span="6">
+          <el-form-item label="重塑员">
+            <el-select
+                v-model="form.reseter"
+                placeholder="请选择重塑员"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="item in resetOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
           <el-form-item label="库存上架时间范围">
             <el-select v-model="form.quickFilter" placeholder="选择商品类型" @change="handleQuickFilterChange">
               <el-option label="新品(90天内)" value="new"></el-option>
@@ -96,6 +113,44 @@
         </el-col>
       </el-row>
       <el-row>
+        <el-col :span="6">
+          <el-form-item label="选择数据对比时间">
+            <el-date-picker
+              v-model="form.inventoryShelfTismeRange"
+              type="daterange"  
+              value-format="YYYY-MM-DD"
+              range-separator="-"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col>
+          <div class="target-selection">
+            <!-- 添加全选按钮 -->
+            <div class="checkbox-header">
+              <el-checkbox
+                  v-model="checkAll"
+                  :indeterminate="isIndeterminate"
+                  @change="handleCheckAllChange"
+              >
+                全选
+              </el-checkbox>
+            </div>
+            <el-checkbox-group v-model="selectedTargets" @change="handleTargetSelect">
+              <el-checkbox
+                  v-for="item in departmentTargets[activeDepartment]"
+                  :key="item.name"
+                  :label="item.name"
+              >
+                {{ item.name }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row>
         <el-col :span="24" style="text-align: right">
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -105,8 +160,9 @@
     <el-row :gutter="20" class="data-section">
       <el-col :span="8">
         <el-card class="summary-card">
-          <template #header>
-            <div class="card-header">汇总数据（每天）</div>
+          <template #header> 
+            <span class="card-header">汇总数据 </span>
+            <span class=""> 2025-03-10</span>
           </template>
           <div class="summary-list">
             <div class="summary-item">
@@ -209,7 +265,13 @@
               :header-cell-style="{background:'#f5f7fa',color:'#606266',height:'40px'}"
           >
             <el-table-column prop="label" label="周转天数" width="100" fixed/>
-            <el-table-column prop="skuCount" label="SKU数量" min-width="100"/>
+            <el-table-column prop="skuCount" label="SKU数量" min-width="100">
+              <template #default="{ row }">
+                    <span class="clickable_table" @click="handleSkuCountClick(row.label)">
+                        {{ row.skuCount }}
+                    </span>
+              </template>
+            </el-table-column>
             <el-table-column prop="skuRatio" label="SKU比例" min-width="100"/>
             <el-table-column prop="inventoryValue" label="库存金额" min-width="100"/>
             <el-table-column prop="inventoryRatio" label="库存比例" min-width="100"/>
@@ -240,6 +302,53 @@ const {proxy} = getCurrentInstance();
 const router = useRouter();
 const store = useAmzTurnoverStore();
 const amzInventoryShelfTime = ref([]);
+
+const departmentTargets = {
+  activeDepartment: [
+    {
+      name: '产品开发效能',
+      currValue: 20,
+      targetValue: 50,
+      defaultWeight: 20,
+    },
+    {
+      name: '供应商管理',
+      currValue: 1.2,
+      targetValue: 1.5,
+      defaultWeight: 20,
+    },
+    {
+      name: '合规与风险管理',
+      currValue: 0,
+      targetValue: 1,
+      defaultWeight: 20,
+    },
+    {
+      name: '文档与流程管理',
+      currValue: 0,
+      targetValue: 1,
+      defaultWeight: 20,
+    },
+    {
+      name: '各部门协作',
+      currValue: 0,
+      targetValue: 1,
+      defaultWeight: 20,
+    },
+    {
+      name: '个人出勤',
+      currValue: 0,
+      targetValue: 1,
+      defaultWeight: 20,
+    },
+    {
+      name: '任务完成度',
+      currValue: 0,
+      targetValue: 100,
+      defaultWeight: 20,
+    }
+  ]
+}
 
 const data = reactive({
   form: {
@@ -398,6 +507,8 @@ const storeOptions = ref([]);
 const salesPersonOptions = ref([]);
 // 开发员选项
 const salesDeveloperOptions = ref([]);
+// 重塑员选项
+const resetOptions = ['陈婷婷-重塑', '何南星-重塑'];
 
 // 获取店铺和销售员列表
 const getOptions = async () => {
