@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { Bell, ArrowDown, User, List, Loading, Select, Warning, VideoPause } from '@element-plus/icons-vue';
-import DictTag from '@/components/DictTag';
+import DictTag from '@/components/DictTag/index.vue';
 
 const router = useRouter();
 const loading = ref(false);
@@ -39,7 +39,8 @@ const metricTypeOptions = [
 const targetLevelOptions = [
   { label: '公司指标', value: 'company', type: 'danger' },
   { label: '主管指标', value: 'manager', type: 'warning' },
-  { label: '个人指标', value: 'personal', type: 'info' }
+  { label: '个人指标', value: 'personal', type: 'info' },
+  { label: '系统指派', value: 'system', type: 'info' }
 ];
 
 // 获取指标单位
@@ -112,9 +113,12 @@ const getList = () => {
     taskList.value = [
       {
         id: 1,
-        taskName: '高周转商品监控',
+        taskName: 'XXX-Asku-任务',
         metricType: 'turnoverDays',
+        remark: '公司指派任务',
         targetLevel: 'company',
+        finishTime: '7天',
+        sku: 'sku-A',
         targetValue: 30,
         currentValue: 45,
         status: 'running',
@@ -138,9 +142,11 @@ const getList = () => {
       },
       {
         id: 2,
-        taskName: '销售额提升任务',
+        taskName: 'XXX-Bsku-任务',
         metricType: 'salesAmount',
         targetLevel: 'manager',
+        finishTime: '14天',
+        sku: 'sku-B',
         targetValue: 100000,
         currentValue: 85000,
         status: 'running',
@@ -148,11 +154,11 @@ const getList = () => {
         notifyCount: 1,
         assignees: [
           { id: 4, name: '赵六', role: '销售主管', avatar: '' },
-          { id: 5, name: '钱七', role: '销售员', avatar: '' }
+          { id: 5, name: '谢七', role: '销售员', avatar: '' }
         ],
         completedTargets: [
-          { level: 'personal', name: '钱七', progress: 95 },
-          { level: 'manager', name: '赵六', progress: 85 }
+          { level: 'personal', name: '利润', progress: 95 },
+          { level: 'manager', name: '销售额', progress: 85 }
         ],
         notifications: [
           { time: '2024-01-20', content: '销售额未达标' }
@@ -160,19 +166,21 @@ const getList = () => {
       },
       {
         id: 3,
-        taskName: '毛利率监控',
+        taskName: 'XXX-Csku-任务',
         metricType: 'grossProfit',
         targetLevel: 'personal',
+        finishTime: '14天',
+        sku: 'sku-C',
         targetValue: 25,
         currentValue: 18.5,
         status: 'overtime',
         remainingDays: -2,
         notifyCount: 6,
         assignees: [
-          { id: 6, name: '孙八', role: '销售员', avatar: '' }
+          { id: 6, name: '赵八', role: '销售员', avatar: '' }
         ],
         completedTargets: [
-          { level: 'personal', name: '孙八', progress: 74 }
+          { level: 'personal', name: '采购成本', progress: 74 }
         ],
         notifications: [
           { time: '2024-01-20', content: '毛利率低于20%' },
@@ -181,9 +189,12 @@ const getList = () => {
       },
       {
         id: 4,
-        taskName: '新品周转优化',
+        taskName: 'XXX-Dsku-系统任务',
         metricType: 'turnoverDays',
-        targetLevel: 'company',
+        remark: '系统自动派发任务',
+        targetLevel: 'system',
+        finishTime: '14天',
+        sku: 'sku-D',
         targetValue: 35,
         currentValue: 28,
         status: 'completed',
@@ -195,10 +206,10 @@ const getList = () => {
           { id: 9, name: '郑十一', role: '采购员', avatar: '' }
         ],
         completedTargets: [
-          { level: 'company', name: '公司', progress: 100 },
-          { level: 'manager', name: '周九', progress: 100 },
-          { level: 'personal', name: '吴十', progress: 100 },
-          { level: 'personal', name: '郑十一', progress: 100 }
+          { level: 'company', name: '周转天数', progress: 100 },
+          { level: 'manager', name: '利润', progress: 100 },
+          { level: 'personal', name: 'GMV', progress: 100 },
+          { level: 'personal', name: '销量', progress: 100 }
         ],
         notifications: []
       },
@@ -506,10 +517,10 @@ onMounted(() => {
   <div class="app-container">
     <!-- 搜索区域 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
-      <el-form-item label="任务名称" prop="taskName">
+      <el-form-item label="SKU" prop="taskName">
         <el-input
           v-model="queryParams.taskName"
-          placeholder="请输入任务名称"
+          placeholder="请输入SKU"
           clearable
           style="width: 200px"
           @keyup.enter="handleQuery"
@@ -576,11 +587,13 @@ onMounted(() => {
           <el-button type="text" @click="handleDetail(scope.row)">{{ scope.row.taskName }}</el-button>
         </template>
       </el-table-column>
+      <el-table-column label="SKU" align="center" prop="sku" min-width="100"></el-table-column>
       <el-table-column label="指标类型" align="center" prop="metricType" min-width="100">
         <template #default="scope">
           <dict-tag :options="metricTypeOptions" :value="scope.row.metricType"/>
         </template>
       </el-table-column>
+      <el-table-column label="备注" align="center" prop="remark" min-width="150"></el-table-column>
       <el-table-column label="目标值/当前值" align="center" min-width="150">
         <template #default="scope">
           <div>
@@ -600,6 +613,7 @@ onMounted(() => {
           />
         </template>
       </el-table-column>
+      <el-table-column label="完成时间" align="center" prop="finishTime" min-width="150"></el-table-column>
       <el-table-column label="剩余时间" align="center" min-width="100">
         <template #default="scope">
           <el-tag :type="getTimeTagType(scope.row.remainingDays)" size="small">
@@ -611,6 +625,7 @@ onMounted(() => {
         <template #default="scope">
           <el-popover
             placement="right"
+            :height="300"
             :width="300"
             trigger="hover"
           >
@@ -915,7 +930,7 @@ onMounted(() => {
   .status-icon {
     margin-right: 4px;
     font-size: 14px;
-  }
+  } 
   
   &.el-tag--primary {
     .is-loading {
