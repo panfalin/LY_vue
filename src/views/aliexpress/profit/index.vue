@@ -162,17 +162,17 @@
         </template>
       </el-table-column>
       <el-table-column label="运营利润" align="center" prop="actualCostProfit" width="120" sortable>
-        <template #default="scope">
-          <!--<span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>-->
-          <span>{{
-              (scope.row?.grossProfit - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb).toFixed(2) || '0.00'
-            }}</span>
-        </template>
+        <!--<template #default="scope">-->
+        <!--  &lt;!&ndash;<span>{{ scope.row?.actualCostProfit?.toFixed(2) || '0.00' }}</span>&ndash;&gt;-->
+        <!--  <span>{{-->
+        <!--      (scope.row?.grossProfit - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb).toFixed(2) || '0.00'-->
+        <!--    }}</span>-->
+        <!--</template>-->
       </el-table-column>
       <el-table-column label="运营利润率" align="center" prop="actualCostProfitRate1" width="120" sortable>
-        <template #default="scope">
-          <span>{{ ((scope.row?.grossProfit - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>
-        </template>
+        <!--<template #default="scope">-->
+        <!--  <span>{{ ((scope.row?.grossProfit + scope.row?.refundAmount - scope.row?.actualRefundUsd * 6.8 - scope.row?.directCarCost + scope.row?.clearanceCostSubsidy + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>-->
+        <!--</template>-->
       </el-table-column>
       <el-table-column label="财务利润" align="center" prop="orderActualProfit" width="120" sortable>
         <template #default="scope">
@@ -183,9 +183,9 @@
         </template>
       </el-table-column>
       <el-table-column label="财务利润率" align="center" prop="orderActualProfitRate" width="120" sortable>
-        <template #default="scope">
-          <span>{{ ((scope.row?.grossProfit - scope.row?.directCar + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>
-        </template>
+        <!--<template #default="scope">-->
+        <!--  <span>{{ ((scope.row?.grossProfit - scope.row?.directCar + scope.row?.refundDifference + scope.row?.returnCost2 + scope.row?.supplierReshipCost + scope.row?.warehouseErrorLoss + scope.row?.cancelOrderRmb) / scope.row?.total * 100).toFixed(1) + '%' }}</span>-->
+        <!--</template>-->
       </el-table-column>
       <!--<el-table-column label="半托管营业额" align="center" prop="half托管Revenue" width="120" sortable/>-->
       <!--<el-table-column label="半托管利润" align="center" prop="half托管Profit" width="120" sortable/>-->
