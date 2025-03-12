@@ -57,6 +57,7 @@
             placeholder="请选择月份"
             clearable
         >
+          <el-option label="2025-02" value="2025-02"></el-option>
           <el-option label="2025-01" value="2025-01"></el-option>
           <el-option label="2024-12" value="2024-12"></el-option>
           <el-option label="2024-11" value="2024-11"></el-option>
@@ -406,7 +407,7 @@ const data = reactive({
     storeManager: null,
     category: '全托管',
     moneyType: null,
-    mouth: '2025-01',
+    mouth: '2025-02',
     orderAmount: null,
     shippingFee: null,
     otherIncome: null,
@@ -669,7 +670,7 @@ function resetQuery() {
   proxy.resetForm("queryRef");
   selectedCategories.value = ['全托管'];
   queryParams.value.category = '全托管';
-  queryParams.value.mouth = '2025-01';
+  queryParams.value.mouth = '2025-02';
   handleQuery();
 }
 
@@ -733,7 +734,7 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('profit/profit/export', {
+  proxy.download('profit/profit/exportAuto', {
     ...queryParams.value
   }, `profit_${new Date().getTime()}.xlsx`);
 }
